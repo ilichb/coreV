@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANDROMEDA CORE — Dispute & Slashing Flow</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --steel-bg: #0a0b0e;
+    --panel-border: #1e2430;
+    --accent-red: #ff3a3a;
+    --accent-orange: #ff7a20;
+    --chrome-light: #e8eaed;
+    --chrome-mid: #9aa0a8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--steel-bg);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh; overflow-x: auto;
+  }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background-image:
+      radial-gradient(1px 1px at 6%  14%, rgba(255,255,255,0.5) 0%,transparent 100%),
+      radial-gradient(1px 1px at 22% 78%, rgba(255,255,255,0.35) 0%,transparent 100%),
+      radial-gradient(1.5px 1.5px at 48% 20%, rgba(200,220,255,0.4) 0%,transparent 100%),
+      radial-gradient(1px 1px at 74% 62%, rgba(255,255,255,0.3) 0%,transparent 100%),
+      radial-gradient(1px 1px at 91% 19%, rgba(255,255,255,0.45) 0%,transparent 100%),
+      radial-gradient(1px 1px at 36% 52%, rgba(255,255,255,0.28) 0%,transparent 100%),
+      radial-gradient(1px 1px at 62% 86%, rgba(200,210,255,0.33) 0%,transparent 100%),
+      radial-gradient(1px 1px at 14% 44%, rgba(255,255,255,0.26) 0%,transparent 100%),
+      radial-gradient(1px 1px at 83% 57%, rgba(255,255,255,0.36) 0%,transparent 100%),
+      radial-gradient(1px 1px at 46% 7%,  rgba(255,255,255,0.42) 0%,transparent 100%);
+    pointer-events:none; z-index:0;
+  }
+  body::after {
+    content:''; position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(255,58,58,0.015) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,58,58,0.015) 1px,transparent 1px);
+    background-size:48px 48px;
+    pointer-events:none; z-index:0;
+  }
+  .page-wrapper {
+    position:relative; z-index:1;
+    max-width:1140px; margin:0 auto; padding:44px 32px 64px;
+  }
+
+  /* HEADER */
+  .header { text-align:center; margin-bottom:50px; }
+  .header-emblem {
+    width:100px; height:100px; border-radius:50%;
+    background:radial-gradient(circle at 38% 33%,#1e1a18,#060406);
+    margin:0 auto 18px; display:flex; align-items:center; justify-content:center;
+    box-shadow:
+      0 0 0 3px #301a18, 0 0 0 5px #1a1010, 0 0 0 7px #0d0808,
+      0 0 36px rgba(255,58,58,0.14),
+      inset 0 2px 5px rgba(255,255,255,0.07),
+      inset 0 -2px 5px rgba(0,0,0,0.6);
+    position:relative;
+  }
+  .header-emblem::before {
+    content:''; position:absolute; inset:-9px; border-radius:50%;
+    border:2px solid transparent;
+    background:conic-gradient(
+      from 0deg,
+      #402020 0deg,#ff3a3a 55deg,#402020 110deg,
+      #ff7a20 180deg,#402020 235deg,#ff3a3a 295deg,#402020 360deg
+    ) border-box;
+    -webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);
+    -webkit-mask-composite:destination-out; mask-composite:exclude;
+    animation:rotateBorder 8s linear infinite;
+  }
+  @keyframes rotateBorder{to{transform:rotate(360deg);}}
+  .planet-icon{width:58px;height:58px;position:relative;}
+  .planet-sphere{
+    width:36px;height:36px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#e8c8c0 0%,#b07060 30%,#803020 60%,#280808 100%);
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    box-shadow:0 2px 10px rgba(0,0,0,0.9),inset 0 2px 4px rgba(255,160,120,0.2);
+  }
+  .planet-ring{
+    position:absolute;width:58px;height:17px;
+    border:2.5px solid rgba(255,140,100,0.55);border-radius:50%;
+    top:50%;left:50%;transform:translate(-50%,-50%) rotateX(64deg);
+    box-shadow:0 0 8px rgba(255,80,40,0.3);
+  }
+  .logo-main{
+    font-family:'Orbitron',monospace;
+    font-size:44px;font-weight:900;font-style:italic;
+    letter-spacing:5px;line-height:1;
+    background:linear-gradient(180deg,#ffffff 0%,#d0d8e0 20%,#a0b0c0 40%,#e8f0f8 55%,#788898 70%,#404850 100%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    filter:drop-shadow(0 0 20px rgba(255,58,58,0.22));
+  }
+  .logo-sub{
+    font-family:'Orbitron',monospace;
+    font-size:13px;font-weight:400;letter-spacing:14px;
+    color:var(--chrome-mid);margin-top:5px;text-transform:uppercase;
+  }
+  .header-tagline{
+    font-family:'Share Tech Mono',monospace;
+    font-size:12px;color:rgba(255,100,60,0.5);
+    letter-spacing:3px;margin-top:14px;text-transform:uppercase;
+  }
+  .header-divider{
+    height:1px;
+    background:linear-gradient(90deg,transparent,rgba(255,58,58,0.4),rgba(255,122,32,0.35),transparent);
+    margin-top:26px;position:relative;
+  }
+  .header-divider::after{
+    content:'◆';position:absolute;top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    color:var(--accent-red);font-size:9px;
+    background:var(--steel-bg);padding:0 10px;
+  }
+
+  /* DIAGRAM CARD */
+  .diagram-card{
+    border:1px solid #2a1818;
+    border-top:2px solid #ff3a3a;
+    border-radius:4px;
+    background:linear-gradient(160deg,#110d0d 0%,#090808 100%);
+    position:relative;overflow:hidden;
+    animation:fadeIn 0.7s ease both;
+  }
+  @keyframes fadeIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  .diagram-card::before{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(135deg,rgba(255,80,40,0.025) 0%,transparent 55%,rgba(0,0,0,0.2) 100%);
+    pointer-events:none;
+  }
+  /* scan line on load */
+  .diagram-card::after{
+    content:'';position:absolute;
+    top:-100%;left:0;width:100%;height:2px;
+    background:linear-gradient(90deg,transparent,rgba(255,58,58,0.35),transparent);
+    animation:scanOnce 1.2s ease 0.5s forwards;
+  }
+  @keyframes scanOnce{to{top:100%;}}
+
+  .corner{position:absolute;width:10px;height:10px;border-color:rgba(255,58,58,0.2);border-style:solid;}
+  .corner-tl{top:0;left:0;border-width:1px 0 0 1px;}
+  .corner-tr{top:0;right:0;border-width:1px 1px 0 0;}
+  .corner-bl{bottom:0;left:0;border-width:0 0 1px 1px;}
+  .corner-br{bottom:0;right:0;border-width:0 1px 1px 0;}
+
+  .diagram-inner{padding:32px 36px 12px;overflow-x:auto;}
+
+  /* TABLE */
+  .seq-table{
+    width:100%;min-width:820px;
+    border-collapse:separate;border-spacing:0;
+  }
+
+  /* Actor cells */
+  .actor-cell{padding:0 6px 26px;text-align:center;vertical-align:bottom;}
+  .actor-pill{
+    display:inline-flex;flex-direction:column;align-items:center;gap:7px;
+    padding:11px 14px 12px;border-radius:3px;
+    border:1px solid rgba(255,255,255,0.07);
+    background:linear-gradient(160deg,rgba(255,255,255,0.03),rgba(0,0,0,0.25));
+    min-width:120px;position:relative;overflow:hidden;transition:all 0.25s;
+  }
+  .actor-pill::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.11),transparent);
+  }
+  .actor-pill:hover{transform:translateY(-2px);}
+  .actor-icon{font-size:22px;line-height:1;}
+  .actor-name{
+    font-family:'Orbitron',monospace;
+    font-size:10.5px;font-weight:700;
+    letter-spacing:1.5px;text-transform:uppercase;line-height:1.25;text-align:center;
+  }
+  .actor-sub{
+    font-family:'Share Tech Mono',monospace;
+    font-size:9px;color:rgba(120,110,110,0.6);letter-spacing:1px;
+  }
+
+  .a-dispute .actor-pill{border-top:2px solid rgba(255,58,58,0.55);}
+  .a-dispute .actor-name{background:linear-gradient(90deg,#d42020,#ff5555);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+  .a-slash .actor-pill{border-top:2px solid rgba(255,122,32,0.55);}
+  .a-slash .actor-name{background:linear-gradient(90deg,#e05010,#ff9040);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+  .a-asc .actor-pill{border-top:2px solid rgba(220,180,40,0.55);}
+  .a-asc .actor-name{background:linear-gradient(90deg,#c0a020,#ffd050);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+  .a-algo .actor-pill{border-top:2px solid rgba(0,168,150,0.55);}
+  .a-algo .actor-name{background:linear-gradient(90deg,#00a896,#00d4b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+  .a-db .actor-pill{border-top:2px solid rgba(130,100,220,0.55);}
+  .a-db .actor-name{background:linear-gradient(90deg,#8060c0,#b090f0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+  /* Lifelines */
+  .ll{position:relative;text-align:center;padding:0;}
+  .ll::before{
+    content:'';position:absolute;
+    top:0;bottom:0;left:50%;width:1px;transform:translateX(-50%);
+    background:linear-gradient(180deg,rgba(80,40,40,0.55),rgba(55,25,25,0.38));
+  }
+
+  /* Arrow rows */
+  .arrow-row{height:62px;}
+  .arrow-row td{padding:0;}
+  .arrow-cell{position:relative;padding:0 !important;}
+  .arrow-wrap{position:relative;height:62px;display:flex;align-items:center;}
+  .ll-inner{
+    position:absolute;top:0;bottom:0;width:1px;
+    background:linear-gradient(180deg,rgba(80,40,40,0.55),rgba(55,25,25,0.38));
+  }
+  .arrow-line{
+    position:absolute;height:2px;border-radius:1px;
+    top:50%;transform:translateY(-50%);
+  }
+  .arrow-line.right::after{
+    content:'';position:absolute;
+    right:-1px;top:50%;transform:translateY(-50%);
+    border-top:5px solid transparent;border-bottom:5px solid transparent;
+    border-left:8px solid currentColor;
+  }
+  .arrow-line.left::after{
+    content:'';position:absolute;
+    left:-1px;top:50%;transform:translateY(-50%);
+    border-top:5px solid transparent;border-bottom:5px solid transparent;
+    border-right:8px solid currentColor;
+  }
+  .arrow-label{
+    position:absolute;
+    top:calc(50% - 22px);
+    font-family:'Share Tech Mono',monospace;
+    font-size:12.5px;font-weight:500;
+    letter-spacing:0.4px;white-space:nowrap;pointer-events:none;line-height:1;
+  }
+  .arrow-note{
+    position:absolute;bottom:5px;
+    font-family:'Rajdhani',sans-serif;
+    font-size:11.5px;color:rgba(160,130,120,0.42);
+    font-style:italic;letter-spacing:0.3px;white-space:nowrap;
+  }
+
+  /* Phase rows */
+  .phase-row td{padding:0;}
+  .phase-label-cell{padding:14px 0 5px !important;}
+  .phase-badge{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:5px 14px 5px 10px;
+    border-radius:2px;border-left:3px solid;
+    background:rgba(255,255,255,0.018);
+  }
+  .phase-badge-dot{
+    width:7px;height:7px;border-radius:50%;
+    animation:pulse 2s ease infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(0.65);}}
+  .phase-text{
+    font-family:'Orbitron',monospace;
+    font-size:10px;font-weight:700;
+    letter-spacing:2px;text-transform:uppercase;
+  }
+
+  .phase-dispute .phase-badge{border-color:rgba(255,58,58,0.55);}
+  .phase-dispute .phase-text{color:rgba(255,100,80,0.85);}
+  .phase-dispute .phase-badge-dot{background:#ff3a3a;}
+
+  .phase-calc .phase-badge{border-color:rgba(255,122,32,0.55);}
+  .phase-calc .phase-text{color:rgba(255,150,70,0.85);}
+  .phase-calc .phase-badge-dot{background:#ff7a20;}
+
+  .phase-exec .phase-badge{border-color:rgba(220,180,40,0.55);}
+  .phase-exec .phase-text{color:rgba(230,200,60,0.85);}
+  .phase-exec .phase-badge-dot{background:#ddb820;}
+
+  .phase-record .phase-badge{border-color:rgba(130,100,220,0.55);}
+  .phase-record .phase-text{color:rgba(160,130,250,0.85);}
+  .phase-record .phase-badge-dot{background:#9070e0;}
+
+  .spacer-row td{height:8px;}
+
+  /* Legend */
+  .legend{
+    display:flex;flex-wrap:wrap;gap:22px;
+    padding:16px 20px;
+    border:1px solid rgba(255,80,40,0.07);
+    border-radius:3px;
+    background:rgba(255,50,30,0.012);
+  }
+  .legend-item{
+    display:flex;align-items:center;gap:9px;
+    font-family:'Rajdhani',sans-serif;
+    font-size:13.5px;font-weight:500;
+    color:rgba(180,155,145,0.6);
+  }
+  .legend-line{width:36px;height:2px;border-radius:1px;flex-shrink:0;position:relative;}
+  .legend-line::after{
+    content:'';position:absolute;
+    right:0;top:50%;transform:translateY(-50%);
+    border-top:4px solid transparent;border-bottom:4px solid transparent;
+  }
+  .ll-dispute{background:#ff3a3a;}
+  .ll-dispute::after{border-left:6px solid #ff3a3a;}
+  .ll-slash{background:#ff7a20;}
+  .ll-slash::after{border-left:6px solid #ff7a20;}
+  .ll-chain{background:#00a896;}
+  .ll-chain::after{border-left:6px solid #00a896;}
+  .ll-ret{background:rgba(160,140,130,0.65);}
+  .ll-ret::after{border-left:6px solid rgba(160,140,130,0.65);}
+  .ll-db{background:#9070e0;}
+  .ll-db::after{border-left:6px solid #9070e0;}
+
+  /* Footer */
+  .footer{margin-top:44px;text-align:center;}
+  .footer-line{
+    height:1px;
+    background:linear-gradient(90deg,transparent,rgba(255,58,58,0.2),transparent);
+    margin-bottom:14px;
+  }
+  .footer-text{
+    font-family:'Share Tech Mono',monospace;
+    font-size:9px;color:rgba(255,58,58,0.2);
+    letter-spacing:3px;text-transform:uppercase;
+  }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <div class="header">
+    <div class="header-emblem">
+      <div class="planet-icon">
+        <div class="planet-sphere"></div>
+        <div class="planet-ring"></div>
+      </div>
+    </div>
+    <div class="logo-main">ANDROMEDA</div>
+    <div class="logo-sub">CORE</div>
+    <div class="header-tagline">// DISPUTE SYSTEM — SLASHING ENGINE SEQUENCE FLOW</div>
+    <div class="header-divider"></div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
+
+    <div class="diagram-inner">
+      <table class="seq-table">
+        <colgroup>
+          <col style="width:20%"><col style="width:20%">
+          <col style="width:20%"><col style="width:20%"><col style="width:20%">
+        </colgroup>
+        <thead>
+          <tr>
+            <td class="actor-cell a-dispute">
+              <div class="actor-pill">
+                <div class="actor-icon">⚖️</div>
+                <div class="actor-name">Dispute System</div>
+                <div class="actor-sub">Resolution Module</div>
+              </div>
+            </td>
+            <td class="actor-cell a-slash">
+              <div class="actor-pill">
+                <div class="actor-icon">⚡</div>
+                <div class="actor-name">Slashing Engine</div>
+                <div class="actor-sub">Penalty Calculator</div>
+              </div>
+            </td>
+            <td class="actor-cell a-asc">
+              <div class="actor-pill">
+                <div class="actor-icon">📜</div>
+                <div class="actor-name">ASC1 Contract</div>
+                <div class="actor-sub">TEAL Smart Contract</div>
+              </div>
+            </td>
+            <td class="actor-cell a-algo">
+              <div class="actor-pill">
+                <div class="actor-icon">⛓</div>
+                <div class="actor-name">Algorand</div>
+                <div class="actor-sub">Blockchain / AVM</div>
+              </div>
+            </td>
+            <td class="actor-cell a-db">
+              <div class="actor-pill">
+                <div class="actor-icon">🗄</div>
+                <div class="actor-name">Database</div>
+                <div class="actor-sub">Supabase / Mongo</div>
+              </div>
+            </td>
+          </tr>
+        </thead>
+        <tbody id="seq-body"></tbody>
+      </table>
+    </div>
+
+    <div style="padding:0 36px 28px;">
+      <div class="legend">
+        <div class="legend-item"><div class="legend-line ll-dispute"></div>Dispute signal</div>
+        <div class="legend-item"><div class="legend-line ll-slash"></div>Slash execution</div>
+        <div class="legend-item"><div class="legend-line ll-chain"></div>On-chain tx / inner tx</div>
+        <div class="legend-item"><div class="legend-line ll-ret"></div>Return / response</div>
+        <div class="legend-item"><div class="legend-line ll-db"></div>Database write</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-line"></div>
+    <div class="footer-text">ANDROMEDA CORE — SLASHING ENGINE FLOW v1.0 // CLASSIFIED INTERNAL DOCUMENT</div>
+  </div>
+</div>
+
+<script>
+const COLS = 5;
+const C = {
+  dispute: '#ff3a3a',
+  slash:   '#ff7a20',
+  asc:     '#ddb820',
+  chain:   '#00a896',
+  ret:     'rgba(168,148,138,0.75)',
+  db:      '#9070e0',
+};
+
+const steps = [
+  { type:'phase', phase:'dispute', label:'Phase 01 — Dispute Resolution Signal' },
+  { type:'arrow', from:0, to:1, color:'dispute',
+    label:'dispute resolved(entityId, severity)', note:'Dispute verdict emitted — penalty enforcement triggered' },
+
+  { type:'spacer' },
+  { type:'phase', phase:'calc', label:'Phase 02 — Slash Amount Calculation' },
+  { type:'arrow', from:1, to:2, color:'slash',
+    label:'calculateSlash(stake, severity)', note:'Passes stake snapshot and infraction severity score' },
+  { type:'arrow', from:2, to:1, color:'ret',
+    label:'← amount: ALGO', note:'Returns computed slash penalty amount' },
+
+  { type:'spacer' },
+  { type:'phase', phase:'exec', label:'Phase 03 — On-Chain Slash Execution' },
+  { type:'arrow', from:1, to:2, color:'slash',
+    label:'call slash(recipient, amount)', note:'Invokes TEAL smart contract slash method' },
+  { type:'arrow', from:2, to:3, color:'chain',
+    label:'inner tx → slash transfer', note:'ASC1 emits inner transaction on Algorand AVM' },
+  { type:'arrow', from:3, to:2, color:'ret',
+    label:'← confirmed', note:'Chain confirms inner transaction finality' },
+  { type:'arrow', from:2, to:1, color:'ret',
+    label:'← txId', note:'Contract returns on-chain transaction ID' },
+
+  { type:'spacer' },
+  { type:'phase', phase:'record', label:'Phase 04 — Stake Update & Audit Log' },
+  { type:'arrow', from:1, to:4, color:'db',
+    label:'updateStake(entityId, newBalance)', note:'Persists updated stake after penalty deduction' },
+  { type:'arrow', from:1, to:4, color:'db',
+    label:'logSlashing(txId, amount, reason)', note:'Immutable slashing audit record written to DB' },
+];
+
+const tbody = document.getElementById('seq-body');
+
+steps.forEach(step => {
+  if (step.type === 'spacer') {
+    const tr = document.createElement('tr');
+    tr.className = 'spacer-row';
+    for (let i=0;i<COLS;i++){const td=document.createElement('td');td.className='ll';tr.appendChild(td);}
+    tbody.appendChild(tr); return;
+  }
+  if (step.type === 'phase') {
+    const tr = document.createElement('tr');
+    tr.className = 'phase-row';
+    const td = document.createElement('td');
+    td.colSpan = COLS;
+    td.className = `phase-label-cell phase-${step.phase}`;
+    td.innerHTML = `<div class="phase-badge"><div class="phase-badge-dot"></div><div class="phase-text">${step.label}</div></div>`;
+    tr.appendChild(td); tbody.appendChild(tr); return;
+  }
+  if (step.type === 'arrow') {
+    const tr = document.createElement('tr');
+    tr.className = 'arrow-row';
+    const color = C[step.color] || C.ret;
+    const from=step.from, to=step.to;
+    const minCol=Math.min(from,to), maxCol=Math.max(from,to);
+    const span=maxCol-minCol;
+    const goRight=to>from;
+
+    for (let c=0;c<COLS;c++) {
+      if (c===minCol) {
+        const td=document.createElement('td');
+        td.className='arrow-cell'; td.colSpan=span+1;
+        const wrap=document.createElement('div');
+        wrap.className='arrow-wrap';
+
+        for (let lc=minCol;lc<=maxCol;lc++) {
+          const ll=document.createElement('div');
+          ll.className='ll-inner';
+          ll.style.left=`calc(${((lc-minCol)/span)*100}% - 0.5px)`;
+          wrap.appendChild(ll);
+        }
+
+        const line=document.createElement('div');
+        line.className=`arrow-line ${goRight?'right':'left'}`;
+        line.style.color=color; line.style.backgroundColor=color;
+        const left=Math.min(((from-minCol)/span)*100,((to-minCol)/span)*100);
+        const right=100-Math.max(((from-minCol)/span)*100,((to-minCol)/span)*100);
+        line.style.left=`${left}%`; line.style.right=`${right}%`;
+
+        const lbl=document.createElement('div');
+        lbl.className='arrow-label';
+        lbl.style.color=color;
+        lbl.style.filter=`drop-shadow(0 0 5px ${color}60)`;
+        lbl.style.left=`${left+1.5}%`;
+        lbl.textContent=step.label;
+
+        wrap.appendChild(line); wrap.appendChild(lbl);
+
+        if (step.note) {
+          const note=document.createElement('div');
+          note.className='arrow-note';
+          note.style.left=`${left+1.5}%`;
+          note.textContent=step.note;
+          wrap.appendChild(note);
+        }
+
+        td.appendChild(wrap); tr.appendChild(td);
+      } else if (c>minCol && c<=maxCol) {
+        continue;
+      } else {
+        const td=document.createElement('td'); td.className='ll'; tr.appendChild(td);
+      }
+    }
+    tbody.appendChild(tr);
+  }
+});
+</script>
+</body>
+</html>

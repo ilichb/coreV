@@ -1,0 +1,32 @@
+{
+  "name": "andromeda-shared",
+  "version": "0.1.0",
+  "description": "Biblioteca compartida entre Andromeda Computer (Landing) y Andromeda Core Platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./types": "./dist/types/andromeda.js",
+    "./constants": "./dist/constants/invariants.js"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "keywords": [
+    "andromeda",
+    "shared",
+    "types",
+    "constants"
+  ],
+  "author": "Andromeda Team",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}

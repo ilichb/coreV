@@ -1,0 +1,32 @@
+FROM rust:1.75-slim AS builder
+
+# Instalar dependencias
+RUN apt-get update && apt-get install -y \
+    binaryen \
+    clang \
+    cmake \
+    protobuf-compiler \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalar target WebAssembly
+RUN rustup target add wasm32-unknown-unknown
+
+WORKDIR /app/contracts/vara-registry
+
+# Copiar solo los archivos necesarios para caching
+COPY contracts/vara-registry/Cargo.toml .
+COPY contracts/vara-registry/Cargo.lock .
+COPY contracts/vara-registry/build.rs .
+RUN mkdir -p src && echo "fn main() {}" > src/lib.rs
+
+# Build de dependencias
+RUN cargo build --release --target=wasm32-unknown-unknown
+
+# Ahora copiar el código real
+COPY contracts/vara-registry/src/ src/
+
+# Re-build con código real
+RUN touch src/lib.rs && cargo build --release --target=wasm32-unknown-unknown
+
+# Verificar WASM generado
+RUN find target -name "*.wasm" -type f -exec ls -lh {} \;

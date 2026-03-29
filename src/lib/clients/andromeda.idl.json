@@ -1,0 +1,119 @@
+{
+  "name": "Andromeda",
+  "methods": {
+    "SubmitProject": {
+      "type": "mutation",
+      "params": [
+        {
+          "name": "merkle_root",
+          "type": "String"
+        },
+        {
+          "name": "ipfs_cid",
+          "type": "String"
+        },
+        {
+          "name": "ecosystem",
+          "type": "String"
+        },
+        {
+          "name": "dao_identifier",
+          "type": "String"
+        },
+        {
+          "name": "builder_did",
+          "type": "String"
+        },
+        {
+          "name": "tags",
+          "type": "Vec<String>"
+        }
+      ],
+      "returns": {
+        "type": "Event"
+      }
+    },
+    "QueryBuilderHistory": {
+      "type": "query",
+      "params": [
+        {
+          "name": "builder_did",
+          "type": "String"
+        }
+      ],
+      "returns": {
+        "type": "Event"
+      }
+    },
+    "QueryEcosystem": {
+      "type": "query",
+      "params": [
+        {
+          "name": "ecosystem",
+          "type": "String"
+        }
+      ],
+      "returns": {
+        "type": "Event"
+      }
+    },
+    "SearchProjects": {
+      "type": "query",
+      "params": [
+        {
+          "name": "tag",
+          "type": "String"
+        }
+      ],
+      "returns": {
+        "type": "Event"
+      }
+    },
+    "GetStats": {
+      "type": "query",
+      "params": [],
+      "returns": {
+        "type": "(u64, u64)"
+      }
+    }
+  },
+  "types": {
+    "ProjectRecord": {
+      "merkle_root": "String",
+      "ipfs_cid": "String",
+      "ecosystem": "String",
+      "dao_identifier": "String",
+      "builder_did": "String",
+      "tags": "Vec<String>",
+      "timestamp": "u64"
+    },
+    "BuilderIdentity": {
+      "did": "String",
+      "reputation_score": "u64",
+      "total_projects": "u64"
+    },
+    "Event": {
+      "variant": "enum",
+      "values": {
+        "ProjectSubmitted": {
+          "project_id": "H256",
+          "builder": "String"
+        },
+        "BuilderHistory": {
+          "projects": "Vec<ProjectRecord>",
+          "stats": "BuilderIdentity"
+        },
+        "EcosystemStats": {
+          "ecosystem": "String",
+          "total_projects": "u64",
+          "projects": "Vec<ProjectRecord>"
+        },
+        "SearchResults": {
+          "tag": "String",
+          "projects": "Vec<ProjectRecord>"
+        },
+        "Error": "String"
+      }
+    }
+  }
+}

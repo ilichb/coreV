@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+/* Debug temporal - eliminar después */
+.debug * {
+  outline: 1px solid rgba(255, 0, 0, 0.3) !important;
+}
+
+.debug-layout {
+  outline: 2px solid #00ff00 !important;
+}
+
+.debug-sidebar {
+  outline: 2px solid #0000ff !important;
+}
+
+.debug-content {
+  outline: 2px solid #ffff00 !important;
+}
+
+/* --- RAINBOWKIT MODAL CENTERED POPUP FIX --- */
+
+/* Ensure the RainbowKit portal has a high enough z-index to be above the HUD */
+[data-rk] {
+  --rk-zIndices-modal: 999999 !important;
+}
+
+/* 
+  With the styles.css now imported, RainbowKit should handle centering.
+  We only add this if the user still sees it offset by the sidebar.
+*/
+[data-rk] div[role="dialog"] {
+  z-index: 999999 !important;
+}
+
+/* Centrado forzado suave si RainbowKit intenta usar posiciones fijas relativas a la ventana */
+div[data-rk]>div[style*="fixed"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(4px) !important;
+}

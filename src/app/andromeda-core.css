@@ -1,0 +1,175 @@
+/* === ANDROMEDA CORE — MASTER STYLES === */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap');
+
+.design-andromeda-core {
+    /* === FOUNDATIONS === */
+    --bg-void: #0a0b0e;
+    --bg-surface: #0d0f14;
+    --bg-elevated: #111520;
+    --bg-overlay: #0f1218;
+
+    /* === BORDERS === */
+    --border-subtle: #1e2430;
+    --border-muted: #253040;
+    --border-active: rgba(0, 212, 255, 0.25);
+
+    /* === TEXT === */
+    --text-primary: #e8eaed;
+    --text-secondary: #9aa0a8;
+    --text-muted: #5a6270;
+    --text-accent: #00d4ff;
+    --text-code: #c0cad6;
+
+    /* === ACCENTS === */
+    --cyan: #00d4ff;
+    --blue: #0066ff;
+    --teal: #00a896;
+    --green: #00c882;
+    --orange: #ff7a20;
+    --red: #ff3a3a;
+    --purple: #9070e0;
+    --gold: #dda840;
+
+    --chrome-gradient: linear-gradient(180deg, #ffffff 0%, #d0d8e0 20%, #a0b0c0 40%, #e8f0f8 55%, #788898 70%, #404850 100%);
+
+    background-color: var(--bg-void);
+    color: var(--text-primary);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* === BACKGROUND ATMOSPHERE === */
+.design-andromeda-core::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+        radial-gradient(1px 1px at 8% 12%, rgba(255, 255, 255, 0.45) 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 75%, rgba(255, 255, 255, 0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 50% 20%, rgba(200, 220, 255, 0.38) 0%, transparent 100%),
+        radial-gradient(1px 1px at 73% 63%, rgba(255, 255, 255, 0.28) 0%, transparent 100%),
+        radial-gradient(1px 1px at 91% 18%, rgba(255, 255, 255, 0.4) 0%, transparent 100%);
+}
+
+.design-andromeda-core::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+        linear-gradient(rgba(0, 212, 255, 0.012) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 255, 0.012) 1px, transparent 1px);
+    background-size: 48px 48px;
+}
+
+/* === COMPONENT PATTERNS === */
+
+.design-andromeda-core .panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    animation: fadeSlideIn 0.4s ease both;
+}
+
+.design-andromeda-core .panel:hover {
+    border-color: rgba(0, 212, 255, 0.18);
+    box-shadow: 0 0 24px rgba(0, 212, 255, 0.04);
+}
+
+.design-andromeda-core .panel-primary {
+    border-top: 2px solid var(--cyan);
+}
+
+/* Corner accents */
+.design-andromeda-core .panel-corner {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-color: rgba(0, 212, 255, 0.2);
+    border-style: solid;
+    pointer-events: none;
+}
+
+.design-andromeda-core .tl {
+    top: 0;
+    left: 0;
+    border-width: 1px 0 0 1px;
+}
+
+.design-andromeda-core .tr {
+    top: 0;
+    right: 0;
+    border-width: 1px 1px 0 0;
+}
+
+.design-andromeda-core .bl {
+    bottom: 0;
+    left: 0;
+    border-width: 0 0 1px 1px;
+}
+
+.design-andromeda-core .br {
+    bottom: 0;
+    right: 0;
+    border-width: 0 1px 1px 0;
+}
+
+/* Typography usage */
+.design-andromeda-core .title-orbitron {
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: var(--chrome-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.design-andromeda-core .text-mono {
+    font-family: 'Share Tech Mono', monospace;
+}
+
+/* Animations */
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.4;
+        transform: scale(0.6);
+    }
+}

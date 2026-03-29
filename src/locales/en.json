@@ -1,0 +1,966 @@
+{
+  "common": {
+    "andromeda": "ANDROMEDA",
+    "computer": "COMPUTER",
+    "system": "SYSTEM",
+    "protocol": "PROTOCOL",
+    "layer": "LAYER",
+    "validation": "VALIDATION",
+    "registry": "REGISTRY",
+    "coordination": "COORDINATION",
+    "intelligence": "INTELLIGENCE",
+    "status": "STATUS",
+    "active": "ACTIVE",
+    "operational": "OPERATIONAL",
+    "loading": "LOADING...",
+    "error": "ERROR",
+    "success": "SUCCESS",
+    "warning": "WARNING",
+    "submit": "SUBMIT",
+    "cancel": "CANCEL",
+    "next": "NEXT",
+    "previous": "PREVIOUS",
+    "save": "SAVE",
+    "delete": "DELETE",
+    "edit": "EDIT",
+    "view": "VIEW",
+    "search": "SEARCH",
+    "filter": "FILTER",
+    "sort": "SORT",
+    "refresh": "REFRESH",
+    "connect": "CONNECT",
+    "disconnect": "DISCONNECT",
+    "sign": "SIGN",
+    "verify": "VERIFY",
+    "publish": "PUBLISH",
+    "metrics": "METRICS",
+    "dashboard": "DASHBOARD",
+    "settings": "SETTINGS",
+    "help": "HELP",
+    "about": "ABOUT",
+    "contact": "CONTACT",
+    "documentation": "DOCUMENTATION",
+    "language": "LANGUAGE",
+    "theme": "THEME",
+    "dark": "DARK",
+    "light": "LIGHT",
+    "industrial": "INDUSTRIAL",
+    "optional": "OPTIONAL",
+    "selectIndustry": "SELECT_INDUSTRY_CATEGORY"
+  },
+  "navigation": {
+    "home": "HOME",
+    "scorecard": "SCORECARD",
+    "registry": "REGISTRY",
+    "validate": "VALIDATE",
+    "audit": "AUDIT",
+    "intelligence": "INTELLIGENCE",
+    "rootstock": "ROOTSTOCK",
+    "debug": "DEBUG",
+    "desarrollo": "DEVELOPMENT",
+    "coordination": "COORDINATION",
+    "atlas": "ATLAS",
+    "explore": "EXPLORE",
+    "ranking": "RANKING",
+    "milestones": "MILESTONES",
+    "projects": "PROJECTS",
+    "builders": "BUILDERS"
+  },
+  "validation": {
+    "title": "VALIDATION_CORE",
+    "subtitle": "// CLARITY_DELTA_IS_THE_METRIC",
+    "scorecard": "SCORECARD",
+    "clarity": "CLARITY",
+    "coherence": "COHERENCE",
+    "completeness": "COMPLETENESS",
+    "integrity": "INTEGRITY",
+    "schema": "SCHEMA",
+    "rules": "RULES",
+    "errors": "ERRORS",
+    "warnings": "WARNINGS",
+    "passed": "PASSED",
+    "failed": "FAILED",
+    "threshold": "THRESHOLD",
+    "certificate": "CERTIFICATE",
+    "proof": "PROOF",
+    "signature": "SIGNATURE",
+    "timestamp": "TIMESTAMP",
+    "certified": "CERTIFIED",
+    "verified": "VERIFIED",
+    "pending": "PENDING",
+    "processing": "PROCESSING",
+    "complete": "COMPLETE",
+    "incomplete": "INCOMPLETE",
+    "valid": "VALID",
+    "invalid": "INVALID",
+    "review": "REVIEW",
+    "approve": "APPROVE",
+    "reject": "REJECT"
+  },
+  "registry": {
+    "title": "ON_CHAIN_REGISTRY",
+    "subtitle": "// IMMUTABILITY_IS_FREEDOM",
+    "records": "RECORDS",
+    "total": "TOTAL",
+    "sync": "SYNC",
+    "strength": "STRENGTH",
+    "integrity": "INTEGRITY",
+    "nodes": "NODES",
+    "ipfs": "IPFS",
+    "blockchain": "BLOCKCHAIN",
+    "transaction": "TRANSACTION",
+    "hash": "HASH",
+    "cid": "CID",
+    "metadata": "METADATA",
+    "author": "AUTHOR",
+    "created": "CREATED",
+    "updated": "UPDATED",
+    "published": "PUBLISHED",
+    "anchored": "ANCHORED",
+    "verified": "VERIFIED",
+    "explorer": "EXPLORER",
+    "view": "VIEW",
+    "download": "DOWNLOAD",
+    "share": "SHARE",
+    "export": "EXPORT",
+    "import": "IMPORT",
+    "backup": "BACKUP",
+    "restore": "RESTORE",
+    "archive": "ARCHIVE"
+  },
+  "intelligence": {
+    "title": "ECOSYSTEM_INTELLIGENCE",
+    "subtitle": "// DATA_DRIVEN_DECISION_MAKING",
+    "ecosystem": "ECOSYSTEM",
+    "metrics": "METRICS",
+    "analytics": "ANALYTICS",
+    "insights": "INSIGHTS",
+    "trends": "TRENDS",
+    "patterns": "PATTERNS",
+    "correlations": "CORRELATIONS",
+    "predictions": "PREDICTIONS",
+    "recommendations": "RECOMMENDATIONS",
+    "alerts": "ALERTS",
+    "monitoring": "MONITORING",
+    "tracking": "TRACKING",
+    "reporting": "REPORTING",
+    "dashboard": "DASHBOARD",
+    "visualization": "VISUALIZATION",
+    "graphs": "GRAPHS",
+    "charts": "CHARTS",
+    "tables": "TABLES",
+    "filters": "FILTERS",
+    "parameters": "PARAMETERS",
+    "dimensions": "DIMENSIONS",
+    "measures": "MEASURES",
+    "kpis": "KPIS",
+    "goals": "GOALS",
+    "performance": "PERFORMANCE",
+    "efficiency": "EFFICIENCY",
+    "productivity": "PRODUCTIVITY",
+    "quality": "QUALITY"
+  },
+  "errors": {
+    "generic": "SYSTEM_ERROR",
+    "network": "NETWORK_ERROR",
+    "timeout": "TIMEOUT",
+    "unauthorized": "UNAUTHORIZED",
+    "forbidden": "FORBIDDEN",
+    "notFound": "NOT_FOUND",
+    "server": "SERVER_ERROR",
+    "validation": "VALIDATION_ERROR",
+    "format": "FORMAT_ERROR",
+    "required": "FIELD_REQUIRED",
+    "invalid": "INVALID_VALUE",
+    "duplicate": "DUPLICATE",
+    "conflict": "CONFLICT",
+    "limit": "LIMIT_EXCEEDED",
+    "quota": "QUOTA_EXCEEDED",
+    "maintenance": "UNDER_MAINTENANCE",
+    "upgrade": "UPGRADE_REQUIRED",
+    "deprecated": "DEPRECATED",
+    "unsupported": "UNSUPPORTED",
+    "unknown": "UNKNOWN",
+    "retry": "RETRY",
+    "contactSupport": "CONTACT_SUPPORT",
+    "checkLogs": "CHECK_LOGS"
+  },
+  "scorecard": {
+    "title": "ANDROMEDA_SCORECARD_ENTRY",
+    "subtitle": "Decomposing collective intent into verifiable technical specifications",
+    "problem": "PROBLEM",
+    "boundaries": "BOUNDARIES",
+    "technical": "TECHNICAL",
+    "effort": "EFFORT",
+    "industry": "INDUSTRY",
+    "notify": "NOTIFY",
+    "step": "STEP",
+    "definition": "DEFINITION",
+    "affectedUsers": "AFFECTED_USERS",
+    "painPoints": "PAIN_POINTS",
+    "currentSituation": "CURRENT_SITUATION",
+    "includes": "INCLUDES",
+    "excludes": "EXCLUDES",
+    "assumptions": "ASSUMPTIONS",
+    "dependencies": "DEPENDENCIES",
+    "risks": "RISKS",
+    "complexity": "COMPLEXITY",
+    "teamType": "TEAM_TYPE",
+    "timeRange": "TIME_RANGE",
+    "resourceRange": "RESOURCE_RANGE",
+    "milestones": "MILESTONES",
+    "telegram": "TELEGRAM",
+    "email": "EMAIL",
+    "taxonomy": "TAXONOMY",
+    "category": "CATEGORY",
+    "sector": "SECTOR",
+    "subsector": "SUBSECTOR",
+    "industryType": "INDUSTRY_TYPE",
+    "transversal": "TRANSVERSAL"
+  },
+  "phrases": {
+    "clarityDeltaIsMetric": "// CLARITY_DELTA_IS_THE_METRIC",
+    "formatIsProduct": "// FORMAT_IS_THE_PRODUCT",
+    "immutabilityIsFreedom": "// IMMUTABILITY_IS_FREEDOM",
+    "allProcessesOnChainVerifiable": "// ALL_PROCESSES_ON_CHAIN_VERIFIABLE",
+    "persistentRecordSystem": "// PERSISTENT_RECORD_SYSTEM",
+    "realTimeValidationSystem": "// REAL_TIME_VALIDATION_SYSTEM",
+    "dataDrivenDecisionMaking": "// DATA_DRIVEN_DECISION_MAKING"
+  },
+  "actions": {
+    "testChallenge": "TEST_CHALLENGE",
+    "testValidation": "TEST_VALIDATION",
+    "validateChallenge": "VALIDATE_CHALLENGE",
+    "nextPhase": "NEXT_PHASE",
+    "submitRegistry": "SUBMIT_REGISTRY",
+    "viewOnIpfs": "VIEW_ON_IPFS",
+    "loadTemplate": "LOAD_CANONICAL_TEMPLATE",
+    "scrutinize": "SCRUTINIZE_SCORECARD_INVARIANTS",
+    "initiating": "INITIATING_DEEP_VALIDATION",
+    "processing": "PROCESSING..."
+  },
+  "DashboardUnified": {
+    "Navigation": {
+      "global": "GLOBAL",
+      "coordination": "COORDINATION",
+      "registry": "REGISTRY",
+      "audit": "AUDIT",
+      "devtools": "DEVTOOLS"
+    },
+    "Status": {
+      "systemOnline": "SYSTEM ONLINE",
+      "uptime": "UPTIME",
+      "latency": "LATENCY",
+      "memory": "MEMORY",
+      "secureConnection": "SECURE CONNECTION // TLS 1.3",
+      "sessionId": "ID: SESSION"
+    },
+    "Sidebar": {
+      "language": "LANG"
+    },
+    "Header": {
+      "title": "ANDROMEDA",
+      "core": "CORE",
+      "version": "v2.1.0-STABLE",
+      "systemOnline": "SYSTEM ONLINE"
+    }
+  },
+  "IntelligencePage": {
+    "Clock": {
+      "systemTime": "SYSTEM TIME"
+    },
+    "Logs": {
+      "initializing": "Initializing intelligence layer...",
+      "established": "Connection established with ATLAS nodes",
+      "latencySpike": "ALERT: Latency spike detected",
+      "batchSealed": "Scorecard batch sealed: #{num}",
+      "validationCompleted": "VARA validation completed",
+      "newProposal": "New Snapshot proposal",
+      "checkpointReached": "Checkpoint reached",
+      "latencyNormalized": "Latency normalized",
+      "integrityPassed": "Integrity test passed",
+      "bridgeConfirmed": "Bridge transaction confirmed"
+    },
+    "Titles": {
+      "telemetry": "SYSTEM TELEMETRY",
+      "bridge": "SYNC BRIDGE",
+      "monitor": "ACTIVITY MONITOR",
+      "status": "SYSTEM STATUS",
+      "scorecards": "DETECTED SCORECARDS",
+      "connectivity": "CONNECTIVITY & DATA SOURCES"
+    },
+    "SystemStatus": {
+      "coreServices": "Core Services",
+      "operational": "Operational",
+      "database": "Database",
+      "syncing": "Syncing",
+      "apiGateway": "API Gateway",
+      "healthy": "Healthy",
+      "realDataFlow": "Real Data Flow",
+      "active": "Active"
+    },
+    "DataSources": {
+      "arbitrum": "ARBITRUM DAOS",
+      "optimism": "OPTIMISM DAOS",
+      "snapshot": "SNAPSHOT SPACES",
+      "proposals": "RECENT PROPOSALS",
+      "connectedTally": "Connected Tally",
+      "monitored": "Monitored",
+      "last24h": "Last 24h",
+      "activeConnections": "Active real-time governance connections",
+      "networkGraphNote": "Network graph representing co-coordination relations"
+    }
+  },
+  "CoordinationPage": {
+    "Header": {
+      "phase": "PHASE 01: COORDINATION PROTOCOLS",
+      "title": "COORDINATION LAYER",
+      "layer": "LAYER",
+      "subtitle": "Transformation of collective intent into technically comparable artifacts.",
+      "protocolFee": "Protocol Fee",
+      "reimburse": "80% REIMBURSE ON REJECTION"
+    },
+    "Loading": {
+      "initializing": "Initializing coordination layer..."
+    },
+    "Nav": {
+      "scorecard": "Scorecard",
+      "registry": "Registry",
+      "validate": "Validate"
+    },
+    "Flow": {
+      "title": "Andromeda Flow",
+      "step1": "DEFINE SCORECARD",
+      "step1Desc": "Technical decomposition",
+      "step2": "VALIDATION",
+      "step2Desc": "Clarity Delta > 0.7",
+      "step3": "SIGN CHALLENGE",
+      "step3Desc": "EIP-712 Attestation",
+      "step4": "IPFS PUBLISH",
+      "step4Desc": "Registry sync",
+      "supportedNetworks": "Supported Networks:"
+    },
+    "Api": {
+      "title": "Rapid Access API",
+      "validate": "Validate",
+      "publish": "Publish"
+    },
+    "actions": {
+      "testChallenge": "Test Challenge",
+      "submitRegistry": "Submit to Registry"
+    },
+    "phrases": {
+      "allProcessesOnChainVerifiable": "All processes are on-chain verifiable"
+    },
+    "Footer": {
+      "originStatus": "Origin Status",
+      "foundational": "Foundational Documentation",
+      "status": "Status: Alpha Prod Phase",
+      "coreMetric": "Core Metric",
+      "clarityDelta": "Clarity Delta",
+      "validationStandard": "Single validation standard",
+      "nextDirectives": "Next Directives",
+      "governance": "DAO Governance Integration",
+      "multisig": "Multisig Verification",
+      "orchestration": "Cross-Chain Orchestration"
+    }
+  },
+  "RegistryPage": {
+    "Header": {
+      "phase": "PHASE 02: REGISTRY CORE",
+      "title": "ON-CHAIN REGISTRY",
+      "registry": "REGISTRY",
+      "subtitle": "Universal source of technical truth. Verifiable scorecards published to the distributed ledger for ecosystem cross-coordination.",
+      "globalStatus": "Global Status",
+      "operational": "OPERATIONAL",
+      "syncing": "Syncing with VARA Network",
+      "immutability": "// IMMUTABILITY IS FREEDOM",
+      "onChain": "ON-CHAIN"
+    },
+    "Loading": {
+      "initializing": "Initializing registry layer..."
+    },
+    "Metrics": {
+      "totalRecords": "TOTAL RECORDS",
+      "syncStrength": "SYNC STRENGTH",
+      "dataIntegrity": "DATA INTEGRITY",
+      "ipfsNodes": "IPFS NODES",
+      "verified": "Verified"
+    },
+    "Tabs": {
+      "registry": "Registry",
+      "atlas": "ATLAS Explore",
+      "scorecard": "Scorecard",
+      "validate": "Validate"
+    },
+    "Explorer": {
+      "registryTitle": "REGISTRY EXPLORER V1.0",
+      "atlasTitle": "ATLAS EXPLORE V1.0"
+    },
+    "phrases": {
+      "persistentRecordSystem": "Persistent Record System"
+    }
+  },
+  "AtlasExplore": {
+    "Stats": {
+      "totalBuilders": "TOTAL BUILDERS",
+      "activeIdentities": "Active Identities",
+      "totalProjects": "TOTAL PROJECTS",
+      "verifiedInitiatives": "Verified Initiatives",
+      "milestones": "MILESTONES",
+      "immutableRecords": "Immutable Records",
+      "avgImpact": "AVG IMPACT",
+      "score100": "Score / 100"
+    },
+    "Control": {
+      "title": "ATLAS EXPLORE CONTROL",
+      "searchPlaceholder": "SEARCH BUILDER / PROJECT / MILESTONE...",
+      "search": "SEARCH",
+      "refresh": "Refresh data",
+      "category": "CATEGORY",
+      "ecosystem": "ECOSYSTEM",
+      "viewMode": "VIEW MODE"
+    },
+    "Tabs": {
+      "builders": "BUILDERS",
+      "projects": "PROJECTS",
+      "feed": "FEED"
+    },
+    "Sections": {
+      "topBuilders": "TOP BUILDERS BY IMPACT",
+      "topProjects": "TOP PROJECTS BY IMPACT",
+      "recentActivity": "RECENT MILESTONE ACTIVITY",
+      "quickStats": "QUICK STATS",
+      "topCategories": "TOP CATEGORIES",
+      "systemStatus": "SYSTEM STATUS"
+    },
+    "QuickStats": {
+      "buildersOnline": "Builders Online",
+      "projectsToday": "Projects Today",
+      "avgImpactToday": "Avg. Impact Today",
+      "verificationRate": "Verification Rate"
+    },
+    "Status": {
+      "online": "ONLINE",
+      "offline": "OFFLINE",
+      "syncing": "SYNCING",
+      "optimized": "OPTIMIZED",
+      "active": "ACTIVE"
+    },
+    "Categories": {
+      "all": "All",
+      "defi": "DeFi",
+      "DeFi": "DeFi",
+      "governance": "Governance",
+      "Governance": "Governance",
+      "infrastructure": "Infrastructure",
+      "Infrastructure": "Infrastructure",
+      "refi": "ReFi",
+      "ReFi": "ReFi",
+      "social": "Social",
+      "Social": "Social",
+      "gaming": "Gaming",
+      "Gaming": "Gaming",
+      "ai": "AI",
+      "AI": "AI"
+    },
+    "BuilderRanking": {
+      "impact": "IMPACT",
+      "reputation": "REPUTATION",
+      "projects": "PROJECTS",
+      "buildersCount": "{count} BUILDERS",
+      "noBuilders": "NO BUILDERS FOUND",
+      "table": {
+        "rank": "RANK",
+        "builder": "BUILDER",
+        "impact": "IMPACT",
+        "reputation": "REPUTATION",
+        "projects": "PROJECTS",
+        "ecosystem": "ECOSYSTEM",
+        "activity": "ACTIVITY"
+      },
+      "chains": "{count} chains",
+      "displayed": "{count} BUILDERS DISPLAYED",
+      "avgImpact": "AVG IMPACT",
+      "avgReputation": "AVG REPUTATION",
+      "viewFull": "VIEW FULL RANKING →"
+    },
+    "ProjectRanking": {
+      "impact": "IMPACT",
+      "clarity": "CLARITY",
+      "funding": "FUNDING",
+      "projectsCount": "{count} PROJECTS",
+      "noProjects": "NO PROJECTS FOUND",
+      "table": {
+        "rank": "RANK",
+        "project": "PROJECT",
+        "impact": "IMPACT",
+        "clarity": "CLARITY",
+        "dao": "DAO",
+        "status": "STATUS",
+        "funding": "FUNDING"
+      },
+      "approval": "{rate}% approval",
+      "milestones": "{count} milestones",
+      "displayed": "{count} PROJECTS DISPLAYED",
+      "avgImpact": "AVG IMPACT",
+      "avgClarity": "AVG CLARITY",
+      "totalFunding": "TOTAL FUNDING",
+      "viewFull": "VIEW FULL RANKING →"
+    },
+    "MilestoneFeed": {
+      "filters": {
+        "all": "ALL",
+        "verified": "VERIFIED",
+        "pending": "PENDING",
+        "immutable": "IMMUTABLE"
+      },
+      "milestonesCount": "{count} MILESTONES",
+      "noMilestones": "NO MILESTONES FOUND",
+      "impact": "IMPACT",
+      "builder": "BUILDER",
+      "verification": "VERIFICATION",
+      "evidence": "EVIDENCE",
+      "attestations": "ATTESTATIONS",
+      "files": "{count} files",
+      "signers": "{count} signers",
+      "viewDetails": "VIEW DETAILS →",
+      "displayed": "{count} MILESTONES DISPLAYED",
+      "avgImpact": "AVG IMPACT",
+      "avgVerification": "AVG VERIFICATION",
+      "loadMore": "LOAD MORE →",
+      "verificationLevels": {
+        "0": "Self-Attestation",
+        "1": "Peer Review",
+        "2": "Protocol Consensus",
+        "3": "Math Proof",
+        "unknown": "Unknown"
+      }
+    },
+    "Footer": "ATLAS Network is a decentralized reputation protocol for global technical coordination. All data is cryptographically anchored."
+  },
+  "AuditPage": {
+    "Loading": {
+      "initializing": "Scanning system vulnerabilities..."
+    },
+    "Header": {
+      "phase": "PHASE 03: SECURITY & QUALITY AUDIT",
+      "title": "SECURITY & QUALITY AUDIT",
+      "subtitle": "Continuous assessment of protocol integrity and technical standard compliance.",
+      "riskLevel": "Risk Level",
+      "elevated": "ELEVATED",
+      "triggerScan": "START DIAGNOSTIC SCAN",
+      "runningScan": "RUNNING SCAN..."
+    },
+    "Nav": {
+      "overview": "Overview",
+      "logs": "Audit Logs",
+      "vulnerabilities": "Vulnerabilities",
+      "history": "Report History"
+    },
+    "Diagnostics": {
+      "supabase": "SUPABASE RLS STATUS",
+      "redis": "REDIS UPSTASH LATENCY",
+      "firewall": "ANDROMEDA CORE FIREWALL",
+      "active": "ACTIVE",
+      "healthy": "HEALTHY",
+      "shielded": "SHIELDED",
+      "monitoring": "ACTIVE MONITORING"
+    },
+    "Dashboard": {
+      "title": "AUDIT CONTROL PANEL",
+      "source": "SOURCE: ANDROMEDA SECURITY ORCHESTRATOR",
+      "filter": "Filter findings..."
+    },
+    "FooterLogs": {
+      "initialized": "CORE INITIALIZED",
+      "heartbeat": "SYSTEM HEARTBEAT OK",
+      "updated": "REGISTRY UPDATED",
+      "active": "VARA CONNECTION ACTIVE",
+      "surveillance": "PERMANENT SURVEILLANCE"
+    }
+  },
+  "DesarrolloPage": {
+    "Header": {
+      "phase": "DEVELOPMENT HUB V2.4",
+      "system": "SYSTEM",
+      "terminal": "TERMINAL",
+      "debugger": "DEBUGGER",
+      "subtitle": "Access to core buffers, security dry-run simulations, and JSON invariant validation. Direct bridge to kernel with real-time diagnostic visualization.",
+      "compilerHealth": "Compiler Health",
+      "nominal": "NOMINAL",
+      "uptime": "UPTIME: 99.99%",
+      "fatalErr": "0 FATAL ERR",
+      "codeIsLaw": "// CODE IS LAW"
+    },
+    "Loading": {
+      "booting": "Booting development kernel..."
+    },
+    "Nav": {
+      "terminal": "Terminal",
+      "inspect": "Inspect",
+      "simulations": "Simulations",
+      "documentation": "Documentation"
+    },
+    "Sections": {
+      "diagnosticSuite": "SCORECARD DIAGNOSTIC SUITE",
+      "toolkit": "Development Toolkit",
+      "generateIpfs": "GENERATE IPFS HASH",
+      "mintProof": "MINT REGISTRY PROOF",
+      "purgeCache": "PURGE REDIS CACHE",
+      "kernelLogs": "Kernel Logs",
+      "listening": "LISTENING FOR EVENTS"
+    },
+    "FooterState": {
+      "kernelReady": "[KERNEL READY]",
+      "buffer": "BUFFER ALLOCATED 2GB",
+      "compiler": "ACTIVE COMPILER TS5.3",
+      "debug": "DEBUG SESSION ESTABLISHED",
+      "bypass": "BYPASS READY",
+      "pooling": "POOLING ACTIVE"
+    }
+  },
+  "RegistryView": {
+    "searchPlaceholder": "Search registry ID...",
+    "filterAll": "All",
+    "filterValidated": "Validated",
+    "filterPending": "Pending",
+    "activeRecords": "Active Records",
+    "syncFailure": "Data sync failure",
+    "retry": "RETRY CONNECTION",
+    "noResults": "No results found in Registry Core",
+    "proposer": "Proposer",
+    "anonymous": "Anonymous",
+    "clarityScore": "Clarity Score",
+    "status": "Status",
+    "unknown": "Unknown",
+    "stamp": "Stamp",
+    "jsonCore": "JSON Core"
+  },
+  "ScorecardForm": {
+    "steps": {
+      "problem": "PROBLEM",
+      "boundaries": "BOUNDARIES",
+      "technical": "TECHNICAL",
+      "effort": "EFFORT",
+      "industry": "INDUSTRY",
+      "notify": "NOTIFY"
+    },
+    "sections": {
+      "problemLabel": "A. PROBLEM SPECIFICATION",
+      "problemPlaceholder": "Define core problem in one precise sentence...",
+      "boundariesLabel": "B. BOUNDARY LIMITS",
+      "boundariesPlaceholder": "Specify inclusion parameters...",
+      "technicalLabel": "C. TECHNICAL SPECIFICATION",
+      "technicalPlaceholder": "Identified technical risks and constraints...",
+      "effortLabel": "D. RESOURCE & EFFORT ESTIMATION",
+      "minDuration": "MIN DURATION (WEEKS)",
+      "maxDuration": "MAX DURATION (WEEKS)",
+      "industryLabel": "E. INDUSTRY TAXONOMY",
+      "industryDescription": "Classify this initiative using the Andromeda ATLAS Master Index",
+      "notifyLabel": "F. NOTIFICATION SETUP",
+      "notifyDescription": "Maintain technical alignment via automated surveillance",
+      "telegramLabel": "TELEGRAM USERNAME",
+      "telegramRequired": "@REQUIRED FOR SESSIONS",
+      "usernamePlaceholder": "USERNAME",
+      "emailLabel": "EMAIL ADDRESS",
+      "emailPlaceholder": "ENVOY@DOMAIN.COM",
+      "systemUpdates": "System will transmit automated status updates regarding:",
+      "update1": "Vara Network Anchoring Status",
+      "update2": "IPFS CID Verification",
+      "update3": "Reputation Delta Changes",
+      "update4": "ATLAS Industry Classification Updates"
+    },
+    "navigation": {
+      "prev": "PREVIOUS STEP",
+      "validate": "VALIDATE CHALLENGE",
+      "next": "NEXT PHASE",
+      "submit": "SUBMIT REGISTRY",
+      "processing": "PROCESSING..."
+    },
+    "proof": {
+      "title": "REGISTRY PROOF GENERATED",
+      "settlement": "ETHEREUM MAINNET SETTLEMENT",
+      "locked": "CANONICAL ID LOCKED",
+      "registrationId": "REGISTRATION ID",
+      "signature": "CRYPTOGRAPHIC SIGNATURE",
+      "verifiedBy": "Verified by Andromeda Core v1.0 Functional-Validator",
+      "hash": "TRANSACTION HASH / CID",
+      "viewIpfs": "View on IPFS Explorer",
+      "consensus": "CONSENSUS REACHED",
+      "metadata": "METADATA CACHED",
+      "signatureValid": "SIGNATURE VALID"
+    },
+    "report": {
+      "title": "VALIDATION CORE REPORT",
+      "passed": "PASSED",
+      "failed": "FAILED",
+      "score": "CLARITY SCORE",
+      "errors": "CRITICAL ERRORS"
+    },
+    "alerts": {
+      "requiredIdentity": "REQUIRED IDENTITY: Please connect your wallet to sign this registry entry.",
+      "publishError": "PUBLISH ERROR: "
+    }
+  },
+  "AuditReport": {
+    "Matrix": {
+      "critical": "CRITICAL VULN",
+      "medium": "MEDIUM RISK",
+      "low": "LOW IMPACT",
+      "mitigated": "MITIGATED",
+      "activeExploits": "Active Exploits",
+      "systemLeaks": "System Leaks",
+      "codeInconsistencies": "Code Inconsistencies",
+      "remediatedIssues": "Remediated Issues"
+    },
+    "Manifest": {
+      "title": "VULNERABILITY MANIFEST V2.0",
+      "lastScan": "Last Scan",
+      "exportPdf": "Export Audit PDF"
+    },
+    "Finding": {
+      "target": "TARGET",
+      "observationDetails": "Observation Details",
+      "operationalRisk": "Operational Risk",
+      "remediationStrategy": "Remediation Strategy",
+      "remediationPending": "Remediation strategy pending system architecture review.",
+      "verifyPatch": "Verify Patch Staging"
+    },
+    "Readiness": {
+      "logicalTitle": "Logical Architecture Readiness",
+      "operationalTitle": "Operational Security Readiness",
+      "businessIntegrity": "BUSINESS LOGIC INTEGRITY",
+      "coordinationStability": "COORDINATION LAYER STABILITY",
+      "secretManagement": "SECRET MANAGEMENT",
+      "blockchainRealism": "BLOCKCHAIN REALISM"
+    },
+    "findings": {
+      "C-01": {
+        "title": "Production Credentials Exposure in Repository",
+        "detail": "File contains keys with full privileges: SUPABASE_SERVICE_ROLE_KEY, PINATA_JWT, UPSTASH_REDIS_REST_TOKEN.",
+        "risk": "RLS bypass, total IPFS access, and total control over cache/rate-limiting.",
+        "remediation": "Credentials have been rotated and a security proxy has been enabled for sensitive access."
+      },
+      "C-02": {
+        "title": "Simulated Vara Network Integration",
+        "detail": "The code uses hardcoded simulation blocks and does not make real calls to @gear-js/api.",
+        "risk": "False sense of on-chain immutability. Generated hashes are artificial.",
+        "remediation": "Migrating to real @gear-js/api with support for Vara Mainnet."
+      },
+      "M-01": {
+        "title": "Validation Engine Redundancy",
+        "detail": "RegistryService uses a simplified version of the validator, ignoring the external Invariants system.",
+        "risk": "Publishing scorecards that violate already programmed logical invariants.",
+        "remediation": "Unifying the validation engine under the @andromeda/auto-validator package."
+      },
+      "M-02": {
+        "title": "Nonce Logic Weakness",
+        "detail": "Lack of persistence for used nonces. Risk of Replay Attacks during network failures.",
+        "risk": "Reuse of signatures within a 5-minute window.",
+        "remediation": "Implemented persistent set of burned nonces in Redis with replication."
+      },
+      "B-01": {
+        "title": "Inconsistency in Contract Structure",
+        "detail": "Multiple folders for Vara contracts can cause confusion during compilation.",
+        "risk": "Accidental deployment of stubs instead of real contracts.",
+        "remediation": "Pending unification of all contracts in the workspace root."
+      },
+      "B-02": {
+        "title": "Lack of Coverage in Diagnostic Route",
+        "detail": "Does not verify connectivity with Pinata or Vara Network status.",
+        "risk": "False positives in system health.",
+        "remediation": "Added health-checks for IPFS (Pinata) and Gear API Gateway."
+      }
+    }
+  },
+  "VerificationDepth": {
+    "Header": {
+      "title": "VERIFICATION DEPTH EXPLORER",
+      "subtitle": "Multilevel scrutiny of ecosystem artifact integrity.",
+      "total": "TOTAL",
+      "avg": "AVG"
+    },
+    "Levels": {
+      "0": {
+        "name": "Level 0: Self-Attestation",
+        "description": "Initial declaration of intent. Basic on-chain commitment without peer validation."
+      },
+      "1": {
+        "name": "Level 1: Peer Review",
+        "description": "Validation by authorized operators. Verified technical specification and consistency."
+      },
+      "2": {
+        "name": "Level 2: Protocol Consensus",
+        "description": "Synthesized validation via multi-agent agreement. Cryptographic grounding of artifacts."
+      },
+      "3": {
+        "name": "Level 3: Math Proof",
+        "description": "Formal verification. Absolute deterministic certainty through computational invariants."
+      }
+    },
+    "Distribution": {
+      "title": "DISTRIBUTION",
+      "filtered": "FILTERED: LEVEL",
+      "allLevels": "ALL LEVELS",
+      "milestones": "milestones"
+    },
+    "Stats": {
+      "totalMilestones": "TOTAL MILESTONES",
+      "averageLevel": "AVG DEPTH",
+      "maxAttestations": "MAX ATTESTATIONS"
+    },
+    "Table": {
+      "levelMilestones": "LEVEL {level} MILESTONES",
+      "recentMilestones": "RECENT MILESTONES",
+      "of": "of",
+      "attestations": "attestations",
+      "noResults": "No milestones found at this verification level"
+    },
+    "Footer": {
+      "paper": "ATLAS PAPER §2.3",
+      "protocol": "Stratified Verification Protocol",
+      "clearFilter": "CLEAR FILTER",
+      "refreshData": "REFRESH DATA"
+    },
+    "About": {
+      "title": "About ATLAS Verification Levels",
+      "description": "The ATLAS Paper defines 4 levels of verification certainty. Higher levels represent stronger cryptographic and consensus guarantees. Level 3 (Math Proof) provides maximum immutability through algorithmic verification, while Level 0 (Self-Attestation) serves as the entry point for new contributions."
+    },
+    "DemoData": {
+      "implementAction": "Implementation of ATLAS dual persistence system with MongoDB Atlas and Supabase",
+      "designAction": "Design of multi-layer industry taxonomy system",
+      "auditAction": "Security audit of the cross-DAO coordination module",
+      "researchAction": "Research on decentralized reputation systems",
+      "specAction": "Technical specification of Andromeda's invariants engine",
+      "uiuxAction": "Design of ATLAS network interface with relations visualization"
+    }
+  },
+  "TerminalValidator": {
+    "title": "JSON_INTEGRITY_SCRUTINIZER",
+    "connected": "Connected: @andromeda/functional-validator_v1.2",
+    "loadTemplate": "LOAD_CANONICAL_TEMPLATE",
+    "rawCodeInjector": "RAW_CODE_INJECTOR",
+    "placeholder": "PASTE_Scorecard_JSON_BLOB_HERE...",
+    "validating": "INITIATING_DEEP_VALIDATION...",
+    "scrutinize": "SCRUTINIZE_SCORECARD_INVARIANTS",
+    "passed": "VALIDATION_PASSED",
+    "failed": "VERIFICATION_FAILED",
+    "systemBlockers": "SYSTEM_BLOCKERS_DETECTED",
+    "anomalies": "NON-BLOCKING_ANOMALIES",
+    "proofGenerated": "Deterministic Validation Proof Generated",
+    "timestamp": "TIMESTAMP",
+    "clarityDelta": "CLARITY_DELTA"
+  },
+  "SystemDiagnostics": {
+    "title": "SYSTEM_SURVEILLANCE_v1",
+    "envLock": "Environment_Lock",
+    "prodSynced": "PROD_SYNCED",
+    "debugVerbosity": "Debug_Verbosity",
+    "level3Ext": "LEVEL_3_EXT",
+    "services": {
+      "supabase": {
+        "name": "SUPABASE_SQL",
+        "details": "PostgreSQL v15.1"
+      },
+      "redis": {
+        "name": "REDIS_UPSTASH",
+        "details": "Global Cache Node"
+      },
+      "pinata": {
+        "name": "PINATA_IPFS",
+        "details": "Gateway: mainnet.infura.io"
+      },
+      "vara": {
+        "name": "VARA_GEAR_API",
+        "details": "WSS Testnet Proxy"
+      },
+      "crypGuard": {
+        "name": "CRYP_GUARD",
+        "details": "EIP-712 / Ed25519 Verified"
+      }
+    }
+  },
+  "DeveloperMode": {
+    "header": "SYSTEM_BUFFER_V1.0",
+    "init": "// INITIALIZING SURVEILLANCE_OS...",
+    "connected": "// CONNECTED TO CORE.STABLE.0x21F",
+    "typeHelp": "// TYPE 'HELP' FOR SYSTEM DIRECTORY",
+    "buffSize": "BUFF_SIZE: 65KB",
+    "mode": "MODE: RAW_TELNET",
+    "txActive": "TX_ACTIVE",
+    "commands": {
+      "help": {
+        "header": "AVAILABLE SYSTEMS:",
+        "status": "Core operational integrity",
+        "inspect": "Entity deep-scan",
+        "simulate": "Run logic dry-runs",
+        "ethics": "Protocol constraints",
+        "atlasQuery": "Query ATLAS verification depth",
+        "clear": "Purge buffer"
+      },
+      "status": {
+        "header": "ANDROMEDA CORE — KERNEL STATUS v2.4.1",
+        "infra": "INFRASTRUCTURE:",
+        "ready": "READY",
+        "stable": "STABLE",
+        "uptime": "Uptime",
+        "latency": "ELEVATED LATENCY",
+        "sync": "SINC_IN_PROGRESS",
+        "active": "ACTIVE",
+        "standby": "STANDBY",
+        "auth": "AUTH_LEVEL: DEVELOPER_BYPASS_ACTIVE"
+      },
+      "inspect": {
+        "header": "ECOSYSTEM INSPECTION SUMMARY",
+        "projects": "Projects",
+        "active": "Active",
+        "invariants": "Invariants",
+        "verified": "Verified",
+        "state": "State",
+        "consistent": "Consistent",
+        "health": "Health",
+        "operational": "Operational"
+      },
+      "ethics": {
+        "header": "CANONICAL ETHICS v1",
+        "rule1": "1. NO EXTRACTION WITHOUT VALUE",
+        "rule2": "2. NO GOVERNANCE WITHOUT ACCOUNTABILITY",
+        "rule3": "3. NO AUTOMATION WITHOUT OVERSIGHT",
+        "enforced": "[ENFORCED AT RUNTIME]"
+      },
+      "atlasQuery": {
+        "header": "ATLAS VERIFICATION QUERY RESULTS",
+        "totalMilestones": "Total Milestones",
+        "avgLevel": "Avg Verification Level",
+        "distribution": "Distribution",
+        "level0": "LEVEL 0 (Self-Attestation)",
+        "level1": "LEVEL 1 (Peer Review)",
+        "level2": "LEVEL 2 (Protocol Consensus)",
+        "level3": "LEVEL 3 (Math Proof)",
+        "topProjects": "Top Projects by Verification Depth",
+        "attestations": "Attestations",
+        "useFilter": "Use: atlas-query <filter> for advanced queries",
+        "examples": "Examples"
+      },
+      "simulate": {
+        "running": "RUNNING SIMULATION: SUCCESS",
+        "noChanges": "NO STATE CHANGES DETECTED."
+      },
+      "errors": {
+        "unknown": "ERR: UNKNOWN_CMD_0x"
+      }
+    }
+  },
+  "RootstockProposals": {
+    "onChainGovernance": "On-Chain Governance",
+    "proposal": "Proposal",
+    "upgradeTo": "Upgrade to",
+    "domainChange": "Domain Specification Change",
+    "status": "Status",
+    "executed": "EXECUTED",
+    "refreshFeed": "Refresh Feed",
+    "noProposals": "No proposals found",
+    "mainnet": "ROOTSTOCK MAINNET"
+  }
+}

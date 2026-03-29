@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+.next/
+.turbo/
+out/
+.env*
+*.log
+.DS_Store
+.vscode/

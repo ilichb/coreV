@@ -1,0 +1,41 @@
+query GetProposals($first: Int!, $skip: Int!) {
+  proposals(
+    first: $first
+    skip: $skip
+    orderBy: startBlock
+    orderDirection: desc
+  ) {
+    id
+    proposer
+    startBlock
+    endBlock
+    description
+    targets
+    values
+    signatures
+    calldatas
+    forVotes
+    againstVotes
+    abstainVotes
+    canceled
+    executed
+    eta
+  }
+}
+
+query GetVotes($proposalId: String!, $first: Int!, $skip: Int!) {
+  votes(
+    first: $first
+    skip: $skip
+    where: { proposal: $proposalId }
+    orderBy: blockNumber
+    orderDirection: desc
+  ) {
+    id
+    voter
+    support
+    votes
+    reason
+    blockNumber
+  }
+}

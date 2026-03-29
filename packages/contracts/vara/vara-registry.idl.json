@@ -1,0 +1,208 @@
+{
+  "name": "AndromedaVaraRegistry",
+  "version": "2.0.0",
+  "description": "Universal Web3 Project Registry with Builder Identities - Multi-Tenant Architecture",
+  "methods": {
+    "submit_project": {
+      "type": "mutation",
+      "description": "Register a new project with full metadata",
+      "params": [
+        { "name": "canonical_hash", "type": "String", "max_length": 128 },
+        { "name": "ipfs_cid", "type": "String", "max_length": 128 },
+        { "name": "ecosystem", "type": "String", "max_length": 32 },
+        { "name": "dao_identifier", "type": "String", "max_length": 64 },
+        { "name": "tags", "type": "Vec<String>", "max_items": 10 },
+        { "name": "signatures", "type": "Vec<Signature>" },
+        { "name": "decision_metadata", "type": "Option<DecisionMetadata>" },
+        { "name": "builder_did", "type": "String", "max_length": 128 },
+        { "name": "cross_chain_addresses", "type": "Vec<ChainAddress>" }
+      ],
+      "returns": {
+        "type": "RegistryReply",
+        "variant": "ProjectSubmitted"
+      }
+    },
+    "query_builder_history": {
+      "type": "query",
+      "description": "Get complete history of a builder across ecosystems",
+      "params": [
+        { "name": "did", "type": "String", "max_length": 128 }
+      ],
+      "returns": {
+        "type": "RegistryReply",
+        "variant": "BuilderHistory"
+      }
+    },
+    "query_ecosystem": {
+      "type": "query",
+      "description": "Get ecosystem overview with statistics",
+      "params": [
+        { "name": "ecosystem", "type": "String", "max_length": 32 }
+      ],
+      "returns": {
+        "type": "RegistryReply",
+        "variant": "EcosystemView"
+      }
+    },
+    "query_dao": {
+      "type": "query",
+      "description": "Get DAO-specific projects and stats",
+      "params": [
+        { "name": "dao_identifier", "type": "String", "max_length": 64 }
+      ],
+      "returns": {
+        "type": "RegistryReply",
+        "variant": "DaoView"
+      }
+    },
+    "search_by_tags": {
+      "type": "query",
+      "description": "Search projects across ecosystems by tags",
+      "params": [
+        { "name": "tags", "type": "Vec<String>", "max_items": 5 }
+      ],
+      "returns": {
+        "type": "RegistryReply",
+        "variant": "SearchResults"
+      }
+    },
+    "get_builder_reputation": {
+      "type": "query",
+      "description": "Get builder's on-chain reputation score",
+      "params": [
+        { "name": "did", "type": "String", "max_length": 128 }
+      ],
+      "returns": {
+        "type": "RegistryReply",
+        "variant": "BuilderReputation"
+      }
+    },
+    "register_dao": {
+      "type": "mutation",
+      "description": "Register a new DAO (admin only)",
+      "params": [
+        { "name": "dao_name", "type": "String", "max_length": 64 },
+        { "name": "ecosystem", "type": "String", "max_length": 32 },
+        { "name": "admin_dids", "type": "Vec<String>", "max_items": 10 }
+      ],
+      "returns": {
+        "type": "RegistryReply",
+        "variant": "DaoRegistered"
+      }
+    },
+    "verify_dao": {
+      "type": "mutation",
+      "description": "Verify a DAO (Vara Foundation only)",
+      "params": [
+        { "name": "dao_name", "type": "String", "max_length": 64 }
+      ],
+      "returns": {
+        "type": "RegistryReply",
+        "variant": "DaoRegistered"
+      }
+    }
+  },
+  "types": {
+    "ChainAddress": {
+      "chain": "String",
+      "address": "String"
+    },
+    "BuilderIdentity": {
+      "did": "String",
+      "reputation_score": "u64",
+      "total_projects": "u64",
+      "first_seen": "u64",
+      "cross_chain_addresses": "Vec<ChainAddress>",
+      "last_activity": "u64",
+      "ecosystems": "Vec<String>"
+    },
+    "Signature": {
+      "signer_did": "String",
+      "signature_type": "String",
+      "signature": "String"
+    },
+    "DecisionMetadata": {
+      "outcome": "String",
+      "votes_for": "u64",
+      "votes_against": "u64",
+      "clarity_score": "u64",
+      "funding_amount": "Option<String>",
+      "milestones": "Option<u64>"
+    },
+    "ProjectRecord": {
+      "canonical_hash": "String",
+      "ipfs_cid": "String",
+      "ecosystem": "String",
+      "dao_identifier": "String",
+      "builder_did": "String",
+      "builder_actor": "ActorId",
+      "submission_timestamp": "u64",
+      "signatures": "Vec<Signature>",
+      "tags": "Vec<String>",
+      "decision_metadata": "Option<DecisionMetadata>"
+    },
+    "EcosystemStats": {
+      "total_projects": "u64",
+      "active_builders": "u64",
+      "total_evaluations": "u64",
+      "average_clarity": "u64",
+      "approval_rate": "u64"
+    },
+    "DaoRegistry": {
+      "dao_name": "String",
+      "ecosystem": "String",
+      "verified": "bool",
+      "project_count": "u64",
+      "admin_dids": "Vec<String>",
+      "created_at": "u64",
+      "builder_count": "u64"
+    },
+    "RegistryReply": {
+      "variant": "enum",
+      "values": {
+        "ProjectSubmitted": {
+          "canonical_hash": "String",
+          "builder_did": "String",
+          "ecosystem": "String",
+          "timestamp": "u64"
+        },
+        "BuilderHistory": {
+          "identity": "BuilderIdentity",
+          "projects": "Vec<ProjectRecord>"
+        },
+        "EcosystemView": {
+          "stats": "EcosystemStats",
+          "projects": "Vec<ProjectRecord>"
+        },
+        "DaoView": {
+          "dao": "DaoRegistry",
+          "projects": "Vec<ProjectRecord>"
+        },
+        "SearchResults": {
+          "projects": "Vec<ProjectRecord>",
+          "total_count": "usize"
+        },
+        "BuilderReputation": {
+          "identity": "BuilderIdentity"
+        },
+        "DaoRegistered": {
+          "dao": "DaoRegistry"
+        },
+        "Error": {
+          "message": "String"
+        }
+      }
+    }
+  },
+  "network": "vara",
+  "contract_address": "TBD_AFTER_DEPLOYMENT",
+  "architecture": "multi-tenant-registry",
+  "features": [
+    "builder-identities",
+    "cross-ecosystem-tracking",
+    "dao-specific-registries",
+    "tag-based-search",
+    "on-chain-reputation",
+    "immutable-project-records"
+  ]
+}

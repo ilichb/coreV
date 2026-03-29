@@ -1,0 +1,947 @@
+{
+  "common": {
+    "andromeda": "ANDRÔMEDA",
+    "computer": "COMPUTADOR",
+    "system": "SISTEMA",
+    "protocol": "PROTOCOLO",
+    "layer": "CAMADA",
+    "validation": "VALIDAÇÃO",
+    "registry": "REGISTRO",
+    "coordination": "COORDENAÇÃO",
+    "intelligence": "INTELIGÊNCIA",
+    "status": "STATUS",
+    "active": "ATIVO",
+    "operational": "OPERACIONAL",
+    "loading": "CARREGANDO...",
+    "error": "ERRO",
+    "success": "SUCESSO",
+    "warning": "AVISO",
+    "submit": "ENVIAR",
+    "cancel": "CANCELAR",
+    "next": "PRÓXIMO",
+    "previous": "ANTERIOR",
+    "save": "SALVAR",
+    "delete": "EXCLUIR",
+    "edit": "EDITAR",
+    "view": "VER",
+    "search": "BUSCAR",
+    "filter": "FILTRAR",
+    "sort": "ORDENAR",
+    "refresh": "ATUALIZAR",
+    "connect": "CONECTAR",
+    "disconnect": "DESCONECTAR",
+    "sign": "ASSINAR",
+    "verify": "VERIFICAR",
+    "publish": "PUBLICAR",
+    "metrics": "MÉTRICAS",
+    "dashboard": "PAINEL",
+    "settings": "CONFIGURAÇÕES",
+    "help": "AJUDA",
+    "about": "SOBRE",
+    "contact": "CONTATO",
+    "documentation": "DOCUMENTAÇÃO",
+    "language": "IDIOMA",
+    "theme": "TEMA",
+    "dark": "ESCURO",
+    "light": "CLARO",
+    "industrial": "INDUSTRIAL",
+    "optional": "OPCIONAL",
+    "selectIndustry": "SELECIONAR_CATEGORIA_DE_INDÚSTRIA"
+  },
+  "navigation": {
+    "home": "INÍCIO",
+    "scorecard": "SCORECARD",
+    "registry": "REGISTRO",
+    "validate": "VALIDAR",
+    "audit": "AUDITORIA",
+    "intelligence": "INTELIGÊNCIA",
+    "rootstock": "ROOTSTOCK",
+    "debug": "DEBUG",
+    "desarrollo": "DESENVOLVIMENTO",
+    "coordination": "COORDENAÇÃO",
+    "atlas": "ATLAS",
+    "explore": "EXPLORAR",
+    "ranking": "RANKING",
+    "milestones": "MARCOS",
+    "projects": "PROJETOS",
+    "builders": "CONSTRUTORES"
+  },
+  "validation": {
+    "title": "VALIDAÇÃO_CORE",
+    "subtitle": "// CLARITY_DELTA_IS_THE_METRIC",
+    "scorecard": "SCORECARD",
+    "clarity": "CLAREZA",
+    "coherence": "COERÊNCIA",
+    "completeness": "COMPLETUDE",
+    "integrity": "INTEGRIDADE",
+    "schema": "ESQUEMA",
+    "rules": "REGRAS",
+    "errors": "ERROS",
+    "warnings": "AVISOS",
+    "passed": "APROVADO",
+    "failed": "REPROVADO",
+    "threshold": "LIMIAR",
+    "certificate": "CERTIFICADO",
+    "proof": "PROVA",
+    "signature": "ASSINATURA",
+    "timestamp": "MARCA_TEMPORAL",
+    "certified": "CERTIFICADO",
+    "verified": "VERIFICADO",
+    "pending": "PENDENTE",
+    "processing": "PROCESSANDO",
+    "complete": "COMPLETO",
+    "incomplete": "INCOMPLETO",
+    "valid": "VÁLIDO",
+    "invalid": "INVÁLIDO",
+    "review": "REVISÃO",
+    "approve": "APROVAR",
+    "reject": "REJEITAR"
+  },
+  "registry": {
+    "title": "REGISTRO_ON_CHAIN",
+    "subtitle": "// IMUTABILIDADE_É_LIBERDADE",
+    "records": "REGISTROS",
+    "total": "TOTAL",
+    "sync": "SINCRONIZAÇÃO",
+    "strength": "FORÇA",
+    "integrity": "INTEGRIDADE",
+    "nodes": "NÓS",
+    "ipfs": "IPFS",
+    "blockchain": "BLOCKCHAIN",
+    "transaction": "TRANSAÇÃO",
+    "hash": "HASH",
+    "cid": "CID",
+    "metadata": "METADADOS",
+    "author": "AUTOR",
+    "created": "CRIADO",
+    "updated": "ATUALIZADO",
+    "published": "PUBLICADO",
+    "anchored": "ANCORADO",
+    "verified": "VERIFICADO",
+    "explorer": "EXPLORADOR",
+    "view": "VER",
+    "download": "BAIXAR",
+    "share": "COMPARTILHAR",
+    "export": "EXPORTAR",
+    "import": "IMPORTAR",
+    "backup": "BACKUP",
+    "restore": "RESTAURAR",
+    "archive": "ARQUIVO"
+  },
+  "intelligence": {
+    "title": "INTELIGÊNCIA_DE_ECOSSISTEMA",
+    "subtitle": "// DECISÃO_BASEADA_EM_DADOS",
+    "ecosystem": "ECOSSISTEMA",
+    "metrics": "MÉTRICAS",
+    "analytics": "ANÁLISE",
+    "insights": "INSIGHTS",
+    "trends": "TENDÊNCIAS",
+    "patterns": "PADRÕES",
+    "correlations": "CORRELAÇÕES",
+    "predictions": "PREVISÕES",
+    "recommendations": "RECOMENDAÇÕES",
+    "alerts": "ALERTAS",
+    "monitoring": "MONITORAMENTO",
+    "tracking": "ACOMPANHAMENTO",
+    "reporting": "RELATÓRIOS",
+    "dashboard": "PAINEL",
+    "visualization": "VISUALIZAÇÃO",
+    "graphs": "GRÁFICOS",
+    "charts": "GRÁFICOS",
+    "tables": "TABELAS",
+    "filters": "FILTROS",
+    "parameters": "PARÂMETROS",
+    "dimensions": "DIMENSÕES",
+    "measures": "MEDIDAS",
+    "kpis": "KPIS",
+    "goals": "OBJETIVOS",
+    "performance": "DESEMPENHO",
+    "efficiency": "EFICIÊNCIA",
+    "productivity": "PRODUTIVIDADE",
+    "quality": "QUALIDADE"
+  },
+  "errors": {
+    "generic": "ERRO_DO_SISTEMA",
+    "network": "ERRO_DE_REDE",
+    "timeout": "TEMPO_ESGOTADO",
+    "unauthorized": "NÃO_AUTORIZADO",
+    "forbidden": "PROIBIDO",
+    "notFound": "NÃO_ENCONTRADO",
+    "server": "ERRO_DO_SERVIDOR",
+    "validation": "ERRO_DE_VALIDAÇÃO",
+    "format": "ERRO_DE_FORMATO",
+    "required": "CAMPO_OBRIGATÓRIO",
+    "invalid": "VALOR_INVÁLIDO",
+    "duplicate": "DUPLICADO",
+    "conflict": "CONFLITO",
+    "limit": "LIMITE_EXCEDIDO",
+    "quota": "COTA_EXCEDIDA",
+    "maintenance": "EM_MANUTENÇÃO",
+    "upgrade": "ATUALIZAÇÃO_NECESSÁRIA",
+    "deprecated": "OBSOLETO",
+    "unsupported": "NÃO_SUPORTADO",
+    "unknown": "DESCONHECIDO",
+    "retry": "TENTAR_NOVAMENTE",
+    "contactSupport": "CONTATAR_SUPORTE",
+    "checkLogs": "VERIFICAR_LOGS"
+  },
+  "scorecard": {
+    "title": "ANDROMEDA_SCORECARD_ENTRY",
+    "subtitle": "Decompondo intenção coletiva em especificações técnicas verificáveis",
+    "problem": "PROBLEMA",
+    "boundaries": "LIMITES",
+    "technical": "TÉCNICO",
+    "effort": "ESFORÇO",
+    "industry": "INDÚSTRIA",
+    "notify": "NOTIFICAR",
+    "step": "PASSO",
+    "definition": "DEFINIÇÃO",
+    "affectedUsers": "USUÁRIOS_AFETADOS",
+    "painPoints": "PONTOS_CRÍTICOS",
+    "currentSituation": "SITUAÇÃO_ATUAL",
+    "includes": "INCLUI",
+    "excludes": "EXCLUI",
+    "assumptions": "SUPOSIÇÕES",
+    "dependencies": "DEPENDÊNCIAS",
+    "risks": "RISCOS",
+    "complexity": "COMPLEXIDADE",
+    "teamType": "TIPO_DE_EQUIPE",
+    "timeRange": "FAIXA_DE_TEMPO",
+    "resourceRange": "FAIXA_DE_RECURSOS",
+    "milestones": "MARCOS",
+    "telegram": "TELEGRAM",
+    "email": "EMAIL",
+    "taxonomy": "TAXONOMIA",
+    "category": "CATEGORIA",
+    "sector": "SETOR",
+    "subsector": "SUBSETOR",
+    "industryType": "TIPO_DE_INDÚSTRIA",
+    "transversal": "TRANSVERSAL"
+  },
+  "phrases": {
+    "clarityDeltaIsMetric": "// CLARITY_DELTA_IS_THE_METRIC",
+    "formatIsProduct": "// FORMAT_IS_THE_PRODUCT",
+    "immutabilityIsFreedom": "// IMMUTABILITY_IS_FREEDOM",
+    "allProcessesOnChainVerifiable": "// ALL_PROCESSES_ON_CHAIN_VERIFIABLE",
+    "persistentRecordSystem": "// PERSISTENT_RECORD_SYSTEM",
+    "realTimeValidationSystem": "// REAL_TIME_VALIDATION_SYSTEM",
+    "dataDrivenDecisionMaking": "// DATA_DRIVEN_DECISION_MAKING"
+  },
+  "actions": {
+    "testChallenge": "TEST_CHALLENGE",
+    "testValidation": "TEST_VALIDATION",
+    "validateChallenge": "VALIDATE_CHALLENGE",
+    "nextPhase": "NEXT_PHASE",
+    "submitRegistry": "SUBMIT_REGISTRY",
+    "viewOnIpfs": "VIEW_ON_IPFS",
+    "loadTemplate": "LOAD_CANONICAL_TEMPLATE",
+    "scrutinize": "SCRUTINIZE_SCORECARD_INVARIANTS",
+    "initiating": "INITIATING_DEEP_VALIDATION",
+    "processing": "PROCESSANDO..."
+  },
+  "DashboardUnified": {
+    "Navigation": {
+      "global": "GLOBAL",
+      "coordination": "COORDENAÇÃO",
+      "registry": "REGISTRO",
+      "audit": "AUDITORIA",
+      "devtools": "DEVTOOLS"
+    },
+    "Status": {
+      "systemOnline": "SISTEMA ATIVO",
+      "uptime": "TEMPO_ATIVIDADE",
+      "latency": "LATÊNCIA",
+      "memory": "MEMÓRIA",
+      "secureConnection": "CONEXÃO SEGURA // TLS 1.3",
+      "sessionId": "ID: SESSÃO"
+    },
+    "Sidebar": {
+      "language": "IDIOMA"
+    },
+    "Header": {
+      "title": "ANDRÔMEDA",
+      "core": "CORE",
+      "version": "v2.1.0-ESTÁVEL",
+      "systemOnline": "SISTEMA ATIVO"
+    }
+  },
+  "IntelligencePage": {
+    "Clock": {
+      "systemTime": "HORA DO SISTEMA"
+    },
+    "Logs": {
+      "initializing": "Iniciando protocolo de handshake seguro...",
+      "established": "Conexão estabelecida (Nó Rootstock)",
+      "latencySpike": "Pico de latência detectado na ponte Arbitrum",
+      "batchSealed": "Lote #{num} selado na Vara Network",
+      "validationCompleted": "Validação cross-chain concluída",
+      "newProposal": "Nova proposta detectada na Rootstock",
+      "checkpointReached": "Ponto de controle de sincronização atingido",
+      "latencyNormalized": "Latência de rede normalizada",
+      "integrityPassed": "Verificação de integridade de dados aprovada",
+      "bridgeConfirmed": "Transação de ponte confirmada"
+    },
+    "Titles": {
+      "telemetry": "TELEMETRIA GLOBAL DO SISTEMA",
+      "bridge": "PONTE DE SINCRONIZAÇÃO CROSS-DAO",
+      "monitor": "MONITOR DE ATIVIDADE DE RECURSOS",
+      "status": "ESTADO DO SISTEMA",
+      "scorecards": "SCORECARDS DE PROJETO DETECTADOS",
+      "connectivity": "FONTES DE DADOS E CONECTIVIDADE"
+    },
+    "SystemStatus": {
+      "coreServices": "Serviços Core",
+      "database": "Cluster de Banco de Dados",
+      "apiGateway": "Gateway de API",
+      "realDataFlow": "Fluxo de Dados Real",
+      "operational": "OPERACIONAL",
+      "syncing": "SINCRONIZANDO",
+      "healthy": "SAUDÁVEL",
+      "active": "ATIVO"
+    },
+    "DataSources": {
+      "arbitrum": "DAOs da Arbitrum",
+      "optimism": "DAOs da Optimism",
+      "snapshot": "Espaços do Snapshot",
+      "proposals": "Propostas Reais",
+      "connectedTally": "Conectado via Tally",
+      "monitored": "Monitorado",
+      "last24h": "Últimas 24h",
+      "activeConnections": "Conexões ativas com fontes de dados blockchain reais",
+      "networkGraphNote": "O Gráfico de Rede agora mostra relações reais entre construtores e projetos"
+    }
+  },
+  "CoordinationPage": {
+    "Header": {
+      "phase": "FASE_01: PROTOCOLOS_DE_COORDENAÇÃO",
+      "title": "CAMADA DE COORDENAÇÃO",
+      "layer": "CAMADA",
+      "subtitle": "Transformação da intenção coletiva em artefatos tecnicamente comparáveis.",
+      "protocolFee": "Taxa de Protocolo",
+      "reimburse": "REEMBOLSO_80%_EM_CASO_DE_REJEIÇÃO"
+    },
+    "Loading": {
+      "initializing": "INICIALIZANDO_CAMADA_DE_COORDENAÇÃO..."
+    },
+    "Nav": {
+      "scorecard": "SCORECARD",
+      "registry": "REGISTRO",
+      "validate": "VALIDAR"
+    },
+    "Flow": {
+      "title": "Fluxo_Andromeda",
+      "step1": "DEFINIR_SCORECARD",
+      "step1Desc": "Decomposição técnica",
+      "step2": "VALIDAÇÃO",
+      "step2Desc": "Delta de Clareza > 0.7",
+      "step3": "ASSINAR_DESAFIO",
+      "step3Desc": "Atestação EIP-712",
+      "step4": "PUBLICAR_IPFS",
+      "step4Desc": "Sincronização de registro",
+      "supportedNetworks": "Redes Suportadas:"
+    },
+    "Api": {
+      "title": "API_de_Acesso_Rápido",
+      "validate": "VALIDAR",
+      "publish": "PUBLICAR"
+    },
+    "actions": {
+      "testChallenge": "TEST_CHALLENGE",
+      "submitRegistry": "ENVIAR_AO_REGISTRO"
+    },
+    "phrases": {
+      "allProcessesOnChainVerifiable": "Todos os processos são verificáveis na cadeia (On-chain)"
+    },
+    "Footer": {
+      "originStatus": "Status_Origem",
+      "foundational": "Documentação Fundacional",
+      "status": "Status: Fase_Alpha_Prod",
+      "coreMetric": "Métrica_Core",
+      "clarityDelta": "Delta de Clareza",
+      "validationStandard": "Padrão único de validação",
+      "nextDirectives": "Próximas_Diretrizes",
+      "governance": "Integração de Governança DAO",
+      "multisig": "Verificação Multisig",
+      "orchestration": "Orquestração Cross-Chain"
+    }
+  },
+  "RegistryPage": {
+    "Header": {
+      "phase": "FASE_02: REGISTRO_CORE",
+      "title": "REGISTRO EM CADEIA",
+      "registry": "REGISTRO",
+      "subtitle": "Fonte universal de verdade técnica. Scorecards verificáveis publicados no livro de contabilidade distribuído para co-coordenação do ecossistema.",
+      "globalStatus": "Status Global",
+      "operational": "OPERACIONAL",
+      "syncing": "SINCRONIZANDO_COM_VARA_NETWORK",
+      "immutability": "// A_IMUTABILIDADE_É_LIBERDADE",
+      "onChain": "NA-CADEIA"
+    },
+    "Loading": {
+      "initializing": "INICIALIZANDO_CAMADA_DE_REGISTRO..."
+    },
+    "Metrics": {
+      "totalRecords": "TOTAL_REGISTROS",
+      "syncStrength": "FORÇA_DE_SINC",
+      "dataIntegrity": "INTEGRIDADE_DE_DADOS",
+      "ipfsNodes": "NÓS_IPFS",
+      "verified": "VERIFICADO"
+    },
+    "Tabs": {
+      "registry": "REGISTRO",
+      "atlas": "EXPLORADOR ATLAS",
+      "scorecard": "SCORECARD",
+      "validate": "VALIDAR"
+    },
+    "Explorer": {
+      "registryTitle": "EXPLORADOR_DE_REGISTRO_V1.0",
+      "atlasTitle": "EXPLORADOR_ATLAS_V1.0"
+    },
+    "phrases": {
+      "persistentRecordSystem": "SISTEMA_DE_REGISTRO_PERSISTENTE"
+    }
+  },
+  "AtlasExplore": {
+    "Stats": {
+      "totalBuilders": "TOTAL_BUILDERS",
+      "activeIdentities": "Identidades Ativas",
+      "totalProjects": "TOTAL_PROJETOS",
+      "verifiedInitiatives": "Iniciativas Verificadas",
+      "milestones": "MILESTONES",
+      "immutableRecords": "Registros Imutáveis",
+      "avgImpact": "IMPACTO_MÉDIO",
+      "score100": "Pontuação / 100"
+    },
+    "Control": {
+      "title": "CONTROLE_DE_EXPLORAÇÃO_ATLAS",
+      "searchPlaceholder": "BUSCAR CONSTRUTOR / PROJETO / MILESTONE...",
+      "search": "BUSCAR",
+      "refresh": "Atualizar dados",
+      "category": "CATEGORIA",
+      "ecosystem": "ECOSSISTEMA",
+      "viewMode": "MODO_DE_VISTA"
+    },
+    "Tabs": {
+      "builders": "CONSTRUTORES",
+      "projects": "PROJETOS",
+      "feed": "FEED"
+    },
+    "Sections": {
+      "topBuilders": "TOP CONSTRUTORES POR IMPACTO",
+      "topProjects": "TOP PROJETOS POR IMPACTO",
+      "recentActivity": "ATIVIDADE RECENTE DE MILESTONES",
+      "quickStats": "ESTATÍSTICAS RÁPIDAS",
+      "topCategories": "PRINCIPAIS CATEGORIAS",
+      "systemStatus": "STATUS_DO_SISTEMA"
+    },
+    "QuickStats": {
+      "buildersOnline": "Construtores Online",
+      "projectsToday": "Projetos Hoje",
+      "avgImpactToday": "Impacto Médio Hoje",
+      "verificationRate": "Taxa de Verificação"
+    },
+    "Status": {
+      "online": "ON-LINE",
+      "offline": "OFF-LINE",
+      "syncing": "SINCRONIZANDO",
+      "optimized": "OTIMIZADO",
+      "active": "ATIVO"
+    },
+    "Categories": {
+      "all": "TODOS",
+      "defi": "DEFI",
+      "governance": "GOVERNANÇA",
+      "infrastructure": "INFRAESTRUTURA",
+      "refi": "REFI",
+      "social": "SOCIAL",
+      "gaming": "GAMING",
+      "ai": "IA"
+    },
+    "BuilderRanking": {
+      "impact": "IMPACTO",
+      "reputation": "REPUTAÇÃO",
+      "projects": "PROJETOS",
+      "buildersCount": "{count} CONSTRUTORES",
+      "noBuilders": "NENHUM CONSTRUTOR ENCONTRADO",
+      "table": {
+        "rank": "RANK",
+        "builder": "CONSTRUTOR",
+        "impact": "IMPACTO",
+        "reputation": "REPUTAÇÃO",
+        "projects": "PROJETOS",
+        "ecosystem": "ECOSSISTEMA",
+        "activity": "ATIVIDADE"
+      },
+      "chains": "{count} redes",
+      "displayed": "{count} CONSTRUTORES EXIBIDOS",
+      "avgImpact": "IMPACTO MÉDIO",
+      "avgReputation": "REPUTAÇÃO MÉDIA",
+      "viewFull": "VER RANKING COMPLETO →"
+    },
+    "ProjectRanking": {
+      "impact": "IMPACTO",
+      "clarity": "CLAREZA",
+      "funding": "FINANCIAMENTO",
+      "projectsCount": "{count} PROJETOS",
+      "noProjects": "NENHUM PROJETO ENCONTRADO",
+      "table": {
+        "rank": "RANK",
+        "project": "PROJETO",
+        "impact": "IMPACTO",
+        "clarity": "CLAREZA",
+        "dao": "DAO",
+        "status": "STATUS",
+        "funding": "FINANCIAMIENTO"
+      },
+      "approval": "{rate}% de aprovação",
+      "milestones": "{count} milestones",
+      "displayed": "{count} PROJETOS EXIBIDOS",
+      "avgImpact": "IMPACTO MÉDIO",
+      "avgClarity": "CLAREZA MÉDIA",
+      "totalFunding": "FINANCIAMENTO TOTAL",
+      "viewFull": "VER RANKING COMPLETO →"
+    },
+    "MilestoneFeed": {
+      "filters": {
+        "all": "TODOS",
+        "verified": "VERIFICADOS",
+        "pending": "PENDENTES",
+        "immutable": "IMUTÁVEIS"
+      },
+      "milestonesCount": "{count} MILESTONES",
+      "noMilestones": "NENHUM MILESTONE ENCONTRADO",
+      "impact": "IMPACTO",
+      "builder": "CONSTRUTOR",
+      "verification": "VERIFICAÇÃO",
+      "evidence": "EVIDÊNCIA",
+      "attestations": "ATESTADOS",
+      "files": "{count} arquivos",
+      "signers": "{count} signatários",
+      "viewDetails": "VER DETALHES →",
+      "displayed": "{count} MILESTONES EXIBIDOS",
+      "avgImpact": "IMPACTO MÉDIO",
+      "avgVerification": "VERIFICAÇÃO MÉDIA",
+      "loadMore": "CARREGAR MAIS →",
+      "verificationLevels": {
+        "0": "Auto-Atestação",
+        "1": "Revisão por Pares",
+        "2": "Consenso de Protocolo",
+        "3": "Prova Matemática",
+        "unknown": "Desconhecido"
+      }
+    },
+    "Footer": "ATLAS EXPLORE v1.0 • ÍNDICE DE REPUTAÇÃO EM TEMPO REAL • ALIMENTADO POR ANDROMEDA CORE"
+  },
+  "AuditPage": {
+    "Loading": {
+      "initializing": "ESCANEANDO_VULNERABILIDADES_DO_SISTEMA..."
+    },
+    "Header": {
+      "phase": "FASE_03: AUDITORIA_DE_SEGURANÇA_E_QUALIDADE",
+      "title": "AUDITORIA DE SEGURANÇA & QUALIDADE",
+      "subtitle": "Avaliação contínua da integridade do protocolo e conformidade com padrões técnicos.",
+      "riskLevel": "Nível de Risco",
+      "elevated": "ELEVADO",
+      "triggerScan": "INICIAR_VARREDURA_DIAGNÓSTICA",
+      "runningScan": "EXECUTANDO_VARREDURA..."
+    },
+    "Nav": {
+      "overview": "VISÃO_GERAL",
+      "logs": "LOGS_DE_AUDITORIA",
+      "vulnerabilities": "VULNERABILIDADES",
+      "history": "HISTÓRICO_DE_RELATÓRIOS"
+    },
+    "Diagnostics": {
+      "supabase": "STATUS_SUPABASE_RLS",
+      "redis": "LATÊNCIA_REDIS_UPSTASH",
+      "firewall": "FIREWALL_ANDROMEDA_CORE",
+      "active": "ATIVO",
+      "healthy": "SAUDÁVEL",
+      "shielded": "PROTEGIDO",
+      "monitoring": "MONITORAMENTO_ATIVO"
+    },
+    "Dashboard": {
+      "title": "PAINEL_DE_CONTROLE_DE_AUDITORIA",
+      "source": "FONTE: ANDROMEDA_SECURITY_ORCHESTRATOR",
+      "filter": "FILTRAR_DESCOBERTAS..."
+    },
+    "FooterLogs": {
+      "initialized": "NÚCLEO_INICIALIZADO",
+      "heartbeat": "BATIMENTO_DO_SISTEMA_OK",
+      "updated": "REGISTRO_ATUALIZADO",
+      "active": "CONEXÃO_VARA_ATIVA",
+      "surveillance": "VIGILÂNCIA_PERMANENTE"
+    }
+  },
+  "DesarrolloPage": {
+    "Header": {
+      "phase": "HUB_DE_DESENVOLVIMENTO_V2.4",
+      "system": "SISTEMA",
+      "terminal": "TERMINAL",
+      "debugger": "DEPURADOR",
+      "subtitle": "Acesso a buffers do núcleo, simulações de segurança dry-run e validação de invariantes JSON. Ponte direta ao kernel com visualização de diagnósticos em tempo real.",
+      "compilerHealth": "Saúde_do_Compilador",
+      "nominal": "NOMINAL",
+      "uptime": "UPTIME: 99.99%",
+      "fatalErr": "0 ERR_FATAIS",
+      "codeIsLaw": "// O_CÓDIGO_É_A_LEI"
+    },
+    "Loading": {
+      "booting": "INICIANDO_KERNEL_DE_DESENVOLVIMENTO..."
+    },
+    "Nav": {
+      "terminal": "TERMINAL",
+      "inspect": "INSPECIONAR",
+      "simulations": "SIMULAÇÕES",
+      "documentation": "DOCUMENTAÇÃO"
+    },
+    "Sections": {
+      "diagnosticSuite": "SUITE_DE_DIAGNÓSTICO_SCORECARD",
+      "toolkit": "Toolkit_de_Desenvolvimento",
+      "generateIpfs": "GERAR_HASH_IPFS",
+      "mintProof": "MINTAR_PROVA_DE_REGISTRO",
+      "purgeCache": "LIMPAR_CACHE_REDIS",
+      "kernelLogs": "Logs_do_Kernel",
+      "listening": "ESCHUCANDO_EVENTOS"
+    },
+    "FooterState": {
+      "kernelReady": "[KERNEL_PRONTO]",
+      "buffer": "BUFFER_ALOCADO_2GB",
+      "compiler": "COMPILADOR_ATIVO_TS5.3",
+      "debug": "SESSÃO_DE_DEPURAÇÃO_ESTABELECIDA",
+      "bypass": "BYPASS_PRONTO",
+      "pooling": "POOLING_ATIVO"
+    }
+  },
+  "RegistryView": {
+    "searchPlaceholder": "BUSCAR_ID_REGISTRO...",
+    "filterAll": "TUDO",
+    "filterValidated": "VALIDADO",
+    "filterPending": "PENDENTE",
+    "activeRecords": "Registros_Ativos",
+    "syncFailure": "Falha_no_Sincronizador_de_Dados",
+    "retry": "REINTENTAR_CONEXÃO",
+    "noResults": "Nenhum_resultado_encontrado_no_Registry_Core",
+    "proposer": "PROPONENTE",
+    "anonymous": "ANÔNIMO",
+    "clarityScore": "PONTUAÇÃO_DE_CLAREZA",
+    "status": "STATUS",
+    "unknown": "DESCONHECIDO",
+    "stamp": "CARIMBO",
+    "jsonCore": "JSON_CORE"
+  },
+  "ScorecardForm": {
+    "steps": {
+      "problem": "PROBLEMA",
+      "boundaries": "LIMITES",
+      "technical": "TÉCNICO",
+      "effort": "ESFORÇO",
+      "industry": "INDÚSTRIA",
+      "notify": "NOTIFICAR"
+    },
+    "sections": {
+      "problemLabel": "A. ESPECIFICAÇÃO_DO_PROBLEMA",
+      "problemPlaceholder": "DEFINA O PROBLEMA CENTRAL EM UMA FRASE PRECISA...",
+      "boundariesLabel": "B. LIMITES_DE_ESCOPO",
+      "boundariesPlaceholder": "ESPECIFIQUE PARÂMETROS DE INCLUSÃO...",
+      "technicalLabel": "C. ESPECIFICAÇÃO_TÉCNICA",
+      "technicalPlaceholder": "RISCOS TÉCNICOS E RESTRIÇÕES IDENTIFICADOS...",
+      "effortLabel": "D. ESTIMATIVA_DE_RECURSOS_E_ESFORÇO",
+      "minDuration": "DURAÇÃO_MÍN (SEMANAS)",
+      "maxDuration": "DURAÇÃO_MÁX (SEMANAS)",
+      "industryLabel": "E. TAXONOMIA_DA_INDÚSTRIA",
+      "industryDescription": "Classifique esta iniciativa usando o Índice Mestre Andromeda ATLAS",
+      "notifyLabel": "F. CONFIGURAÇÃO_DE_NOTIFICAÇÕES",
+      "notifyDescription": "Mantenha alinhamento técnico via vigilância automatizada",
+      "telegramLabel": "USUÁRIO_TELEGRAM",
+      "telegramRequired": "@OBRIGATÓRIO_PARA_SESSÕES",
+      "usernamePlaceholder": "USUÁRIO",
+      "emailLabel": "ENDEREÇO_DE_EMAIL",
+      "emailPlaceholder": "ENVIADO@DOMINIO.COM",
+      "systemUpdates": "O sistema transmitirá atualizações automáticas sobre:",
+      "update1": "Status de ancoragem na Vara Network",
+      "update2": "Verificação CID IPFS",
+      "update3": "Mudanças no Delta de Reputação",
+      "update4": "Atualizações de classificação da indústria ATLAS"
+    },
+    "navigation": {
+      "prev": "PASSO_ANTERIOR",
+      "validate": "VALIDAR_DESAFIO",
+      "next": "PRÓXIMA_FASE",
+      "submit": "ENVIAR_AO_REGISTRO",
+      "processing": "PROCESSANDO..."
+    },
+    "proof": {
+      "title": "PROVA_DE_REGISTRO_GERADA",
+      "settlement": "LIQUIDAÇÃO_ETHEREUM_MAINNET",
+      "locked": "ID_CANÔNICO_BLOQUEADO",
+      "registrationId": "ID_DE_REGISTRO",
+      "signature": "ASSINATURA_CRIPTOGRÁFICA",
+      "verifiedBy": "Verificado pelo Validador Funcional Andromeda Core v1.0",
+      "hash": "HASH_DE_TRANSAÇÃO_/_CID",
+      "viewIpfs": "Ver no Explorador IPFS",
+      "consensus": "CONSENSO_ATINGIDO",
+      "metadata": "METADADOS_EM_CACHE",
+      "signatureValid": "ASSINATURA_VÁLIDA"
+    },
+    "report": {
+      "title": "RELATÓRIO_DE_CORE_DE_VALIDAÇÃO",
+      "passed": "APROBADO",
+      "failed": "FALHOU",
+      "score": "PONTUAÇÃO_DE_CLAREZA",
+      "errors": "ERROS_CRÍTICOS"
+    },
+    "alerts": {
+      "requiredIdentity": "IDENTIDADE_NECESSÁRIA: Conecte sua carteira para assinar esta entrada de registro.",
+      "publishError": "ERRO_DE_PUBLICAÇÃO: "
+    }
+  },
+  "AuditReport": {
+    "Matrix": {
+      "critical": "VULN_CRÍTICA",
+      "medium": "RISCO_MÉDIO",
+      "low": "BAIXO_IMPACTO",
+      "mitigated": "MITIGADO",
+      "activeExploits": "Exploits_Ativos",
+      "systemLeaks": "Leaks_de_Sistema",
+      "codeInconsistencies": "Inconsistências_de_Código",
+      "remediatedIssues": "Problemas_Corrigidos"
+    },
+    "Manifest": {
+      "title": "MANIFESTO_DE_VULNERABILIDADE_V2.0",
+      "lastScan": "Última_Varredura",
+      "exportPdf": "Exportar_PDF_de_Auditoria"
+    },
+    "Finding": {
+      "target": "ALVO",
+      "observationDetails": "Detalhes_da_Observação",
+      "operationalRisk": "Risco_Operacional",
+      "remediationStrategy": "Estratégia_de_Correção",
+      "remediationPending": "Estratégia de correção pendente de revisão da arquitetura do sistema.",
+      "verifyPatch": "Verificar_Patch_em_Staging"
+    },
+    "Readiness": {
+      "logicalTitle": "Prontidão_da_Arquitetura_Lógica",
+      "operationalTitle": "Prontidão_da_Segurança_Operacional",
+      "businessIntegrity": "INTEGRIDADE_DA_LÓGICA_DE_NEGÓCIO",
+      "coordinationStability": "ESTABILIDADE_DA_CAMADA_DE_COORDENAÇÃO",
+      "secretManagement": "GESTÃO_DE_SEGREDOS",
+      "blockchainRealism": "REALISMO_DA_BLOCKCHAIN"
+    },
+    "findings": {
+      "C-01": {
+        "title": "Exposição de Credenciais de Produção no Repositório",
+        "detail": "O arquivo contém chaves com privilégios totais: SUPABASE_SERVICE_ROLE_KEY, PINATA_JWT, UPSTASH_REDIS_REST_TOKEN.",
+        "risk": "Bypass de RLS, acesso total ao IPFS e controle total sobre cache/rate-limiting.",
+        "remediation": "As credenciais foram rotacionadas e um proxy de segurança foi habilitado para acessos sensíveis."
+      },
+      "C-02": {
+        "title": "Integração da Vara Network Simulada",
+        "detail": "O código usa blocos de simulação codificados e não faz chamadas reais para @gear-js/api.",
+        "risk": "Falsa sensação de imutabilidade on-chain. Os hashes gerados são artificiais.",
+        "remediation": "Migrando para @gear-js/api real com suporte para Vara Mainnet."
+      },
+      "M-01": {
+        "title": "Redundância do Motor de Validação",
+        "detail": "O RegistryService usa uma versão simplificada do validador, ignorando o sistema de Invariantes externo.",
+        "risk": "Publicação de scorecards que violam invariantes lógicas já programadas.",
+        "remediation": "Unificando o motor de validação sob o pacote @andromeda/auto-validator."
+      },
+      "M-02": {
+        "title": "Fraqueza na Lógica de Nonces",
+        "detail": "Falta de persistência para nonces usados. Risco de Replay Attacks em caso de falhas de rede.",
+        "risk": "Reutilização de assinaturas dentro de uma janela de 5 minutos.",
+        "remediation": "Implementado conjunto persistente de nonces queimados no Redis com replicação."
+      },
+      "B-01": {
+        "title": "Inconsistência na Estrutura de Contratos",
+        "detail": "Múltiplas pastas para contratos Vara podem causar confusão na compilação.",
+        "risk": "Implantação acidental de stubs em vez de contratos reais.",
+        "remediation": "Pendente de unificar todos os contratos na raiz do workspace."
+      },
+      "B-02": {
+        "title": "Falta de Cobertura na Rota de Diagnóstico",
+        "detail": "Não verifica a conectividade com Pinata nem o status da Vara Network.",
+        "risk": "Falsos positivos na saúde do sistema.",
+        "remediation": "Adicionados health-checks para IPFS (Pinata) y Gear API Gateway."
+      }
+    }
+  },
+  "VerificationDepth": {
+    "Header": {
+      "title": "PROFUNDIDADE DE VERIFICAÇÃO ATLAS",
+      "subtitle": "Análise estratificada dos níveis de verificação",
+      "total": "TOTAL",
+      "avg": "MÉDIA"
+    },
+    "Levels": {
+      "0": {
+        "name": "Auto-Atestação",
+        "description": "Auto-validação básica com assinatura criptográfica"
+      },
+      "1": {
+        "name": "Revisão por Pares",
+        "description": "Verificação por colegas do mesmo domínio"
+      },
+      "2": {
+        "name": "Consenso de Protocolo",
+        "description": "Consenso de protocolo on-chain (multisig/DAO)"
+      },
+      "3": {
+        "name": "Prova Matemática",
+        "description": "Prova matemática (ZKP/algorítmica)"
+      }
+    },
+    "Distribution": {
+      "title": "DISTRIBUIÇÃO DA PROFUNDIDADE DE VERIFICAÇÃO",
+      "filtered": "FILTRADO: NÍVEL",
+      "allLevels": "TODOS OS NÍVEIS",
+      "milestones": "marcos"
+    },
+    "Stats": {
+      "totalMilestones": "MARCOS TOTAIS",
+      "averageLevel": "NÍVEL MÉDIO",
+      "maxAttestations": "ASSINATURAS MÁXIMAS"
+    },
+    "Table": {
+      "levelMilestones": "MARCOS DO NÍVEL {level}",
+      "recentMilestones": "MARCOS RECENTES",
+      "of": "de",
+      "attestations": "assinaturas",
+      "noResults": "Nenhum marco encontrado neste nível de verificação"
+    },
+    "Footer": {
+      "paper": "DOCUMENTO ATLAS §2.3",
+      "protocol": "Protocolo de Verificação Estratificado",
+      "clearFilter": "LIMPAR FILTRO",
+      "refreshData": "ATUALIZAR DADOS"
+    },
+    "About": {
+      "title": "Sobre os Níveis de Verificação ATLAS",
+      "description": "O Documento ATLAS define 4 níveis de certeza de verificação. Níveis mais altos representam garantias criptográficas e de consenso mais fortes. O Nível 3 (Prova Matemática) fornece imutabilidade máxima através de verificação algorítmica, enquanto o Nivel 0 (Auto-Atestação) serve como ponto de entrada para novas contribuições."
+    },
+    "DemoData": {
+      "implementAction": "Implementação do sistema de persistência dual ATLAS com MongoDB Atlas e Supabase",
+      "designAction": "Design do sistema de taxonomia de indústrias multi-camadas",
+      "auditAction": "Auditoria de segurança do módulo de coordenação cross-DAO",
+      "researchAction": "Pesquisa sobre sistemas de reputação descentralizados",
+      "specAction": "Especificação técnica do motor de invariantes da Andromeda",
+      "uiuxAction": "Design da interface de rede ATLAS com visualização de relações"
+    }
+  },
+  "TerminalValidator": {
+    "title": "ESCRUTINADOR_DE_INTEGRIDADE_JSON",
+    "connected": "Conectado: @andromeda/functional-validator_v1.2",
+    "loadTemplate": "CARGAR_MODELO_CANÔNICO",
+    "rawCodeInjector": "INJETOR_DE_CÓDIGO_RAW",
+    "placeholder": "COLE_O_BLOB_JSON_DA_SCORECARD_AQUI...",
+    "validating": "INICIANDO_VALIDAÇÃO_PROFUNDA...",
+    "scrutinize": "ESCRUTINAR_INVARIANTES_DA_SCORECARD",
+    "passed": "VALIDAÇÃO_APROVADA",
+    "failed": "VERIFICAÇÃO_FALHOU",
+    "systemBlockers": "BLOQUEADORES_DE_SISTEMA_DETECTADOS",
+    "anomalies": "ANOMALIAS_NÃO_BLOQUEANTES",
+    "proofGenerated": "Prova de Validação Determinística Gerada",
+    "timestamp": "MARCO_TEMPORAL",
+    "clarityDelta": "DELTA_DE_CLARIDADE"
+  },
+  "SystemDiagnostics": {
+    "title": "VIGILÂNCIA_DE_SISTEMA_v1",
+    "envLock": "Bloqueio_de_Ambiente",
+    "prodSynced": "PROD_SINCRONIZADO",
+    "debugVerbosity": "Verbosidade_de_Depuração",
+    "level3Ext": "NÍVEL_3_EXT",
+    "services": {
+      "supabase": {
+        "name": "SUPABASE_SQL",
+        "details": "PostgreSQL v15.1"
+      },
+      "redis": {
+        "name": "REDIS_UPSTASH",
+        "details": "Nó de Cache Global"
+      },
+      "pinata": {
+        "name": "PINATA_IPFS",
+        "details": "Gateway: mainnet.infura.io"
+      },
+      "vara": {
+        "name": "VARA_GEAR_API",
+        "details": "Proxy WSS Testnet"
+      },
+      "crypGuard": {
+        "name": "CRYP_GUARD",
+        "details": "EIP-712 / Ed25519 Verificado"
+      }
+    }
+  },
+  "DeveloperMode": {
+    "header": "SISTEMA_DE_BUFFER_V1.0",
+    "init": "// INICIALIZANDO SURVEILLANCE_OS...",
+    "connected": "// CONECTADO AO CORE.STABLE.0x21F",
+    "typeHelp": "// DIGITE 'HELP' PARA O DIRETÓRIO DO SISTEMA",
+    "buffSize": "TAM_BUFFER: 65KB",
+    "mode": "MODO: RAW_TELNET",
+    "txActive": "TX_ATIVO",
+    "commands": {
+      "help": {
+        "header": "SISTEMAS DISPONÍVEIS:",
+        "status": "Integridade operacional do núcleo",
+        "inspect": "Varredura profunda de entidade",
+        "simulate": "Executar simulações de lógica",
+        "ethics": "Restrições do protocolo",
+        "atlasQuery": "Consultar profundidade de verificação ATLAS",
+        "clear": "Limpar buffer"
+      },
+      "status": {
+        "header": "ANDROMEDA CORE — STATUS DO KERNEL v2.4.1",
+        "infra": "INFRAESTRUTURA:",
+        "ready": "PRONTO",
+        "stable": "ESTÁVEL",
+        "uptime": "Tempo de atividade",
+        "latency": "LATÊNCIA ELEVADA",
+        "sync": "SINC_EM_ANDAMENTO",
+        "active": "ATIVO",
+        "standby": "EM_ESPERA",
+        "auth": "NÍVEL_AUT: BYPASS_DESENVOLVEDOR_ATIVO"
+      },
+      "inspect": {
+        "header": "RESUMO DA INSPEÇÃO DO ECOSSISTEMA",
+        "projects": "Projetos",
+        "active": "Ativos",
+        "invariants": "Invariantes",
+        "verified": "Verificados",
+        "state": "Estado",
+        "consistent": "Consistente",
+        "health": "Saúde",
+        "operational": "Operacional"
+      },
+      "ethics": {
+        "header": "ÉTICA CANÔNICA v1",
+        "rule1": "1. SEM EXTRAÇÃO SEM VALOR",
+        "rule2": "2. SEM GOVERNANÇA SEM RESPONSABILIDADE",
+        "rule3": "3. SEM AUTOMAÇÃO SEM SUPERVISÃO",
+        "enforced": "[APLICADO EM TEMPO DE EXECUÇÃO]"
+      },
+      "atlasQuery": {
+        "header": "RESULTADOS DA CONSULTA DE VERIFICAÇÃO ATLAS",
+        "totalMilestones": "Milestones Totais",
+        "avgLevel": "Nível Médio de Verificação",
+        "distribution": "Distribuição",
+        "level0": "NÍVEL 0 (Auto-Atestação)",
+        "level1": "NÍVEL 1 (Revisão por Pares)",
+        "level2": "NÍVEL 2 (Consenso do Protocolo)",
+        "level3": "NÍVEL 3 (Prova Matemática)",
+        "topProjects": "Principais Projetos por Profundidade de Verificação",
+        "attestations": "Atestações",
+        "useFilter": "Uso: atlas-query <filtro> para consultas avançadas",
+        "examples": "Exemplos"
+      },
+      "simulate": {
+        "running": "EXECUTANDO SIMULAÇÃO: SUCESSO",
+        "noChanges": "NENHUMA MUDANÇA DE ESTADO DETECTADA."
+      },
+      "errors": {
+        "unknown": "ERR: CMD_DESCONHECIDO_0x"
+      }
+    }
+  }}

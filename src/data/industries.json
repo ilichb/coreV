@@ -1,0 +1,274 @@
+{
+  "version": "2.0",
+  "lastUpdated": "2026-02-14",
+  "notes": {
+    "taxonomiaDual": true,
+    "categoriasTransversales": ["IDENTIDAD", "PRIVACIDAD"],
+    "criterioActualizacion": "Narrativa con +$100M en TVL o tracción significativa de usuarios"
+  },
+  "industries": [
+    {
+      "id": "finance",
+      "name": "FINANZAS",
+      "description": "El movimiento de capital, crédito y valor.",
+      "subIndustries": {
+        "traditional": [
+          { "id": "finance.trad.banking", "name": "Banca Comercial", "keywords": ["depósitos", "préstamos"] },
+          { "id": "finance.trad.investment", "name": "Banca de Inversión", "keywords": ["fusiones", "OPI"] },
+          { "id": "finance.trad.capitalMarkets", "name": "Mercados de Capitales", "keywords": ["bolsas", "brokers"] },
+          { "id": "finance.trad.insurance", "name": "Seguros", "keywords": ["vida", "salud", "reaseguros"] },
+          { "id": "finance.trad.assetManagement", "name": "Gestión de Activos", "keywords": ["ETFs", "pensiones"] },
+          { "id": "finance.trad.payments", "name": "Pasarelas de Pago", "keywords": ["Visa", "SWIFT"] },
+          { "id": "finance.trad.fx", "name": "Divisas", "keywords": ["FX", "forex"] }
+        ],
+        "web3": [
+          { "id": "finance.web3.dex", "name": "Exchanges Descentralizados (DEX)", "keywords": ["AMM", "Uniswap"] },
+          { "id": "finance.web3.lending", "name": "Mercados de Crédito", "keywords": ["Aave", "Compound"] },
+          { "id": "finance.web3.derivatives", "name": "Derivados y Perpetuos", "keywords": ["futuros", "Lyra"] },
+          { "id": "finance.web3.synthetics", "name": "Sintéticos", "keywords": ["Synthetix"] },
+          { "id": "finance.web3.stablecoins", "name": "Stablecoins", "keywords": ["USDC", "DAI"] },
+          { "id": "finance.web3.yield", "name": "Optimización de Rendimiento", "keywords": ["Yearn"] },
+          { "id": "finance.web3.liquidStaking", "name": "Liquid Staking", "keywords": ["Lido", "restaking"] },
+          { "id": "finance.web3.prediction", "name": "Mercados de Predicción", "keywords": ["Polymarket"] },
+          { "id": "finance.web3.rwa", "name": "RWA (Real World Assets)", "keywords": ["bonos", "tesoro"] },
+          { "id": "finance.web3.payments", "name": "Pagos Crypto", "keywords": ["Superfluid"] }
+        ]
+      },
+      "metadata": { "hasTraditional": true, "hasWeb3": true }
+    },
+    {
+      "id": "infrastructure",
+      "name": "INFRAESTRUCTURA Y REDES",
+      "description": "La base sobre la que se construyen las aplicaciones.",
+      "subIndustries": {
+        "traditional": [
+          { "id": "infra.trad.hardware", "name": "Hardware", "keywords": ["semiconductores", "chips", "servidores"] },
+          { "id": "infra.trad.telecom", "name": "Telecomunicaciones", "keywords": ["ISP", "5G", "fibra"] },
+          { "id": "infra.trad.cloud", "name": "Cloud Computing", "keywords": ["AWS", "Azure", "GCP"] },
+          { "id": "infra.trad.software", "name": "Software Corporativo", "keywords": ["SaaS", "ERP", "Oracle"] }
+        ],
+        "web3": [
+          { "id": "infra.web3.l1", "name": "Protocolos Base (L1/L0)", "keywords": ["Ethereum", "Solana", "Celestia"] },
+          { "id": "infra.web3.l2", "name": "Escalado (L2)", "keywords": ["Arbitrum", "zkSync"] },
+          { "id": "infra.web3.storage", "name": "Almacenamiento", "keywords": ["Filecoin", "Arweave"] },
+          { "id": "infra.web3.oracles", "name": "Oráculos", "keywords": ["Chainlink"] },
+          { "id": "infra.web3.rpc", "name": "Acceso a Red (RPC)", "keywords": ["Infura", "Alchemy"] },
+          { "id": "infra.web3.bridges", "name": "Interoperabilidad (Bridges)", "keywords": ["Wormhole", "LayerZero"] },
+          { "id": "infra.web3.wallets", "name": "Custodia y Wallets", "keywords": ["MetaMask", "Fireblocks"] },
+          { "id": "infra.web3.compute", "name": "Computación Descentralizada", "keywords": ["Akash", "Render"] }
+        ]
+      },
+      "metadata": { "hasTraditional": true, "hasWeb3": true }
+    },
+    {
+      "id": "media",
+      "name": "MEDIOS, CONTENIDO Y ENTRETENIMIENTO",
+      "description": "Creación, distribución y monetización de la cultura.",
+      "subIndustries": {
+        "traditional": [
+          { "id": "media.trad.film", "name": "Cine y Televisión", "keywords": ["estudios", "producción"] },
+          { "id": "media.trad.music", "name": "Música", "keywords": ["discográficas", "Spotify"] },
+          { "id": "media.trad.gaming", "name": "Videojuegos", "keywords": ["consolas", "eSports"] },
+          { "id": "media.trad.social", "name": "Redes Sociales", "keywords": ["Meta", "X", "TikTok"] },
+          { "id": "media.trad.art", "name": "Arte y Coleccionables", "keywords": ["galerías", "subastas"] },
+          { "id": "media.trad.advertising", "name": "Publicidad y Marketing", "keywords": ["agencias", "AdTech"] }
+        ],
+        "web3": [
+          { "id": "media.web3.nft", "name": "Coleccionables Digitales (NFT)", "keywords": ["ArtBlocks", "PFPs"] },
+          { "id": "media.web3.gaming", "name": "Gaming Web3", "keywords": ["Play-to-Own", "P2E"] },
+          { "id": "media.web3.entertainment", "name": "Entretenimiento Interactivo", "keywords": ["DAOs de fans"] },
+          { "id": "media.web3.social", "name": "Plataformas Sociales Web3", "keywords": ["Lens", "Farcaster"] },
+          { "id": "media.web3.metaverse", "name": "Metaverso", "keywords": ["Decentraland", "Sandbox"] },
+          { "id": "media.web3.streaming", "name": "Streaming Descentralizado", "keywords": ["Audius", "Livepeer"] },
+          { "id": "media.web3.fanEngagement", "name": "Fan Engagement", "keywords": ["tokens sociales"] }
+        ]
+      },
+      "metadata": { "hasTraditional": true, "hasWeb3": true }
+    },
+    {
+      "id": "organizations",
+      "name": "ORGANIZACIÓN, IDENTIDAD Y GOBERNANZA",
+      "description": "Cómo se coordinan los humanos y se gestiona la identidad.",
+      "subIndustries": {
+        "traditional": [
+          { "id": "org.trad.corporations", "name": "Corporaciones", "keywords": ["jerarquías", "LLC"] },
+          { "id": "org.trad.publicAdmin", "name": "Administración Pública", "keywords": ["gobiernos", "registros"] },
+          { "id": "org.trad.regulators", "name": "Organismos Reguladores", "keywords": ["SEC", "bancos centrales"] },
+          { "id": "org.trad.legal", "name": "LegalTech", "keywords": ["bufetes", "notarías"] },
+          { "id": "org.trad.identity", "name": "Gestión de Identidad", "keywords": ["IAM", "Okta"] }
+        ],
+        "web3": [
+          { "id": "org.web3.daos", "name": "Estructuras Organizativas (DAOs)", "keywords": ["Protocol DAOs", "Investment DAOs"] },
+          { "id": "org.web3.governance", "name": "Herramientas de Gobernanza", "keywords": ["Snapshot", "Gnosis Safe"] },
+          { "id": "org.web3.did", "name": "Identidad Soberana (DID)", "keywords": ["Ceramic", "Iden3"] },
+          { "id": "org.web3.reputation", "name": "Sistemas de Reputación", "keywords": ["Spectral", "Gitcoin Passport"] },
+          { "id": "org.web3.domains", "name": "Dominios Web3", "keywords": ["ENS", "Unstoppable"] },
+          { "id": "org.web3.privacy", "name": "Privacidad y Pruebas (ZK)", "keywords": ["ZKP"] },
+          { "id": "org.web3.justice", "name": "Justicia Descentralizada", "keywords": ["Kleros"] }
+        ]
+      },
+      "metadata": { "hasTraditional": true, "hasWeb3": true }
+    },
+    {
+      "id": "rwa",
+      "name": "ACTIVOS DEL MUNDO REAL, BIENES RAÍCES Y MERCANCÍAS",
+      "description": "Puente entre la propiedad física y el mundo digital.",
+      "subIndustries": {
+        "traditional": [
+          { "id": "rwa.trad.realEstate", "name": "Desarrollo Inmobiliario", "keywords": ["residencial", "comercial"] },
+          { "id": "rwa.trad.reits", "name": "REITs", "keywords": ["fideicomisos"] },
+          { "id": "rwa.trad.commodities", "name": "Materias Primas", "keywords": ["oro", "petróleo", "soja"] },
+          { "id": "rwa.trad.luxury", "name": "Arte y Lujo Físico", "keywords": ["arte tradicional", "vinos"] },
+          { "id": "rwa.trad.ip", "name": "Propiedad Intelectual", "keywords": ["patentes", "marcas"] }
+        ],
+        "web3": [
+          { "id": "rwa.web3.realEstate", "name": "Inmobiliario Tokenizado", "keywords": ["RealT", "fraccionamiento"] },
+          { "id": "rwa.web3.commodities", "name": "Commodities Tokenizados", "keywords": ["PAXG"] },
+          { "id": "rwa.web3.financial", "name": "Activos Financieros Tokenizados", "keywords": ["Ondo", "bonos"] },
+          { "id": "rwa.web3.luxury", "name": "Lujo y Coleccionables", "keywords": ["fraccionamiento"] },
+          { "id": "rwa.web3.ip", "name": "IP-NFTs", "keywords": ["Story Protocol", "IPwe"] }
+        ]
+      },
+      "metadata": { "hasTraditional": true, "hasWeb3": true }
+    },
+    {
+      "id": "science",
+      "name": "CIENCIA, SALUD E INVESTIGACIÓN (DeSci)",
+      "description": "Democratización del conocimiento y la investigación.",
+      "subIndustries": {
+        "traditional": [
+          { "id": "science.trad.pharma", "name": "Farmacéutica", "keywords": ["I+D", "ensayos"] },
+          { "id": "science.trad.biotech", "name": "Biotecnología", "keywords": ["genética", "terapias"] },
+          { "id": "science.trad.healthcare", "name": "Proveedores de Salud", "keywords": ["hospitales", "clínicas"] },
+          { "id": "science.trad.academia", "name": "Investigación Académica", "keywords": ["universidades", "revistas"] }
+        ],
+        "web3": [
+          { "id": "science.web3.funding", "name": "Financiación de la Investigación", "keywords": ["VitaDAO", "AthenaDAO"] },
+          { "id": "science.web3.ip", "name": "Propiedad Intelectual Científica", "keywords": ["IP-NFTs"] },
+          { "id": "science.web3.publishing", "name": "Publicación y Revisión por Pares", "keywords": ["revistas descentralizadas"] },
+          { "id": "science.web3.data", "name": "Mercados de Datos", "keywords": ["datos genómicos"] },
+          { "id": "science.web3.reproducibility", "name": "Reproducibilidad", "keywords": ["IPFS", "Arweave"] }
+        ]
+      },
+      "metadata": { "hasTraditional": true, "hasWeb3": true }
+    },
+    {
+      "id": "energy",
+      "name": "ENERGÍA, MEDIO AMBIENTE Y ECONOMÍA REGENERATIVA (ReFi)",
+      "description": "Sostenibilidad y gestión de recursos.",
+      "subIndustries": {
+        "traditional": [
+          { "id": "energy.trad.energy", "name": "Sector Energético", "keywords": ["petróleo", "gas", "renovables"] },
+          { "id": "energy.trad.utilities", "name": "Utilities", "keywords": ["agua", "residuos"] },
+          { "id": "energy.trad.carbon", "name": "Mercados de Carbono", "keywords": ["voluntarios", "cumplimiento"] },
+          { "id": "energy.trad.agriculture", "name": "Agricultura y Alimentación", "keywords": [] }
+        ],
+        "web3": [
+          { "id": "energy.web3.carbon", "name": "Mercados de Carbono", "keywords": ["Toucan", "KlimaDAO"] },
+          { "id": "energy.web3.energy", "name": "Energía Descentralizada", "keywords": ["Power Ledger"] },
+          { "id": "energy.web3.greenFinance", "name": "Financiación Verde", "keywords": ["bonos verdes"] },
+          { "id": "energy.web3.mining", "name": "Minería Sostenible", "keywords": ["captura de metano"] },
+          { "id": "energy.web3.circular", "name": "Economía Circular", "keywords": ["reciclaje", "trazabilidad"] }
+        ]
+      },
+      "metadata": { "hasTraditional": true, "hasWeb3": true }
+    },
+    {
+      "id": "supplychain",
+      "name": "CADENA DE SUMINISTRO, LOGÍSTICA Y MOVILIDAD (DePIN)",
+      "description": "La infraestructura física del mundo, coordinada digitalmente.",
+      "subIndustries": {
+        "traditional": [
+          { "id": "sc.trad.logistics", "name": "Logística y Transporte", "keywords": ["flotas", "navieras"] },
+          { "id": "sc.trad.supplychain", "name": "Gestión de Cadena de Suministro", "keywords": ["proveedores"] },
+          { "id": "sc.trad.manufacturing", "name": "Manufactura", "keywords": [] },
+          { "id": "sc.trad.mobility", "name": "Movilidad Urbana", "keywords": ["taxis", "VTCs"] },
+          { "id": "sc.trad.telecom", "name": "Redes de Telecomunicaciones", "keywords": ["antenas", "torres"] }
+        ],
+        "web3": [
+          { "id": "sc.web3.wireless", "name": "Redes Inalámbricas (DePIN)", "keywords": ["Helium", "Pollen"] },
+          { "id": "sc.web3.storage", "name": "Almacenamiento Físico", "keywords": ["Filecoin"] },
+          { "id": "sc.web3.compute", "name": "Computación Física", "keywords": ["Render", "Akash"] },
+          { "id": "sc.web3.mobility", "name": "Movilidad y Mapas", "keywords": ["Hivemapper", "Dimo"] },
+          { "id": "sc.web3.sensors", "name": "Redes de Sensores", "keywords": ["ambientales"] },
+          { "id": "sc.web3.traceability", "name": "Logística y Trazabilidad", "keywords": ["cadena de frío"] }
+        ]
+      },
+      "metadata": { "hasTraditional": true, "hasWeb3": true }
+    },
+    {
+      "id": "education",
+      "name": "EDUCACIÓN Y CAPITAL HUMANO",
+      "description": "Formación, acreditación y desarrollo profesional.",
+      "subIndustries": {
+        "traditional": [
+          { "id": "edu.trad.formal", "name": "Educación Formal", "keywords": ["universidades", "colegios"] },
+          { "id": "edu.trad.corporate", "name": "Formación Corporativa", "keywords": [] },
+          { "id": "edu.trad.accreditation", "name": "Acreditación", "keywords": ["títulos", "certificados"] },
+          { "id": "edu.trad.recruitment", "name": "Reclutamiento", "keywords": ["headhunting"] }
+        ],
+        "web3": [
+          { "id": "edu.web3.learning", "name": "Plataformas de Aprendizaje", "keywords": ["learn-to-earn"] },
+          { "id": "edu.web3.accreditation", "name": "Acreditación Web3", "keywords": ["credenciales verificables"] },
+          { "id": "edu.web3.talent", "name": "Mercados de Talentos", "keywords": ["DAOs de trabajo"] },
+          { "id": "edu.web3.content", "name": "Contenido Educativo", "keywords": ["curaduría descentralizada"] }
+        ]
+      },
+      "metadata": { "hasTraditional": true, "hasWeb3": true }
+    },
+    {
+      "id": "security",
+      "name": "SEGURIDAD, PRIVACIDAD Y CUMPLIMIENTO",
+      "description": "Protección y confianza en el ecosistema.",
+      "subIndustries": {
+        "traditional": [
+          { "id": "sec.trad.cybersecurity", "name": "Ciberseguridad", "keywords": ["firewalls", "antivirus"] },
+          { "id": "sec.trad.compliance", "name": "Cumplimiento Normativo", "keywords": ["KYC", "AML"] },
+          { "id": "sec.trad.surveillance", "name": "Vigilancia y Monitoreo", "keywords": [] }
+        ],
+        "web3": [
+          { "id": "sec.web3.audit", "name": "Auditoría de Contratos", "keywords": ["Trail of Bits"] },
+          { "id": "sec.web3.monitoring", "name": "Monitoreo de Riesgos", "keywords": ["Forta"] },
+          { "id": "sec.web3.privacy", "name": "Privacidad Computacional", "keywords": ["ZK", "Aleo"] },
+          { "id": "sec.web3.kyc", "name": "KYC/AML descentralizado", "keywords": ["pruebas ZK"] },
+          { "id": "sec.web3.insurance", "name": "Seguros On-chain", "keywords": ["Nexus Mutual"] }
+        ]
+      },
+      "metadata": { "hasTraditional": true, "hasWeb3": true }
+    },
+    {
+      "id": "ai",
+      "name": "INTELIGENCIA ARTIFICIAL (AI x WEB3)",
+      "description": "La convergencia de la inteligencia de las máquinas y la confianza descentralizada.",
+      "subIndustries": {
+        "traditional": [
+          { "id": "ai.trad.models", "name": "Modelos de IA centralizados", "keywords": ["OpenAI", "DeepMind"] },
+          { "id": "ai.trad.data", "name": "Proveedores de Datos", "keywords": ["entrenamiento"] },
+          { "id": "ai.trad.chips", "name": "Chips especializados", "keywords": ["GPUs", "TPUs"] }
+        ],
+        "web3": [
+          { "id": "ai.web3.compute", "name": "Mercados de Computación (GPU)", "keywords": ["Akash", "Gensyn"] },
+          { "id": "ai.web3.data", "name": "Mercados de Datos", "keywords": ["Ocean Protocol"] },
+          { "id": "ai.web3.verification", "name": "Verificación de Contenido", "keywords": ["autenticidad IA vs humano"] },
+          { "id": "ai.web3.agents", "name": "Agentes Autónomos", "keywords": ["agentes con wallet"] },
+          { "id": "ai.web3.decentralized", "name": "IA Descentralizada", "keywords": ["Bittensor"] }
+        ]
+      },
+      "metadata": { "hasTraditional": true, "hasWeb3": true }
+    }
+  ],
+  "transversalLayers": [
+    {
+      "id": "identity",
+      "name": "IDENTIDAD",
+      "description": "Capas transversales de identidad y privacidad",
+      "appliesTo": ["finance", "infrastructure", "organizations", "science", "education", "security"]
+    },
+    {
+      "id": "privacy",
+      "name": "PRIVACIDAD",
+      "description": "Privacidad computacional y cumplimiento",
+      "appliesTo": ["finance", "science", "security", "ai"]
+    }
+  ]
+}
