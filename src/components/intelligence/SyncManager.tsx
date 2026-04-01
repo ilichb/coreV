@@ -20,32 +20,42 @@ export function SyncManager() {
 
     const triggerSync = async (ecosystem?: string) => {
         setSyncing(true);
-        setStatus(prev => ({ ...prev, error: null }));
+        setStatus(prev => ({ ...prev, error: null, result: null }));
 
         try {
             const endpoint = ecosystem
                 ? `/api/intelligence/sync?action=trigger-ecosystem&ecosystem=${ecosystem}`
                 : '/api/intelligence/sync?action=trigger-full';
 
+            console.log(`Triggering sync: ${endpoint}`);
             const response = await fetch(endpoint, { method: 'POST' });
 
             // Check if response is JSON
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
                 const text = await response.text();
+                console.error('Non-JSON response:', text.substring(0, 200));
                 throw new Error(`Server returned non-JSON response: ${text.substring(0, 100)}`);
             }
 
             const data = await response.json();
+            console.log('Sync response:', data);
 
-            if (!response.ok) throw new Error(data.message || data.error || 'Sync failed');
+            if (!response.ok) {
+                console.error('Sync failed:', data);
+                throw new Error(data.message || data.error || `Sync failed with status ${response.status}`);
+            }
 
             setStatus({
                 lastSync: new Date().toLocaleTimeString(),
                 result: data,
                 error: null
             });
+
+            // Log success
+            console.log(`Sync successful: ${data.message || 'Job triggered'}`);
         } catch (err: any) {
+            console.error('Sync error:', err);
             logger.error('Sync error:', err);
             setStatus(prev => ({ ...prev, error: err.message }));
         } finally {

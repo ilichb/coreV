@@ -300,6 +300,22 @@
       "active": "Active"
     },
     "DataSources": {
+      "title": "DATA SOURCES",
+      "rootstock": "ROOTSTOCK",
+      "onChainProposals": "ON-CHAIN PROPOSALS",
+      "activeBuilders": "ACTIVE BUILDERS",
+      "ipfsStorage": "IPFS STORAGE",
+      "milestonesStored": "MILESTONES STORED",
+      "buildersNetwork": "BUILDERS NETWORK",
+      "atlasNetwork": "ATLAS NETWORK",
+      "apiHealth": "API HEALTH",
+      "uptime": "UPTIME",
+      "liveData": "LIVE DATA",
+      "pendingEcosystems": "PENDING ECOSYSTEMS",
+      "apisConnected": "APIS CONNECTED",
+      "lastUpdate": "LAST UPDATE",
+      "fetching": "FETCHING",
+      "pinataConnected": "PINATA CONNECTED",
       "arbitrum": "ARBITRUM DAOS",
       "optimism": "OPTIMISM DAOS",
       "snapshot": "SNAPSHOT SPACES",
@@ -309,6 +325,40 @@
       "last24h": "Last 24h",
       "activeConnections": "Active real-time governance connections",
       "networkGraphNote": "Network graph representing co-coordination relations"
+    },
+    "LiveStatus": {
+      "title": "LIVE STATUS",
+      "lastSync": "LAST SYNC",
+      "activeConnections": "ACTIVE CONNECTIONS",
+      "api": "API",
+      "data": "DATA",
+      "sync": "SYNC",
+      "idle": "IDLE"
+    },
+    "Ecosystems": {
+      "title": "ECOSYSTEMS",
+      "scrollHint": "SCROLL FOR MORE",
+      "connectionPending": "CONNECTION PENDING",
+      "monitoringActive": "MONITORING ACTIVE",
+      "notConfigured": "NOT CONFIGURED",
+      "connected": "CONNECTED",
+      "pending": "PENDING",
+      "offline": "OFFLINE",
+      "configure": "CONFIGURE"
+    },
+    "RealTimeData": {
+      "title": "REAL-TIME DATA",
+      "rootstockData": "ROOTSTOCK DATA",
+      "live": "LIVE",
+      "fetchingData": "FETCHING DATA",
+      "processingPipeline": "PROCESSING PIPELINE",
+      "active": "ACTIVE",
+      "externalApis": "EXTERNAL APIS",
+      "connected": "CONNECTED",
+      "dataFreshness": "DATA FRESHNESS",
+      "unknown": "UNKNOWN",
+      "lastSyncLabel": "LAST SYNC",
+      "minAgo": "min ago"
     }
   },
   "CoordinationPage": {
@@ -462,7 +512,9 @@
       "gaming": "Gaming",
       "Gaming": "Gaming",
       "ai": "AI",
-      "AI": "AI"
+      "AI": "AI",
+      "rootstock": "Rootstock",
+      "Rootstock": "Rootstock"
     },
     "BuilderRanking": {
       "impact": "IMPACT",

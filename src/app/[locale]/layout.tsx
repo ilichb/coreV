@@ -8,6 +8,8 @@ import WalletProvider from "@/components/providers/WalletProvider";
 
 import { locales, defaultLocale } from '@/i18n/locales';
 
+import FaroProvider from "@/components/providers/FaroProvider";
+
 // Fuente del sistema en lugar de Google Fonts
 const fontClass = "font-sans";
 
@@ -37,13 +39,15 @@ export default async function RootLayout({
     <html lang={locale}>
       <body className={`${fontClass} antialiased`}>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <WalletProvider>
-            <ModeProvider>
-              <main>
-                {children}
-              </main>
-            </ModeProvider>
-          </WalletProvider>
+          <FaroProvider>
+            <WalletProvider>
+              <ModeProvider>
+                <main>
+                  {children}
+                </main>
+              </ModeProvider>
+            </WalletProvider>
+          </FaroProvider>
         </NextIntlClientProvider>
       </body>
     </html>

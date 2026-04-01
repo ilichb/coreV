@@ -26,7 +26,7 @@ export class RootstockConnector extends EcosystemConnector {
       pollingInterval: parseInt(process.env.ROOTSTOCK_POLLING_INTERVAL || '60000'),
       apiKeys: {
         thegraph: process.env.THEGRAPH_API_KEY || '',
-        tally: process.env.TALLY_API_KEY || '***REMOVED***'
+        tally: process.env.TALLY_API_KEY || 'fc61f12d3b8da00f210ecec0f72bd3462de3e9238aa2cbbe40f04a09f6ff502c'
       }
     };
   }
@@ -80,21 +80,30 @@ export class RootstockConnector extends EcosystemConnector {
 
   private async fetchFromTally(): Promise<any[]> {
     try {
-      logger.info('📡 Fetching via Tally API (TheGraphClient)...');
+      logger.info('📡 Fetching via Tally API (Organization ID: 2520434659481880168)...');
       const tallyClient = new TheGraphClient('https://api.tally.xyz/query', this.config.apiKeys?.tally);
 
       const query = `
-        query GetProposals($input: ProposalsInput!) {
+        query GovernanceProposals($input: ProposalsInput!) {
           proposals(input: $input) {
             nodes {
               ... on Proposal {
                 id
-                title
-                description
+                onchainId
                 status
                 createdAt
-                proposer { id address }
-                proposalStats { forVotes againstVotes abstainVotes }
+                metadata {
+                  description
+                }
+                voteStats {
+                  votesCount
+                  percent
+                  type
+                }
+                governor {
+                  id
+                  name
+                }
               }
             }
           }
@@ -103,14 +112,22 @@ export class RootstockConnector extends EcosystemConnector {
 
       const result = await tallyClient.query<any>(query, {
         input: {
-          filters: { chainIds: ["eip155:30"] },
-          page: { limit: 10 }
+          filters: {
+            organizationId: "2520434659481880168"
+          },
+          sort: {
+            sortBy: "id",
+            isDescending: true
+          },
+          page: {
+            limit: 10
+          }
         }
       });
 
       return result?.proposals?.nodes || [];
     } catch (error: any) {
-      logger.error('Tally API Error:', error.message);
+      logger.error('Tally API Error (Rootstock):', error.message);
       return [];
     }
   }
@@ -179,17 +196,19 @@ export class RootstockConnector extends EcosystemConnector {
   }
 
   async normalizeDecision(raw: any): Promise<StandardGovernanceDecision> {
-    const id = raw.proposalId || raw.id || 'unknown';
-    const title = raw.title || `Proposal ${id}`;
-
-    // Extract proposer with higher precision
-    const proposerAddress = raw.proposer?.address || raw.proposer?.id || raw.proposer || '';
+    const id = raw.onchainId || raw.id || 'unknown';
+    
+    // Tally often puts title in description metadata
+    const fullDescription = raw.metadata?.description || raw.description || '';
+    const titleMatch = fullDescription.match(/^#?\s*(.*?)(?:\n|;|--|$)/);
+    const title = titleMatch ? titleMatch[1].trim() : `Proposal ${id}`;
 
     const startTime = raw.createdAt ? Math.floor(new Date(raw.createdAt).getTime() / 1000) : Math.floor(Date.now() / 1000);
-    const endTime = raw.end?.timestamp || (startTime + 3 * 24 * 60 * 60);
+    // Tally doesn't always provide end timestamp in summary, use fallback
+    const endTime = startTime + 7 * 24 * 60 * 60; 
 
     let status: 'ACTIVE' | 'PASSED' | 'REJECTED' | 'EXECUTED' = 'ACTIVE';
-    const rawState = (raw.state || raw.status || '').toUpperCase();
+    const rawState = (raw.status || '').toUpperCase();
 
     if (rawState === 'EXECUTED') status = 'EXECUTED';
     else if (rawState === 'CANCELED' || rawState === 'DEFEATED' || rawState === 'REJECTED') status = 'REJECTED';
@@ -197,28 +216,32 @@ export class RootstockConnector extends EcosystemConnector {
 
     const quorumRequired = await this.getQuorumRequired();
 
+    // Extract vote stats
+    const forVotes = raw.voteStats?.find((v: any) => v.type === 'FOR')?.votesCount || '0';
+    const againstVotes = raw.voteStats?.find((v: any) => v.type === 'AGAINST')?.votesCount || '0';
+
     return {
       proposal_id: `rootstock:${id}`,
       dao_identifier: this.daoIdentifier,
       ecosystem: this.ecosystem,
       title,
-      description: raw.description || '',
-      discussion_url: `https://tally.xyz/gov/rootstock/proposal/${id}`,
-      snapshot_url: `https://tally.xyz/gov/rootstock/proposal/${id}`,
+      description: fullDescription,
+      discussion_url: `https://tally.xyz/gov/rootstockcollective/proposal/${raw.id}`,
+      snapshot_url: `https://tally.xyz/gov/rootstockcollective/proposal/${raw.id}`,
       proposal_type: 'STANDARD',
       voting_system: 'SIMPLE_MAJORITY',
       start_timestamp: startTime,
       end_timestamp: endTime,
       status,
-      votes_for: BigInt(raw.proposalStats?.forVotes || raw.votesFor || '0'),
-      votes_against: BigInt(raw.proposalStats?.againstVotes || raw.votesAgainst || '0'),
-      voting_power_total: BigInt(raw.votesTotal || '0'),
+      votes_for: BigInt(forVotes),
+      votes_against: BigInt(againstVotes),
+      voting_power_total: BigInt(forVotes) + BigInt(againstVotes),
       quorum_required: quorumRequired,
       contract_addresses: [this.config.contractAddresses.governor],
       created_at: startTime,
       updated_at: Math.floor(Date.now() / 1000),
-      verification_proofs: [`${raw.source || 'api'}-${id}`],
-      builder_did: proposerAddress ? `did:pkh:eip155:30:${proposerAddress}` : undefined
+      verification_proofs: [`tally-${raw.id}`],
+      builder_did: `did:andromeda:rootstock:${raw.id}` // Fallback identifier
     };
   }
 

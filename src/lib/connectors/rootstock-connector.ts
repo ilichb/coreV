@@ -59,17 +59,17 @@ export class RootstockConnector {
       logger.info('📡 Fetching Rootstock Governance proposals from Subgraph...');
       const query = `
         {
-          upgradeds(first: ${limit}) {
+          proposals(first: ${limit}) {
             id
-            implementation
-            blockNumber
-            blockTimestamp
-          }
-          eip712DomainChangeds(first: ${limit}) {
-            id
-            blockNumber
-            blockTimestamp
-            transactionHash
+            title
+            state
+            rawState
+            votesFor
+            votesAgainst
+            votesAbstains
+            votesTotal
+            voteStart
+            voteEnd
           }
         }
       `;
@@ -81,7 +81,7 @@ export class RootstockConnector {
       });
 
       const { data } = await response.json();
-      return data ? [...(data.upgradeds || []), ...(data.eip712DomainChangeds || [])] : [];
+      return data?.proposals || [];
     } catch (error) {
       logger.error('❌ Error fetching Subgraph proposals:', error);
       return [];
@@ -653,7 +653,7 @@ export class RootstockConnector {
         outcome: decision.status,
         votes_for: decision.votesFor,
         votes_against: decision.votesAgainst,
-        clarity_score: decision.clarityScore || 75,
+        clarity_score: decision.clarityScore || 0,
         funding_amount: decision.fundingAmount,
         milestones: decision.milestones,
       };

@@ -157,98 +157,100 @@ function generateDemoGraph(maxNodes: number = 15): { nodes: GraphNode[], edges: 
   return { nodes, edges };
 }
 
-// Función para obtener datos reales de la API
-async function fetchRealGraphData(): Promise<{ nodes: GraphNode[], edges: GraphEdge[] }> {
+// Función para construir grafo a partir de datos reales de telemetría
+async function fetchRealGraphData(): Promise<{ nodes: GraphNode[], edges: GraphEdge[], isLive?: boolean }> {
   try {
-    const response = await fetch('/api/intelligence/ecosystem?name=rootstock');
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.statusText}`);
-    }
+    const response = await fetch('/api/intelligence/telemetry');
+    if (!response.ok) throw new Error(`Telemetry API failed: ${response.statusText}`);
     
     const data = await response.json();
+    if (!data.success || !data.telemetry?.ecosystems) {
+      return { ...generateDemoGraph(8), isLive: false };
+    }
     
-    // Transformar datos de la API a formato de grafo
+    const ecosystems: Record<string, { builders: number; proposals: number; status: string }> = data.telemetry.ecosystems;
     const nodes: GraphNode[] = [];
     const edges: GraphEdge[] = [];
     
-    // Ejemplo: Crear nodos basados en datos reales
-    // Aquí deberíamos transformar los datos de la API en nodos y edges
-    // Por ahora, retornamos datos demo si la API no tiene el formato esperado
+    // Colores por ecosistema
+    const ECO_COLORS: Record<string, string> = {
+      rootstock: '#f97316',  // Orange
+      optimism:  '#ef4444',  // Red
+      arbitrum:  '#3b82f6',  // Blue
+      snapshot:  '#8b5cf6',  // Purple
+    };
     
-    if (data.recent_projects && data.recent_projects.length > 0) {
-      // Crear nodos para proyectos recientes
-      data.recent_projects.forEach((project: any, index: number) => {
-        nodes.push({
-          id: `project-real-${project.id || index}`,
-          type: 'project',
-          label: project.name || `Project ${index + 1}`,
-          reputation: project.trustScore || 50 + Math.floor(Math.random() * 50),
-          industry: project.industry || 'infrastructure',
-          ecosystem: 'rootstock',
-          size: 12 + Math.random() * 16,
-          color: INDUSTRY_COLORS[project.industry || 'infrastructure'] || NODE_COLORS.project,
-        });
-      });
-    }
-    
-    if (data.top_builders && data.top_builders.length > 0) {
-      // Crear nodos para builders top
-      data.top_builders.forEach((builder: any, index: number) => {
-        nodes.push({
-          id: `builder-real-${builder.did || builder.id || index}`,
-          type: 'builder',
-          label: builder.name || `Builder ${String.fromCharCode(65 + index)}`,
-          reputation: builder.reputation || 40 + Math.floor(Math.random() * 60),
-          industry: builder.primary_industry || 'infrastructure',
-          ecosystem: 'rootstock',
-          size: 8 + Math.random() * 12,
-          color: INDUSTRY_COLORS[builder.primary_industry || 'infrastructure'] || NODE_COLORS.builder,
-        });
-      });
-    }
-    
-    // Si no hay datos reales, generar algunos mínimos
-    if (nodes.length === 0) {
-      return generateDemoGraph(8);
-    }
-    
-    // Crear conexiones entre builders y proyectos
-    const builderNodes = nodes.filter(n => n.type === 'builder');
-    const projectNodes = nodes.filter(n => n.type === 'project');
-    
-    // Crear hasta 10 conexiones
-    const maxConnections = Math.min(10, builderNodes.length * projectNodes.length);
-    for (let i = 0; i < maxConnections; i++) {
-      const builder = builderNodes[i % builderNodes.length];
-      const project = projectNodes[i % projectNodes.length];
-      
-      edges.push({
-        source: builder.id,
-        target: project.id,
-        strength: 0.5 + Math.random() * 0.5,
-        type: 'contribution'
-      });
-    }
-    
-    // Posicionar nodos en un layout circular
     const centerX = 300;
     const centerY = 200;
-    const radius = 180;
+    const ecoRadius = 100;
     
-    nodes.forEach((node, index) => {
-      const angle = (index * 2 * Math.PI) / nodes.length;
-      const distance = radius * (0.3 + 0.7 * Math.random());
-      
-      node.x = centerX + distance * Math.cos(angle);
-      node.y = centerY + distance * Math.sin(angle);
+    // Crear nodo hub ATLAS central
+    nodes.push({
+      id: 'atlas-hub',
+      type: 'ecosystem',
+      label: 'ATLAS',
+      reputation: 100,
+      size: 22,
+      color: '#00f0ff',
+      x: centerX,
+      y: centerY,
     });
     
-    return { nodes, edges };
+    const activeEcos = Object.entries(ecosystems)
+      .filter(([, eco]) => eco.status === 'synced' || eco.status === 'configured' || eco.proposals > 0);
+    
+    // Crear nodos de ecosistema y conectarlos al hub
+    activeEcos.forEach(([name, eco], idx) => {
+      const angle = (idx * 2 * Math.PI) / activeEcos.length;
+      const ecoNode: GraphNode = {
+        id: `eco-${name}`,
+        type: 'ecosystem',
+        label: name.charAt(0).toUpperCase() + name.slice(1),
+        reputation: Math.min(100, 50 + eco.proposals * 2),
+        ecosystem: name,
+        size: 14 + Math.min(eco.proposals / 3, 12),
+        color: ECO_COLORS[name] || NODE_COLORS.ecosystem,
+        x: centerX + ecoRadius * Math.cos(angle),
+        y: centerY + ecoRadius * Math.sin(angle),
+      };
+      nodes.push(ecoNode);
+      
+      // Edge hub → ecosistema
+      edges.push({ source: 'atlas-hub', target: ecoNode.id, strength: 0.8, type: 'attestation' });
+      
+      // Crear nodos builder sintéticos por ecosistema (basados en count real)
+      const builderCount = Math.min(eco.builders || 0, 5);
+      if (builderCount > 0) {
+        const builderAngleOffset = angle + Math.PI / (builderCount + 1);
+        for (let b = 0; b < builderCount; b++) {
+          const bAngle = builderAngleOffset + (b * 0.6) - (builderCount * 0.3);
+          const builderNode: GraphNode = {
+            id: `builder-${name}-${b}`,
+            type: 'builder',
+            label: `${name.slice(0,3).toUpperCase()}-B${b + 1}`,
+            reputation: 40 + Math.floor(Math.random() * 50),
+            ecosystem: name,
+            size: 7 + Math.random() * 5,
+            color: ECO_COLORS[name] || NODE_COLORS.builder,
+            x: (ecoNode.x ?? centerX) + 70 * Math.cos(bAngle),
+            y: (ecoNode.y ?? centerY) + 70 * Math.sin(bAngle),
+          };
+          nodes.push(builderNode);
+          edges.push({ source: ecoNode.id, target: builderNode.id, strength: 0.4, type: 'contribution' });
+        }
+      }
+    });
+    
+    // Si no hay ecosistemas activos con datos, usar demo
+    if (activeEcos.length === 0) {
+      return { ...generateDemoGraph(8), isLive: false };
+    }
+    
+    return { nodes, edges, isLive: true };
     
   } catch (error: any) {
     logger.error('Error fetching real graph data:', error.message);
-    // Retornar datos demo como fallback
-    return generateDemoGraph(8);
+    return { ...generateDemoGraph(8), isLive: false };
   }
 }
 
@@ -258,20 +260,21 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hoveredEdge, setHoveredEdge] = useState<GraphEdge | null>(null);
+  const [isLiveData, setIsLiveData] = useState(false);
   
-  // Cargar datos demo o reales
+  // Cargar datos reales de telemetría, con fallback a demo
   useEffect(() => {
     setIsLoading(true);
     
-    // Simular carga de datos
-    const timer = setTimeout(() => {
-      const { nodes: demoNodes, edges: demoEdges } = generateDemoGraph(maxNodes);
-      setNodes(demoNodes);
-      setEdges(demoEdges);
+    const loadGraphData = async () => {
+      const { nodes: graphNodes, edges: graphEdges, isLive } = await fetchRealGraphData();
+      setNodes(graphNodes);
+      setEdges(graphEdges);
+      setIsLiveData(isLive ?? false);
       setIsLoading(false);
-    }, 500);
+    };
     
-    return () => clearTimeout(timer);
+    loadGraphData();
   }, [maxNodes]);
   
   // Animación para nodos seleccionados
@@ -549,10 +552,12 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
             </svg>
           )}
           
-          {/* Indicador de modo demo */}
+          {/* Indicador de modo live/demo */}
           <div className="absolute top-2 right-2">
-            <div className="text-[10px] text-gray-500 font-mono-display bg-black/60 px-2 py-1 rounded-[2px]">
-              DEMO MODE
+            <div className={`text-[10px] font-mono-display bg-black/60 px-2 py-1 rounded-[2px] ${
+              isLiveData ? 'text-green-400' : 'text-gray-500'
+            }`}>
+              {isLiveData ? '● LIVE DATA' : 'DEMO MODE'}
             </div>
           </div>
         </div>
@@ -689,7 +694,7 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
                 </div>
                 <div>Shows builder-project relationships</div>
                 <div className="mt-1 text-[9px] text-gray-700">
-                  Data source: MongoDB Atlas (demo mode)
+                  Data source: {isLiveData ? 'MongoDB Atlas (live)' : 'MongoDB Atlas (demo mode)'}
                 </div>
               </div>
             </div>

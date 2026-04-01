@@ -4,12 +4,6 @@ import { createClient } from '@supabase/supabase-js';
 import TelegramBotClass from 'node-telegram-bot-api';
 import { logger } from '../../utils/logger';
 
-// Inicializar Supabase para preferencias
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '***REMOVED***';
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
 interface UserPreferences {
     telegram?: boolean;
     telegramChatId?: string;
@@ -35,8 +29,18 @@ interface Batch {
 
 export class AchievementWebhookService {
     private static instance: AchievementWebhookService;
+    private _supabase: any = null;
     private telegramBot: any | null = null;
     private discordWebhookUrl: string | null = null;
+
+    private get supabase() {
+        if (!this._supabase) {
+            const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+            const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
+            this._supabase = createClient(url, key);
+        }
+        return this._supabase;
+    }
 
     private constructor() {
         // Initialize clients if tokens exist
@@ -66,7 +70,7 @@ export class AchievementWebhookService {
     }
 
     async getUserNotificationPreferences(userDid: string): Promise<UserPreferences | null> {
-        const { data, error } = await supabase
+        const { data, error } = await this.supabase
             .from('notification_preferences')
             .select('*')
             .eq('user_did', userDid)
@@ -87,7 +91,7 @@ export class AchievementWebhookService {
     }
 
     async upsertNotificationPreferences(userDid: string, prefs: Partial<UserPreferences>): Promise<void> {
-        const { error } = await supabase
+        const { error } = await this.supabase
             .from('notification_preferences')
             .upsert({
                 user_did: userDid,

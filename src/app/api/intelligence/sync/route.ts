@@ -1,7 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { syncQueueService } from '@/lib/services/coordination/connectors/sync-queue.service';
-import { logger } from '../../../../lib/utils/logger';
+import { logger } from '@/lib/utils/logger';
 
+/**
+ * @swagger
+ * /intelligence/sync:
+ *   get:
+ *     summary: Obtener estadísticas y estado de sincronización
+ *     parameters:
+ *       - in: query
+ *         name: action
+ *         schema:
+ *           type: string
+ *           enum: [queue-stats, status]
+ *         required: true
+ *       - in: query
+ *         name: jobId
+ *         schema:
+ *           type: string
+ *         description: ID del trabajo de sincronización
+ *     responses:
+ *       200:
+ *         description: Información del estado o estadísticas
+ */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const action = searchParams.get('action');
@@ -25,6 +46,26 @@ export async function GET(request: NextRequest) {
   });
 }
 
+/**
+ * @swagger
+ * /intelligence/sync:
+ *   post:
+ *     summary: Disparar sincronización de ecosistemas
+ *     parameters:
+ *       - in: query
+ *         name: action
+ *         schema:
+ *           type: string
+ *           enum: [trigger-full, trigger-ecosystem]
+ *         required: true
+ *       - in: query
+ *         name: ecosystem
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Sincronización iniciada exitosamente
+ */
 export async function POST(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const action = searchParams.get('action');

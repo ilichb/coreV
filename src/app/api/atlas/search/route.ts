@@ -124,6 +124,22 @@ export async function GET(request: NextRequest) {
       query['action.type'] = actionType;
     }
 
+    if (industryId) {
+      query['action.metadata.industryId'] = industryId;
+    }
+
+    if (subIndustryId) {
+      query['action.metadata.subIndustryId'] = subIndustryId;
+    }
+
+    if (isWeb3 !== null && isWeb3 !== undefined) {
+      query['action.metadata.isWeb3'] = isWeb3 === 'true';
+    }
+
+    if (transversalLayer) {
+      query['action.metadata.transversalLayer'] = transversalLayer;
+    }
+
     if (searchText) {
       const isAddress = /^0x[a-fA-F0-9]{40}$/.test(searchText);
       if (isAddress) {
@@ -423,6 +439,22 @@ export async function POST(request: NextRequest) {
       if (filters.dateRange.end) {
         query['metadata.createdAt'].$lte = filters.dateRange.end;
       }
+    }
+
+    if (filters.industryId) {
+      query['action.metadata.industryId'] = filters.industryId;
+    }
+
+    if (filters.subIndustryId) {
+      query['action.metadata.subIndustryId'] = filters.subIndustryId;
+    }
+
+    if (filters.isWeb3 !== undefined) {
+      query['action.metadata.isWeb3'] = filters.isWeb3;
+    }
+
+    if (filters.transversalLayer) {
+      query['action.metadata.transversalLayer'] = filters.transversalLayer;
     }
 
     if (filters.searchText) {

@@ -3,7 +3,7 @@ import path from 'path';
 import { logger } from '../lib/utils/logger';
 
 // Load ecosystem variables specifically from the core directory
-const envPath = path.join(process.cwd(), '.env.local');
+const envPath = path.join(process.cwd(), '.env');
 dotenv.config({ path: envPath });
 
 async function directSync() {

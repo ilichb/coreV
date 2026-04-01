@@ -29,49 +29,72 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  // Datos simulados por ecosistema
-  const mockData: Record<string, any> = {
-    rootstock: {
-      ecosystem: 'rootstock',
-      stats: {
-        total_proposals: (await rootstockConnector.fetchRecentDecisions()).length + (await rootstockConnector.fetchSubgraphProposals()).length,
-        active_builders: 64, // Fallback for now, could be improved with subgraph counting
-        total_evaluations: 1500,
-        average_clarity: 72,
-        approval_rate: 64
-      },
-      recent_projects: [],
-      top_builders: []
-    },
-    optimism: {
-      ecosystem: 'optimism',
-      stats: {
-        total_proposals: 198,
-        active_builders: 58,
-        total_evaluations: 1200,
-        average_clarity: 68,
-        approval_rate: 58
-      }
-    },
-    arbitrum: {
-      ecosystem: 'arbitrum',
-      stats: {
-        total_proposals: 89,
-        active_builders: 52,
-        total_evaluations: 800,
-        average_clarity: 65,
-        approval_rate: 52
-      }
-    }
-  };
+  try {
+    const { mongoDBClient } = await import('@/lib/infrastructure/mongodb');
+    await mongoDBClient.connect();
+    const collection = mongoDBClient.getMilestonesCollection();
 
-  const data = mockData[ecosystem];
-  if (!data) {
+    // Aggregation pipeline to get real ecosystem stats
+    const stats = await collection.aggregate([
+      // CORREGIDO: usar action.metadata.ecosystem (campo real en Atlas)
+      { $match: { 'action.metadata.ecosystem': ecosystem } },
+      { 
+        $group: {
+          _id: '$action.metadata.ecosystem',
+          total_proposals: { $sum: 1 },
+          active_builders: { $addToSet: '$action.metadata.builderDid' },
+          total_trust_score: { $sum: '$metadata.trustScore' },
+          verified_count: { 
+            $sum: { $cond: [{ $eq: ['$status', 'VERIFIED'] }, 1, 0] } 
+          }
+        }
+      },
+      {
+        $project: {
+          ecosystem: '$_id',
+          stats: {
+            total_proposals: '$total_proposals',
+            active_builders: { $size: '$active_builders' },
+            total_evaluations: '$total_proposals', // Representative for now
+            average_impact: { 
+              $cond: [
+                { $gt: ['$total_proposals', 0] },
+                { $divide: ['$total_trust_score', '$total_proposals'] },
+                0
+              ]
+            },
+            approval_rate: {
+              $cond: [
+                { $gt: ['$total_proposals', 0] },
+                { $multiply: [{ $divide: ['$verified_count', '$total_proposals'] }, 100] },
+                0
+              ]
+            }
+          }
+        }
+      }
+    ]).toArray();
+
+    if (stats.length === 0) {
+      // If no data yet, return empty stats instead of mock
+      return NextResponse.json({
+        ecosystem,
+        stats: {
+          total_proposals: 0,
+          active_builders: 0,
+          total_evaluations: 0,
+          average_clarity: 0,
+          approval_rate: 0
+        },
+        note: 'Ecosystem synchronization in progress'
+      });
+    }
+
+    return NextResponse.json(stats[0]);
+  } catch (error: any) {
     return NextResponse.json(
-      { error: `Ecosystem ${ecosystem} not found` },
-      { status: 404 }
+      { error: 'Failed to fetch ecosystem stats', details: error.message },
+      { status: 500 }
     );
   }
-
-  return NextResponse.json(data);
 }

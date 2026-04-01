@@ -1,0 +1,19 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/sync-ecosystems",
+      "schedule": "0 6 * * *"
+    }
+  ],
+  "functions": {
+    "src/app/api/intelligence/telemetry/route.ts": {
+      "maxDuration": 10
+    },
+    "src/app/api/cron/sync-ecosystems/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/intelligence/activity/route.ts": {
+      "maxDuration": 10
+    }
+  }
+}

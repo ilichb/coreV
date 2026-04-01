@@ -1,11 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '../../utils/logger';
-
-// Inicializar Supabase
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { TallyConnector } from '../coordination/connectors/tally-connector';
 
 export interface Proposal {
     id: string;
@@ -74,14 +69,90 @@ class SnapshotAdapter implements GovernanceAdapter {
     }
 }
 
+// Tally Adapter wrapping the Real TallyConnector
+class TallyAdapter implements GovernanceAdapter {
+    private connectorArb: TallyConnector;
+    private connectorOP: TallyConnector;
+
+    constructor() {
+        this.connectorArb = new TallyConnector('arbitrum');
+        this.connectorOP = new TallyConnector('optimism');
+    }
+
+    async getProposals(spaceIds: string[]): Promise<Proposal[]> {
+        logger.info(`[TallyAdapter] Fetching real proposals via TallyConnector`);
+        try {
+            // Fetching from multiple chains supported by Andromeda
+            const [arbDecisions, opDecisions] = await Promise.all([
+                this.connectorArb.fetchGovernanceDecisions(),
+                this.connectorOP.fetchGovernanceDecisions()
+            ]);
+
+            const allDecisions = [...arbDecisions, ...opDecisions];
+            
+            const proposals = await Promise.all(allDecisions.map(async (d) => {
+                const normalized = await (d.source === 'tally' ? 
+                    (d.ecosystem === 'arbitrum' ? this.connectorArb : this.connectorOP).normalizeDecision(d) : 
+                    null);
+                
+                if (!normalized) return null;
+
+                const stateMap: Record<string, 'ACTIVE' | 'CLOSED' | 'PENDING'> = {
+                    'ACTIVE': 'ACTIVE',
+                    'PASSED': 'CLOSED',
+                    'REJECTED': 'CLOSED',
+                    'EXECUTED': 'CLOSED'
+                };
+
+                return {
+                    id: normalized.proposal_id,
+                    title: normalized.title,
+                    body: normalized.description,
+                    choices: ['FOR', 'AGAINST', 'ABSTAIN'],
+                    start: normalized.start_timestamp,
+                    end: normalized.end_timestamp,
+                    state: stateMap[normalized.status] || 'PENDING',
+                    author: normalized.builder_did || 'unknown',
+                    space: { id: normalized.dao_identifier, name: normalized.dao_identifier },
+                    platform: 'tally'
+                } as Proposal;
+            }));
+
+            return proposals.filter((p): p is Proposal => p !== null);
+        } catch (error) {
+            logger.error('[TallyAdapter] Error fetching proposals:', error);
+            return [];
+        }
+    }
+
+    async submitVote(proposalId: string, voter: string, choice: number, signature: string): Promise<VoteReceipt> {
+        logger.info(`[TallyAdapter] Vote submission not yet implemented for direct Tally (Requires Tally API Write)`);
+        return { id: `tally-vote-placeholder-${Date.now()}` };
+    }
+
+    async getVotingPower(proposalId: string, voter: string): Promise<number> {
+        return 1.0;
+    }
+}
+
 export class GovernanceIntegrationService {
     private static instance: GovernanceIntegrationService;
+    private _supabase: any = null;
     private adapters: Map<string, GovernanceAdapter> = new Map();
+
+    private get supabase() {
+        if (!this._supabase) {
+            const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+            const key = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-key';
+            this._supabase = createClient(url, key);
+        }
+        return this._supabase;
+    }
 
     private constructor() {
         // Registrar adaptadores
         this.adapters.set('snapshot', new SnapshotAdapter());
-        // this.adapters.set('tally', new TallyAdapter()); 
+        this.adapters.set('tally', new TallyAdapter()); 
     }
 
     public static getInstance(): GovernanceIntegrationService {
@@ -93,89 +164,35 @@ export class GovernanceIntegrationService {
 
     async getActiveProposals(userDid: string) {
         // 1. Obtener DAOs suscritas del usuario (Mocked config for now)
-        const userDaos = ['andromeda.eth'];
+        const daoSpaces = ['andromeda.eth'];
 
-        // 2. Consultar propuestas en paralelo
-        const promises = Array.from(this.adapters.values()).map(adapter =>
-            adapter.getProposals(userDaos)
-        );
+        // 2. Fetch de todos los adaptadores
+        const allProposals: Proposal[] = [];
+        for (const adapter of this.adapters.values()) {
+            const proposals = await adapter.getProposals(daoSpaces);
+            allProposals.push(...proposals);
+        }
 
-        const results = await Promise.allSettled(promises);
-
-        // 3. Aplanar, filtrar y enriquecer
-        let activeProposals = results
-            .filter(p => p.status === 'fulfilled')
-            .flatMap(p => (p as PromiseFulfilledResult<Proposal[]>).value)
-            .filter(p => p.state === 'ACTIVE');
-
-        // 4. Enriquecer con datos de Andromeda (Impacto estimado)
-        activeProposals = await this.enrichWithAndromedaData(activeProposals, userDid);
-
-        // 5. Ordenar por relevancia (Relevance Score calculado)
-        return activeProposals.sort((a, b) => {
-            return (b.andromedaContext?.relevanceScore || 0) - (a.andromedaContext?.relevanceScore || 0);
-        });
+        return allProposals;
     }
 
-    private async enrichWithAndromedaData(proposals: Proposal[], userDid: string): Promise<Proposal[]> {
-        return proposals.map(p => {
-            // Lógica simulada de relevancia:
-            // - Más impacto si la DAO es "core" para el usuario
-            // - Más urgencia si cierra pronto
-            const timeLeft = p.end - Date.now();
-            const urgencyScore = timeLeft < 86400000 ? 50 : 10; // Bonus si cierra en <24h
+    async recordVoteMilestone(userDid: string, proposalId: string, choiceId: number) {
+        // Registrar en Andromeda DB para reputación
+        const { error } = await this.supabase
+            .from('governance_activity')
+            .insert({
+                user_did: userDid,
+                proposal_id: proposalId,
+                choice_index: choiceId,
+                platform: 'snapshot',
+                voted_at: new Date().toISOString()
+            });
 
-            return {
-                ...p,
-                andromedaContext: {
-                    reputationImpact: 50, // Base points
-                    relevanceScore: 100 + urgencyScore // Mock calc
-                }
-            };
-        });
-    }
+        if (error) {
+            logger.error('❌ Failed to record governance activity:', error.message);
+            throw error;
+        }
 
-    async voteThroughAndromeda(proposalId: string, userDid: string, choice: number, signature: string, platform: string = 'snapshot') {
-        const adapter = this.adapters.get(platform);
-        if (!adapter) throw new Error(`Platform ${platform} not supported`);
-
-        // 1. Verificar elegibilidad
-        const power = await adapter.getVotingPower(proposalId, userDid);
-        if (power <= 0) throw new Error('Not eligible to vote (Zero voting power)');
-
-        // 2. Enviar a Tally/Snapshot (Simulado)
-        const result = await adapter.submitVote(proposalId, userDid, choice, signature);
-
-        // 3. Registrar como hito en Andromeda (Milestone)
-        await this.recordVoteMilestone(userDid, proposalId, choice, result, platform);
-
-        return { ...result, reputationEarned: 50 };
-    }
-
-    private calculateProposalRelevance(a: Proposal, b: Proposal, userDid: string): number {
-        // Logica simple: primero las que cierran pronto
-        return a.end - b.end;
-    }
-
-    private async recordVoteMilestone(userDid: string, proposalId: string, choice: number, receipt: VoteReceipt, platform: string) {
-        // Insertar en tabla milestones (que se sincroniza luego a Vara)
-        await supabase.from('milestones').insert({
-            user_did: userDid,
-            event_name: 'GOVERNANCE_VOTE',
-            metadata: {
-                platform,
-                proposalId,
-                choice,
-                receiptId: receipt.id,
-                votedThrough: 'Andromeda Core', // Marca de agua estratégica
-                timestamp: new Date().toISOString()
-            },
-            reputation_score: 50, // Puntos fijos para demo
-            description: `Voted on proposal ${proposalId.slice(0, 6)}...`
-        });
-
-        logger.info(`✅ Milestone recorded for ${userDid}: GOVERNANCE_VOTE`);
+        return true;
     }
 }
-
-export const governanceService = GovernanceIntegrationService.getInstance();

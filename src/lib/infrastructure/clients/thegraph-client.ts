@@ -88,7 +88,11 @@ export class TheGraphClient {
     };
 
     if (this.apiKey) {
-      headers['Authorization'] = `Bearer ${this.apiKey}`;
+      if (this.endpoint.includes('tally.xyz')) {
+        headers['Api-Key'] = this.apiKey;
+      } else {
+        headers['Authorization'] = `Bearer ${this.apiKey}`;
+      }
     }
 
     const options = {

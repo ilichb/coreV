@@ -1,7 +1,9 @@
+import * as crypto from 'crypto';
 import { mongoDBClient } from '../../infrastructure/mongodb';
 import { StandardGovernanceDecision } from '../../infrastructure/base-connector';
 import { IndustryValidator } from '../../industries/validator';
 import { walletHashService } from '../security/wallet-hash.service';
+import { reputationEngineService } from '../reputation/reputation-engine.service';
 import { logger } from '../../utils/logger';
 
 /**
@@ -40,7 +42,7 @@ export class AtlasIngestionService {
     }> {
         try {
             // 1. Transformar a formato ATLAS Milestone
-            const milestone = this.transformToAtlasMilestone(decision);
+            const milestone = await this.transformToAtlasMilestone(decision);
 
             // 2. Guardar en MongoDB
             const result = await mongoDBClient.upsertMilestone(milestone, { suppressErrors: true });
@@ -70,10 +72,17 @@ export class AtlasIngestionService {
     /**
      * Transforma una decisión de gobernanza a formato ATLAS Milestone
      */
-    private transformToAtlasMilestone(decision: StandardGovernanceDecision): any {
+    private async transformToAtlasMilestone(decision: StandardGovernanceDecision): Promise<any> {
         const atlasId = this.generateAtlasId(decision);
         const industryMapping = this.mapToIndustry(decision);
-        const trustScore = this.calculateTrustScore(decision);
+        
+        // Use AVIP v2.0 Reputation Engine instead of legacy trust score
+        // For governance participation, we simulate the dimension scores
+        const avipScore = await reputationEngineService.calculateScore({
+            technical: 50, 
+            governance: 80, 
+            community: 50
+        });
 
         // Convertir bigint a number para MongoDB
         const votesFor = Number(decision.votes_for || 0);
@@ -115,7 +124,8 @@ export class AtlasIngestionService {
             },
             sourceScorecardHash: this.generateScorecardHash(decision),
             metadata: {
-                trustScore,
+                avipScore,
+                trustScore: avipScore.total,
                 createdAt: new Date(decision.created_at * 1000).toISOString(),
                 updatedAt: new Date().toISOString(),
                 impactMetrics: {
@@ -147,7 +157,8 @@ export class AtlasIngestionService {
      * Genera un ID único para ATLAS
      */
     private generateAtlasId(decision: StandardGovernanceDecision): string {
-        const hash = walletHashService.hashWallet(`${decision.ecosystem}:${decision.dao_identifier}:${decision.proposal_id}`).walletHash;
+        const uniqueString = `${decision.ecosystem}:${decision.dao_identifier}:${decision.proposal_id}`;
+        const hash = crypto.createHash('sha256').update(uniqueString).digest('hex');
         return `ATLAS-${decision.ecosystem.toUpperCase()}-${hash.substring(0, 16)}`;
     }
 

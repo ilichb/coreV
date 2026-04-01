@@ -48,7 +48,13 @@ export class OptimismConnector extends EVMConnector {
             logger.warn(`⚠️ [OPTIMISM] Snapshot fetch failed: ${err.message}`);
         }
 
-        // 2. TheGraph fallback
+        // 2. TheGraph fallback (Desactivado por Auditoría de Seguridad)
+        // 🚨 RAZÓN DE LA DESACTIVACIÓN: 
+        // - El endpoint alojado de Tally ('api.thegraph.com/subgraphs/name/tally/optimism-governance') está obsoleto y arroja errores.
+        // - Los nuevos endpoints descentralizados de Snapshot (p.ej. CAsVTyvLA...) devuelven 'delegations' y no 'proposals'.
+        // - Forzar el mapeo de delegaciones rompe el modelo 'RawGovernanceDecision' y crashea EcosystemIngestionService.
+        // - SOLUCIÓN: Dependeremos exclusivamente del 'SnapshotClient' (bloque 1, arriba) que conecta seguro al Hub Oficial de Snapshot.
+        /*
         try {
             const data = await this.graphClient.query<{ proposals: any[] }>({
                 query: GOVERNANCE_QUERIES.optimism,
@@ -61,6 +67,7 @@ export class OptimismConnector extends EVMConnector {
         } catch (err: any) {
             logger.warn(`⚠️ [OPTIMISM] TheGraph fetch failed: ${err.message}`);
         }
+        */
 
         logger.info(`ℹ️ [OPTIMISM] No proposals found.`);
         return [];

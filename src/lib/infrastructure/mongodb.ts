@@ -29,21 +29,22 @@ export class MongoDBClient {
   private db: Db | null = null;
   private isConnected = false;
 
-  private readonly config: MongoDBConfig = {
-    uri: this.buildMongoURI(),
-    database: 'andromeda_core',
-    collection: 'milestones',
-    options: {
-      maxPoolSize: 5,          // Límite conservador para Tier M0
-      minPoolSize: 1,          // Pool mínimo para mantener conexión
-      maxIdleTimeMS: 30000,    // 30 segundos de inactividad
-      serverSelectionTimeoutMS: 15000, // 15 segundos timeout de selección (aumentado desde 5s)
-      socketTimeoutMS: 20000,  // 20 segundos timeout de socket (aumentado desde 10s)
-    }
-  };
+  private config: MongoDBConfig;
 
   private constructor() {
     // Constructor privado para patrón Singleton
+    this.config = {
+      uri: '', // Se establecerá dinámicamente en connect()
+      database: 'andromeda_core',
+      collection: 'milestones',
+      options: {
+        maxPoolSize: 5,          // Límite conservador para Tier M0
+        minPoolSize: 1,          // Pool mínimo para mantener conexión
+        maxIdleTimeMS: 30000,    // 30 segundos de inactividad
+        serverSelectionTimeoutMS: 15000, // 15 segundos timeout de selección (aumentado desde 5s)
+        socketTimeoutMS: 20000,  // 20 segundos timeout de socket (aumentado desde 10s)
+      }
+    };
   }
 
   /**
@@ -61,8 +62,14 @@ export class MongoDBClient {
    * Prioridad: MONGODB_URI > MONGODB_USERNAME/MONGODB_PASSWORD > valores por defecto
    */
   private buildMongoURI(): string {
+    // DEBUG: Log para ver qué variables están disponibles
+    console.log('[MongoDB Debug] MONGODB_URI:', process.env.MONGODB_URI ? '✅ Presente' : '❌ Ausente');
+    console.log('[MongoDB Debug] MONGODB_USERNAME:', process.env.MONGODB_USERNAME || 'No configurado');
+    console.log('[MongoDB Debug] MONGODB_PASSWORD:', process.env.MONGODB_PASSWORD ? '✅ Presente' : '❌ Ausente');
+
     // Primero intentar usar MONGODB_URI completa si está disponible
     if (process.env.MONGODB_URI) {
+      console.log('[MongoDB Debug] Usando MONGODB_URI completa del entorno');
       return process.env.MONGODB_URI;
     }
 
@@ -72,7 +79,10 @@ export class MongoDBClient {
     const cluster = process.env.MONGODB_CLUSTER || 'andromedacore.jtkz6fn.mongodb.net';
     const appName = process.env.MONGODB_APP_NAME || 'AndromedaCore';
 
-    return `mongodb+srv://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${cluster}/?appName=${encodeURIComponent(appName)}`;
+    const constructedURI = `mongodb+srv://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${cluster}/?appName=${encodeURIComponent(appName)}`;
+    console.log('[MongoDB Debug] URI construida desde componentes:', constructedURI.replace(/:([^:@]+)@/, ':****@'));
+
+    return constructedURI;
   }
 
   /**
@@ -84,6 +94,9 @@ export class MongoDBClient {
     }
 
     try {
+      // Construir la URI dinámicamente cada vez que nos conectamos
+      this.config.uri = this.buildMongoURI();
+
       this.log('Conectando a MongoDB Atlas...');
       this.log(`URI construida: ${this.config.uri.replace(/:([^:@]+)@/, ':****@')}`); // Mask password
 
@@ -186,6 +199,8 @@ export class MongoDBClient {
 
       const collection = this.getMilestonesCollection();
       const atlasId = milestone.atlasId;
+
+      console.log(`[MongoDBClient] Upserting milestone to ${this.config.database}.${this.config.collection}: ${atlasId}`);
 
       if (!atlasId) {
         throw new Error('El milestone no tiene atlasId');

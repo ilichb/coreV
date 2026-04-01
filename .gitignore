@@ -8,3 +8,7 @@ out/
 *.log
 .DS_Store
 .vscode/
+
+# Block all .md files except README
+*.md
+!README.md

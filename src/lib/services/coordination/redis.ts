@@ -1,4 +1,4 @@
-import { redisIoredisService } from './redis-ioredis';
+import { redisService } from '../../infrastructure/redis';
 
 export interface Challenge {
   nonce: string;
@@ -6,4 +6,4 @@ export interface Challenge {
   expiresAt: number;
 }
 
-export { redisIoredisService as redisService };
+export { redisService };

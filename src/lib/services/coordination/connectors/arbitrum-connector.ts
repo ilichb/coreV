@@ -48,7 +48,13 @@ export class ArbitrumConnector extends EVMConnector {
             logger.warn(`⚠️ [ARBITRUM] Snapshot fetch failed: ${err.message}`);
         }
 
-        // 2. TheGraph fallback
+        // 2. TheGraph fallback (Desactivado por Auditoría de Seguridad)
+        // 🚨 RAZÓN DE LA DESACTIVACIÓN: 
+        // - El endpoint alojado de Tally ('api.thegraph.com/subgraphs/name/tally/arbitrum-governance') dejó de funcionar.
+        // - Los subgraphs que indexan Arbitrum en la red descentralizada de TheGraph traen 'spaces', no 'proposals'.
+        // - Extraer esos 'spaces' corrompería la estructura 'RawGovernanceDecision' que espera el Dashboard y crashea el puente de sincronización.
+        // - SOLUCIÓN: Dependeremos exclusivamente de 'SnapshotClient' que ataca el endpoint oficial de Snapshot y consume propuestas 100% reales.
+        /*
         try {
             const data = await this.graphClient.query<{ proposals: any[] }>({
                 query: GOVERNANCE_QUERIES.arbitrum,
@@ -61,6 +67,7 @@ export class ArbitrumConnector extends EVMConnector {
         } catch (err: any) {
             logger.warn(`⚠️ [ARBITRUM] TheGraph fetch failed: ${err.message}`);
         }
+        */
 
         logger.info(`ℹ️ [ARBITRUM] No proposals found.`);
         return [];

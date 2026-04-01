@@ -1,6 +1,8 @@
 import { mongoDBClient } from '../../infrastructure/mongodb';
 import { atlasIngestionService } from './atlas-ingestion.service';
 import { walletHashService } from '../security/wallet-hash.service';
+import { reputationEngineService } from '../reputation/reputation-engine.service';
+import { avipViemAdapter, ScorecardSubmission } from '../../blockchain/avip-viem-adapter';
 import { logger } from '../../utils/logger';
 
 /**
@@ -23,8 +25,11 @@ export class BuilderIngestionService {
 
         for (const builder of builders) {
             try {
-                const milestone = this.transformBuilderToMilestone(builder);
+                const milestone = await this.transformBuilderToMilestone(builder);
                 const result = await mongoDBClient.upsertMilestone(milestone, { suppressErrors: true });
+                
+                // Enqueue scorecard to AVIP (non-blocking)
+                this.submitToAVIP(milestone).catch(err => logger.error('AVIP background submission failed', { err }));
                 
                 if (result.success) {
                     synced++;
@@ -43,14 +48,19 @@ export class BuilderIngestionService {
     /**
      * Transforma un perfil de builder a formato ATLAS Milestone
      */
-    private transformBuilderToMilestone(builder: any): any {
+    private async transformBuilderToMilestone(builder: any): Promise<any> {
         const address = builder.wallet.toLowerCase();
         const builderDid = `did:andromeda:rootstock:${address}`;
         
         // Generar un ID determinista para el hito de registro
         const atlasId = `ATLAS-RSK-BUILDER-${address.substring(2, 10)}`;
 
-        const impactScore = Math.min(Math.floor(parseFloat(builder.backerTotalAllocation || '0') * 0.1) + 65, 99);
+        // AVIP v2.0 Calculation
+        const avipScore = await reputationEngineService.calculateScore({
+            technical: parseFloat(builder.backerTotalAllocation || '0') * 0.1,
+            governance: builder.reputation || 0,
+            community: builder.totalProjects || 1
+        });
 
         return {
             atlasId,
@@ -65,7 +75,8 @@ export class BuilderIngestionService {
                     name: builder.name,
                     industryId: 'infrastructure',
                     subIndustryId: 'infrastructure.web3.protocol',
-                    isWeb3: true
+                    isWeb3: true,
+                    avipScore // Persistent score injection
                 }
             },
             sourceScorecard: {
@@ -81,14 +92,15 @@ export class BuilderIngestionService {
                 allocation: builder.backerTotalAllocation
             },
             metadata: {
-                trustScore: impactScore,
+                trustScore: avipScore.total,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 impactMetrics: {
                     reputation: builder.reputation || 0,
                     projects: builder.totalProjects || 1,
                     allocation: builder.backerTotalAllocation
-                }
+                },
+                avipScore: avipScore // Detailed scoring for BuilderRanking.tsx
             },
             evidence: [
                 {
@@ -106,6 +118,29 @@ export class BuilderIngestionService {
                 }
             ]
         };
+    }
+    /**
+     * Helper to submit a milestone to AVIP
+     */
+    private async submitToAVIP(milestone: any): Promise<void> {
+        if (!milestone.metadata?.avipScore) {
+            logger.warn('No AVIP score found in milestone, skipping submission');
+            return;
+        }
+
+        const submission: ScorecardSubmission = {
+            builderAddress: milestone.builder?.walletAddress || milestone.metadata?.walletAddress,
+            totalScore: milestone.metadata.avipScore.total,
+            metadata: milestone.metadata.avipScore,
+            timestamp: new Date().toISOString()
+        };
+
+        if (!submission.builderAddress) {
+            logger.warn('No builder address found for AVIP submission');
+            return;
+        }
+
+        await avipViemAdapter.submitScorecard(submission);
     }
 }
 

@@ -300,6 +300,22 @@
       "active": "ATIVO"
     },
     "DataSources": {
+      "title": "FONTES DE DADOS",
+      "rootstock": "ROOTSTOCK",
+      "onChainProposals": "PROPOSTAS ON-CHAIN",
+      "activeBuilders": "CONSTRUTORES ATIVOS",
+      "ipfsStorage": "ARMAZENAMENTO IPFS",
+      "milestonesStored": "MILESTONES ARMAZENADOS",
+      "buildersNetwork": "REDE DE CONSTRUTORES",
+      "atlasNetwork": "REDE ATLAS",
+      "apiHealth": "SAÚDE DA API",
+      "uptime": "TEMPO DE ATIVIDADE",
+      "liveData": "DADOS EM TEMPO REAL",
+      "pendingEcosystems": "ECOSSISTEMAS PENDENTES",
+      "apisConnected": "APIS CONECTADAS",
+      "lastUpdate": "ÚLTIMA ATUALIZAÇÃO",
+      "fetching": "OBTENDO",
+      "pinataConnected": "PINATA CONECTADO",
       "arbitrum": "DAOs da Arbitrum",
       "optimism": "DAOs da Optimism",
       "snapshot": "Espaços do Snapshot",
@@ -309,6 +325,41 @@
       "last24h": "Últimas 24h",
       "activeConnections": "Conexões ativas com fontes de dados blockchain reais",
       "networkGraphNote": "O Gráfico de Rede agora mostra relações reais entre construtores e projetos"
+    },
+    "LiveStatus": {
+      "title": "STATUS EM TEMPO REAL",
+      "lastSync": "ÚLTIMA SINCRONIZAÇÃO",
+      "activeConnections": "CONEXÕES ATIVAS",
+      "api": "API",
+      "data": "DADOS",
+      "sync": "SINCRONIZAÇÃO",
+      "idle": "INATIVO"
+    },
+    "Ecosystems": {
+      "title": "ECOSSISTEMAS",
+      "scrollHint": "ROLE PARA MAIS",
+      "connectionPending": "CONEXÃO PENDENTE",
+      "monitoringActive": "MONITORAMENTO ATIVO",
+      "notConfigured": "NÃO CONFIGURADO",
+      "connected": "CONECTADO",
+      "pending": "PENDENTE",
+      "offline": "DESCONECTADO",
+      "configure": "CONFIGURAR"
+    },
+    "RealTimeData": {
+      "title": "DADOS EM TEMPO REAL",
+      "rootstockData": "DADOS ROOTSTOCK",
+      "live": "EM TEMPO REAL",
+      "fetchingData": "OBTENDO DADOS",
+      "processingPipeline": "PIPELINE DE PROCESSAMENTO",
+      "active": "ATIVO",
+      "externalApis": "APIS EXTERNAS",
+      "connected": "CONECTADO",
+      "dataFreshness": "FRESCURA DOS DADOS",
+      "unknown": "DESCONHECIDO",
+      "lastSyncLabel": "ÚLTIMA SINCRONIZAÇÃO",
+      "minAgo": "min atrás",
+      "minAgo": "min atrás"
     }
   },
   "CoordinationPage": {
@@ -455,7 +506,9 @@
       "refi": "REFI",
       "social": "SOCIAL",
       "gaming": "GAMING",
-      "ai": "IA"
+      "ai": "IA",
+      "rootstock": "ROOTSTOCK",
+      "Rootstock": "ROOTSTOCK"
     },
     "BuilderRanking": {
       "impact": "IMPACTO",
@@ -944,4 +997,5 @@
         "unknown": "ERR: CMD_DESCONHECIDO_0x"
       }
     }
-  }}
+  }
+}

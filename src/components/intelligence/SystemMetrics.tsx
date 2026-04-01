@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Activity, Users, ShieldCheck, BarChart3, Zap, Database, Cpu, Network } from 'lucide-react';
+import { Activity, Users, ShieldCheck, BarChart3, Zap, Database, Cpu, Network, CheckCircle, Server } from 'lucide-react';
 
 interface Metric {
     label: string;
@@ -11,44 +11,177 @@ interface Metric {
     trend?: 'up' | 'down' | 'stable';
 }
 
+interface TelemetryData {
+    timestamp: string;
+    ecosystems: Record<string, {
+        builders: number;
+        status: string;
+        proposals: number;
+        activeProposals: number;
+        source?: string;
+        error?: string;
+    }>;
+    dataSources: {
+        totalMilestones: number;
+        uniqueBuilders: number;
+        verifiedCount: number;
+        ecosystemBreakdown: Record<string, number>;
+    };
+    systemStatus: {
+        database: string;
+        databaseDetail: string;
+        coreServices: string;
+        apiGateway: string;
+        dataFlow: string;
+        redis?: string;
+        vara?: string;
+    };
+    externalApis: Record<string, string>;
+}
+
 export function SystemMetrics() {
     const [metrics, setMetrics] = useState<Metric[]>([]);
     const [loading, setLoading] = useState(true);
+    const [lastUpdate, setLastUpdate] = useState<string>('');
 
     useEffect(() => {
-        // Simulate real-time data loading
-        const loadMetrics = async () => {
-            setMetrics([
-                { label: 'Proposals Synced', value: '1,247', icon: BarChart3, unit: 'total', trend: 'up' },
-                { label: 'Active Nodes', value: '18', icon: Network, unit: 'online', trend: 'stable' },
-                { label: 'Validation Rate', value: '99.8', icon: ShieldCheck, unit: '%', trend: 'up' },
-                { label: 'Avg Latency', value: '24', icon: Activity, unit: 'ms', trend: 'down' },
-                { label: 'Data Processed', value: '2.4', icon: Database, unit: 'GB', trend: 'up' },
-                { label: 'CPU Load', value: '48', icon: Cpu, unit: '%', trend: 'stable' },
-                { label: 'Throughput', value: '1.2K', icon: Zap, unit: 'tx/s', trend: 'up' },
-                { label: 'Active DAOs', value: '7', icon: Users, unit: 'ecosystems', trend: 'stable' },
-            ]);
-            setLoading(false);
+        // Load real telemetry data
+        const loadRealMetrics = async () => {
+            try {
+                console.log('SystemMetrics: Loading telemetry data...');
+                const response = await fetch('/api/intelligence/telemetry');
+                console.log('SystemMetrics: Response status:', response.status);
+                const data = await response.json();
+                console.log('SystemMetrics: Received data:', data);
+
+                if (data.success && data.telemetry) {
+                    const telemetry: TelemetryData = data.telemetry;
+                    console.log('SystemMetrics: Telemetry data:', telemetry);
+                    setLastUpdate(new Date(telemetry.timestamp).toLocaleTimeString());
+
+                    // Calculate real metrics from telemetry data - ALL ECOSYSTEMS
+                    const totalBuilders = Object.values(telemetry.ecosystems).reduce((sum, eco) => sum + (eco.builders || 0), 0);
+                    const totalProposals = Object.values(telemetry.ecosystems).reduce((sum, eco) => sum + (eco.proposals || 0), 0);
+                    const activeEcosystems = Object.values(telemetry.ecosystems).filter(eco => eco.status === 'synced' || eco.status === 'configured').length;
+                    const totalEcosystems = Object.keys(telemetry.ecosystems).length;
+
+                    // Count operational external APIs
+                    const operationalApis = Object.values(telemetry.externalApis || {}).filter(status =>
+                        status === 'operational' || status === 'configured'
+                    ).length;
+                    const totalApis = Object.keys(telemetry.externalApis || {}).length;
+
+                    const realMetrics: Metric[] = [
+                        {
+                            label: 'Total Builders',
+                            value: totalBuilders,
+                            icon: Users,
+                            unit: 'builders',
+                            trend: totalBuilders > 0 ? 'up' : 'stable'
+                        },
+                        {
+                            label: 'Milestones Indexed',
+                            value: telemetry.dataSources.totalMilestones,
+                            icon: Database,
+                            unit: 'total',
+                            trend: telemetry.dataSources.totalMilestones > 0 ? 'up' : 'stable'
+                        },
+                        {
+                            label: 'Verification Rate',
+                            value: telemetry.dataSources.totalMilestones > 0
+                                ? Math.round((telemetry.dataSources.verifiedCount / telemetry.dataSources.totalMilestones) * 100)
+                                : 0,
+                            icon: ShieldCheck,
+                            unit: '%',
+                            trend: 'up'
+                        },
+                        {
+                            label: 'Unique Builders',
+                            value: telemetry.dataSources.uniqueBuilders,
+                            icon: Network,
+                            unit: 'active',
+                            trend: telemetry.dataSources.uniqueBuilders > 0 ? 'up' : 'stable'
+                        },
+                        {
+                            label: 'Total Proposals',
+                            value: totalProposals,
+                            icon: BarChart3,
+                            unit: 'on-chain',
+                            trend: totalProposals > 0 ? 'up' : 'stable'
+                        },
+                        {
+                            label: 'Ecosystems Active',
+                            value: `${activeEcosystems}/${totalEcosystems}`,
+                            icon: CheckCircle,
+                            unit: 'connected',
+                            trend: activeEcosystems > 0 ? 'up' : 'down'
+                        },
+                        {
+                            label: 'Data Flow',
+                            value: telemetry.systemStatus.dataFlow === 'active' ? 'Active' : 'Idle',
+                            icon: Zap,
+                            unit: 'status',
+                            trend: telemetry.systemStatus.dataFlow === 'active' ? 'up' : 'down'
+                        },
+                        {
+                            label: 'APIs Operational',
+                            value: `${operationalApis}/${totalApis}`,
+                            icon: Server,
+                            unit: 'APIs',
+                            trend: operationalApis > 0 ? 'up' : 'down'
+                        },
+                    ];
+
+                    console.log('SystemMetrics: Setting metrics:', realMetrics);
+                    setMetrics(realMetrics);
+                } else {
+                    console.log('SystemMetrics: API returned unsuccessful or missing telemetry');
+                    // Fallback to simulated data if API fails
+                    setMetrics(getFallbackMetrics());
+                }
+            } catch (error) {
+                console.error('Failed to load telemetry:', error);
+                // Fallback to simulated data
+                setMetrics(getFallbackMetrics());
+            } finally {
+                setLoading(false);
+            }
         };
 
-        loadMetrics();
+        // Helper function for fallback metrics
+        const getFallbackMetrics = (): Metric[] => [
+            { label: 'Builders Tracked', value: '--', icon: Users, unit: 'builders', trend: 'stable' },
+            { label: 'Milestones Indexed', value: '--', icon: Database, unit: 'total', trend: 'stable' },
+            { label: 'Verification Rate', value: '--', icon: ShieldCheck, unit: '%', trend: 'stable' },
+            { label: 'Unique Builders', value: '--', icon: Network, unit: 'active', trend: 'stable' },
+            { label: 'Proposals Synced', value: '--', icon: BarChart3, unit: 'on-chain', trend: 'stable' },
+            { label: 'System Health', value: '--', icon: CheckCircle, unit: '%', trend: 'stable' },
+            { label: 'Data Flow', value: '--', icon: Zap, unit: 'status', trend: 'stable' },
+            { label: 'API Gateway', value: '--', icon: Server, unit: 'status', trend: 'stable' },
+        ];
 
-        // Simulate real-time updates
+        loadRealMetrics();
+
+        // Real-time updates every 10 seconds
         const interval = setInterval(() => {
-            setMetrics(prev => prev.map(m => ({
-                ...m,
-                value: typeof m.value === 'string' && m.value.includes(',')
-                    ? m.value
-                    : m.label === 'Avg Latency'
-                        ? Math.floor(20 + Math.random() * 10).toString()
-                        : m.value
-            })));
-        }, 3000);
+            loadRealMetrics();
+        }, 10000);
 
         return () => clearInterval(interval);
     }, []);
 
-    if (loading) {
+    if (loading && metrics.length === 0) {
+        return (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {[...Array(8)].map((_, i) => (
+                    <div key={i} className="animate-pulse h-20 bg-black/40 border border-gray-800/50 rounded-[2px]" />
+                ))}
+            </div>
+        );
+    }
+
+    // If we have no metrics yet, show loading state
+    if (metrics.length === 0) {
         return (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {[...Array(8)].map((_, i) => (

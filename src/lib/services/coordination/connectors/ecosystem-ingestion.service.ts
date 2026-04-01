@@ -169,22 +169,20 @@ export class EcosystemIngestionService {
 
             if (result.success || result.error?.includes('Duplicate')) {
               logger.info(`✅ Registro local exitoso: ${decision.proposal_id}`);
-              
-              try {
-                logger.info(`🧭 Ingresando a ATLAS el hito: ${decision.proposal_id}...`);
-                await atlasIngestionService.ingestToAtlas(decision);
-              } catch (atlasError: any) {
-                logger.error(`❌ Error en ATLAS Ingestion para ${decision.proposal_id}:`, atlasError.message);
-              }
-
-              registered.push(decision);
             } else {
               logger.warn(`⚠️ No se pudo registrar localmente ${decision.proposal_id}: ${result.error}`);
-              registered.push(decision);
             }
           } catch (dbError: any) {
             logger.error(`❌ Error de base de datos para ${decision.proposal_id}: ${dbError.message}`);
+          }
+
+          // 4. ALWAYS try to ingest to ATLAS (MongoDB) regardless of Supabase status
+          try {
+            logger.info(`🧭 Ingresando a ATLAS el hito: ${decision.proposal_id}...`);
+            await atlasIngestionService.ingestToAtlas(decision);
             registered.push(decision);
+          } catch (atlasError: any) {
+            logger.error(`❌ Error en ATLAS Ingestion para ${decision.proposal_id}:`, atlasError.message);
           }
 
         } catch (error: any) {

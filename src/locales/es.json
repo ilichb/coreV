@@ -300,6 +300,22 @@
       "active": "Activo"
     },
     "DataSources": {
+      "title": "FUENTES DE DATOS",
+      "rootstock": "ROOTSTOCK",
+      "onChainProposals": "PROPUESTAS ON-CHAIN",
+      "activeBuilders": "BUILDERS ACTIVOS",
+      "ipfsStorage": "ALMACENAMIENTO IPFS",
+      "milestonesStored": "MILESTONES ALMACENADOS",
+      "buildersNetwork": "RED DE BUILDERS",
+      "atlasNetwork": "RED ATLAS",
+      "apiHealth": "SALUD DE API",
+      "uptime": "TIEMPO ACTIVIDAD",
+      "liveData": "DATOS EN VIVO",
+      "pendingEcosystems": "ECOSISTEMAS PENDIENTES",
+      "apisConnected": "APIS CONECTADAS",
+      "lastUpdate": "ÚLTIMA ACTUALIZACIÓN",
+      "fetching": "OBTENIENDO",
+      "pinataConnected": "PINATA CONECTADO",
       "arbitrum": "ARBITRUM DAOS",
       "optimism": "OPTIMISM DAOS",
       "snapshot": "SNAPSHOT SPACES",
@@ -309,6 +325,40 @@
       "last24h": "Últimas 24h",
       "activeConnections": "Conexiones de gobernanza activas en tiempo real",
       "networkGraphNote": "Grafo de red representando relaciones de co-coordinación"
+    },
+    "LiveStatus": {
+      "title": "ESTADO EN VIVO",
+      "lastSync": "ÚLTIMA SINCRONIZACIÓN",
+      "activeConnections": "CONEXIONES ACTIVAS",
+      "api": "API",
+      "data": "DATOS",
+      "sync": "SINCRONIZACIÓN",
+      "idle": "INACTIVO"
+    },
+    "Ecosystems": {
+      "title": "ECOSISTEMAS",
+      "scrollHint": "DESPLÁZATE PARA MÁS",
+      "connectionPending": "CONEXIÓN PENDIENTE",
+      "monitoringActive": "MONITOREO ACTIVO",
+      "notConfigured": "NO CONFIGURADO",
+      "connected": "CONECTADO",
+      "pending": "PENDIENTE",
+      "offline": "DESCONECTADO",
+      "configure": "CONFIGURAR"
+    },
+    "RealTimeData": {
+      "title": "DATOS EN TIEMPO REAL",
+      "rootstockData": "DATOS ROOTSTOCK",
+      "live": "EN VIVO",
+      "fetchingData": "OBTENIENDO DATOS",
+      "processingPipeline": "PIPELINE DE PROCESAMIENTO",
+      "active": "ACTIVO",
+      "externalApis": "APIS EXTERNAS",
+      "connected": "CONECTADO",
+      "dataFreshness": "FRESCURA DE DATOS",
+      "unknown": "DESCONOCIDO",
+      "lastSyncLabel": "ÚLTIMA SINCRONIZACIÓN",
+      "minAgo": "min. atrás"
     }
   },
   "CoordinationPage": {
@@ -466,7 +516,9 @@
       "optimism": "Optimism",
       "Optimism": "Optimism",
       "arbitrum": "Arbitrum",
-      "Arbitrum": "Arbitrum"
+      "Arbitrum": "Arbitrum",
+      "rootstock": "Rootstock",
+      "Rootstock": "Rootstock"
     },
     "BuilderRanking": {
       "impact": "IMPACTO",

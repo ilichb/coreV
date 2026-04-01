@@ -46,6 +46,9 @@
     "node_modules",
     "src/scripts/**/*",
     "scripts/**/*",
-    "tests/**/*"
+    "tests/**/*",
+    "packages/avip-contracts",
+    "packages/contracts",
+    "packages/supabase"
   ]
 }
