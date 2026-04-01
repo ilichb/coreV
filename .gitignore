@@ -12,3 +12,4 @@ out/
 # Block all .md files except README
 *.md
 !README.md
+*.txt
