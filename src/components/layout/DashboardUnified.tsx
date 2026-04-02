@@ -131,7 +131,7 @@ export default function DashboardUnified({ children }: DashboardUnifiedProps) {
                                 <span className="w-1.5 h-1.5 bg-reactor-cyan rounded-full animate-pulse" />
                                 {t('Header.systemOnline')}
                             </div>
-                            <AuditSafetySwitch isActive={auditActive} onClick={() => setAuditActive(!auditActive)} />
+                            <AuditSafetySwitch isActive={auditActive} onClick={() => window.location.href = `/${currentLocale}/audit`} />
                         </div>
                     </header>
 

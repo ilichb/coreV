@@ -319,9 +319,7 @@ export default function IntelligencePage() {
                       <span className="text-gray-400">{t('Ecosystems.offline', { count: disconnectedCount })}</span>
                     </div>
                   </div>
-                  <button className="text-reactor-cyan hover:text-reactor-cyan/80 transition-colors">
-                    {t('Ecosystems.configure')}
-                  </button>
+
                 </div>
               </div>
             </div>

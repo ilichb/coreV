@@ -10,7 +10,7 @@ import { saveFinalScorecard, scorecardExists, markNonceUsed, checkNonce } from '
 import { cryptoGuard } from '../../../../lib/services/coordination/crypto-guard';
 import { registryService } from '../../../../lib/services/coordination/registry';
 import { varaAdapter } from "@/lib/services/coordination/vara-adapter";
-import { redisService } from '../../../../lib/services/coordination/redis-upstash';
+import { redisService } from '../../../../lib/services/coordination/redis';
 import { Scorecard, parseDid } from '../../../../types/coordination/scorecard';
 import { logger } from '../../../../lib/utils/logger';
 import { achievementWebhookService } from '../../../../lib/services/notifications/achievement-webhook.service';

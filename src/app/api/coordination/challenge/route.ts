@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { cryptoGuard } from '../../../../lib/services/coordination/crypto-guard';
-import { redisService } from '../../../../lib/services/coordination/redis-upstash';
+import { redisService } from '../../../../lib/services/coordination/redis';
 import { parseDid } from '../../../../types/coordination/scorecard';
 import { logger } from '../../../../lib/utils/logger';
 

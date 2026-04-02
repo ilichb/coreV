@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '../../../../lib/supabase';
-import { redisService } from '../../../../lib/services/coordination/redis-upstash';
+import { redisService } from '../../../../lib/services/coordination/redis';
 import { logger } from '../../../../lib/utils/logger';
 
 // Cache for diagnostic results (30s)
