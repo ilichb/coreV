@@ -275,7 +275,7 @@ export default function ScorecardForm({ isUnlocked = true }: { isUnlocked?: bool
                 <input
                   type="number"
                   className="w-full bg-black/40 border border-white/10 rounded-[2px] p-3 text-sm font-mono-display text-reactor-cyan outline-none focus:border-reactor-cyan/50 tabular-nums"
-                  value={formData.effort.timeRange.min}
+                  value={formData.effort.timeRange.min || 1}
                   onChange={(e) => setFormData({
                     ...formData,
                     effort: { ...formData.effort, timeRange: { ...formData.effort.timeRange, min: parseInt(e.target.value) } }
@@ -287,7 +287,7 @@ export default function ScorecardForm({ isUnlocked = true }: { isUnlocked?: bool
                 <input
                   type="number"
                   className="w-full bg-black/40 border border-white/10 rounded-[2px] p-3 text-sm font-mono-display text-reactor-cyan outline-none focus:border-reactor-cyan/50 tabular-nums"
-                  value={formData.effort.timeRange.max}
+                  value={formData.effort.timeRange.max || 4}
                   onChange={(e) => setFormData({
                     ...formData,
                     effort: { ...formData.effort, timeRange: { ...formData.effort.timeRange, max: parseInt(e.target.value) } }

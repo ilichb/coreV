@@ -168,7 +168,7 @@ export default function CoordinationPage() {
               <div className="pt-6 border-t border-[#1e2430] space-y-3">
                 <p className="text-[9px] text-gray-600 text-mono uppercase tracking-[0.15em] font-bold">{t('Flow.supportedNetworks')}</p>
                 <div className="flex flex-wrap gap-2">
-                  {['ETH', 'POL', 'AVA', 'SOL'].map(chain => (
+                  {['RSK', 'ARB', 'OPT', 'ALGO', 'VARA'].map(chain => (
                     <span key={chain} className="px-2 py-0.5 bg-reactor-cyan/5 border border-reactor-cyan/10 text-[9px] text-mono text-reactor-cyan/60 rounded-[1px] uppercase tracking-tighter">
                       {chain}
                     </span>
@@ -232,7 +232,7 @@ export default function CoordinationPage() {
           </div>
           <div className="text-center mt-16 pb-12">
             <span className="text-[9px] text-mono text-gray-700 tracking-[0.5em] uppercase opacity-40 font-bold">
-              © 2024 ANDROMEDA_COMPUTER // {t('phrases.allProcessesOnChainVerifiable')}
+              © 2026 ANDROMEDA_COMPUTER // {t('phrases.allProcessesOnChainVerifiable')}
             </span>
           </div>
         </footer>
