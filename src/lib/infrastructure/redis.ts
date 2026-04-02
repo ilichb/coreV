@@ -108,6 +108,24 @@ export class RedisService {
       resetAfter: windowSeconds
     };
   }
+  async setChallenge(did: string, challenge: string, ttlSeconds: number = 300): Promise<void> {
+    await this.set('challenge:' + did, challenge, ttlSeconds);
+  }
+  async getChallenge(did: string): Promise<string | null> {
+    return this.get('challenge:' + did);
+  }
+  async deleteChallenge(did: string): Promise<void> {
+    await this.del('challenge:' + did);
+  }
+  async setNonce(nonce: string, did: string, ttlSeconds: number = 300): Promise<void> {
+    await this.set('nonce:' + nonce, did, ttlSeconds);
+  }
+  async getNonce(nonce: string): Promise<string | null> {
+    return this.get('nonce:' + nonce);
+  }
+  async deleteNonce(nonce: string): Promise<void> {
+    await this.del('nonce:' + nonce);
+  }
+  getClient() { return this; }
 }
-
 export const redisService = new RedisService();
