@@ -1018,5 +1018,23 @@
     "refreshFeed": "Actualizar Feed",
     "noProposals": "No se encontraron propuestas",
     "mainnet": "ROOTSTOCK MAINNET"
+  },
+  "PricingPage": {
+    "title": "Precios simples y transparentes",
+    "subtitle": "Infraestructura de reputación verificable para plataformas que valoran la confianza. Paga con PayPal o crypto.",
+    "selectPlan": "1. Selecciona tu plan",
+    "paymentMethod": "2. Método de pago",
+    "recommended": "Recomendado",
+    "contactUs": "Contáctanos",
+    "orderSummary": "Resumen del pedido",
+    "connectingWallet": "Conectando wallet...",
+    "processingPayment": "Procesando pago...",
+    "payWithPaypal": "Pagar con PayPal",
+    "payWithAlgorand": "Pagar con Algorand",
+    "afterPayment": "Tras el pago, envía un email a api@andromeda.computer con tu TX ID para activar tu clave en 24h.",
+    "freeTitle": "Comienza gratis — sin pago requerido.",
+    "requestFreeKey": "Solicitar API Key Gratuita",
+    "paymentConfirmed": "Pago confirmado en Algorand",
+    "contactActivate": "Contacta api@andromeda.computer con tu TX ID para activar tu clave."
   }
 }

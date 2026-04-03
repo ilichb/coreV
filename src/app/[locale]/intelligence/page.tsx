@@ -628,6 +628,50 @@ export default function IntelligencePage() {
           background: rgba(0, 240, 255, 0.5);
         }
       `}</style>
+
+        {/* API ACCESS CTA */}
+        <div className="grid grid-cols-12 gap-6 mt-6">
+          <div className="col-span-12">
+            <div className="relative p-6 border border-reactor-cyan/20 bg-reactor-cyan/5 rounded-[2px] overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-reactor-cyan/5 via-transparent to-transparent pointer-events-none" />
+              <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-reactor-cyan rounded-full animate-pulse" />
+                    <span className="text-[9px] font-mono text-reactor-cyan uppercase tracking-widest">ANDROMEDA CORE API</span>
+                  </div>
+                  <h3 className="title-orbitron text-lg font-bold text-white">
+                    Integrate verified reputation into your platform
+                  </h3>
+                  <p className="text-gray-500 text-sm max-w-xl">
+                    LinkedIn · Upwork · Fiverr · DAOs — verify builder trust scores via AVIP v2.0.
+                    From <span className="text-reactor-cyan font-mono">$0/month</span> with 1,000 free requests.
+                  </p>
+                  <div className="flex flex-wrap gap-3 pt-1">
+                    {[
+                      { label: '55 builders indexed', color: 'text-green-400' },
+                      { label: '98% verification rate', color: 'text-reactor-cyan' },
+                      { label: '4 ecosystems', color: 'text-yellow-400' },
+                      { label: '<200ms response', color: 'text-blue-400' },
+                    ].map(({ label, color }) => (
+                      <span key={label} className={"text-[9px] font-mono " + color + " border border-current/20 px-2 py-0.5 rounded-[1px] bg-current/5"}>
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3 min-w-[200px]">
+                  <a href="/es/pricing" className="block text-center py-2.5 bg-reactor-cyan hover:bg-cyan-400 text-black font-mono font-bold text-[10px] uppercase tracking-widest rounded-[1px] transition-colors">
+                    Get API Access
+                  </a>
+                  <a href="/es/docs" className="block text-center py-2.5 border border-reactor-cyan/30 text-reactor-cyan hover:bg-reactor-cyan/10 font-mono font-bold text-[10px] uppercase tracking-widest rounded-[1px] transition-colors">
+                    View Documentation
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
     </DashboardUnified>
   );
 }

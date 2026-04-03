@@ -1014,5 +1014,23 @@
     "refreshFeed": "Refresh Feed",
     "noProposals": "No proposals found",
     "mainnet": "ROOTSTOCK MAINNET"
+  },
+  "PricingPage": {
+    "title": "Simple, transparent pricing",
+    "subtitle": "Verifiable reputation infrastructure for platforms that care about trust. Pay with PayPal or crypto.",
+    "selectPlan": "1. Select your plan",
+    "paymentMethod": "2. Payment method",
+    "recommended": "Recommended",
+    "contactUs": "Contact Us",
+    "orderSummary": "Order Summary",
+    "connectingWallet": "Connecting wallet...",
+    "processingPayment": "Processing payment...",
+    "payWithPaypal": "Pay with PayPal",
+    "payWithAlgorand": "Pay with Algorand",
+    "afterPayment": "After payment, email api@andromeda.computer to receive your API key within 24h.",
+    "freeTitle": "Get started for free — no payment required.",
+    "requestFreeKey": "Request Free API Key",
+    "paymentConfirmed": "Payment confirmed on Algorand",
+    "contactActivate": "Contact api@andromeda.computer with your TX ID to activate your key."
   }
 }

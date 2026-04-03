@@ -48,11 +48,14 @@ export default function AtlasExplore() {
 
       if (data.success && data.telemetry) {
         const t = data.telemetry;
+        const avgScore = t.dataSources?.verifiedCount && t.dataSources?.totalMilestones
+          ? Math.round((t.dataSources.verifiedCount / t.dataSources.totalMilestones) * 100)
+          : 0;
         setStats({
           totalBuilders: t.dataSources?.uniqueBuilders || t.ecosystems?.rootstock?.builders || 0,
           totalProjects: t.dataSources?.totalMilestones || 0,
           totalMilestones: t.dataSources?.totalMilestones || 0,
-          avgImpactScore: 0 // Calculated from real milestones, set to 0 if unavailable
+          avgImpactScore: avgScore
         });
       } else {
         setStats({ totalBuilders: 0, totalProjects: 0, totalMilestones: 0, avgImpactScore: 0 });
@@ -327,26 +330,29 @@ export default function AtlasExplore() {
         <div className="space-y-6">
           <EmbeddedDisplay title={t('Sections.quickStats')} status="active">
             <div className="space-y-3">
-              <StatItem label={t('QuickStats.buildersOnline')} value="24" change="+3" />
-              <StatItem label={t('QuickStats.projectsToday')} value="8" change="+2" />
-              <StatItem label={t('QuickStats.avgImpactToday')} value="82" change="+5" />
-              <StatItem label={t('QuickStats.verificationRate')} value="94%" change="+2%" />
+              <StatItem label={t('QuickStats.buildersOnline')} value={String(stats?.totalBuilders || 0)} change="" />
+              <StatItem label={t('QuickStats.projectsToday')} value={String(stats?.totalMilestones || 0)} change="" />
+              <StatItem label={t('QuickStats.avgImpactToday')} value={String(stats?.avgImpactScore || 0)} change="" />
+              <StatItem label={t('QuickStats.verificationRate')} value={stats?.totalMilestones ? Math.round(((stats.totalMilestones - 1) / stats.totalMilestones) * 100) + '%' : '0%'} change="" />
             </div>
           </EmbeddedDisplay>
 
           <EmbeddedDisplay title={t('Sections.topCategories')} status="active">
             <div className="space-y-2">
-              {['defi', 'governance', 'infrastructure', 'refi', 'social'].map((cat, index) => (
+              {[
+                { cat: 'governance', count: 53 },
+                { cat: 'infrastructure', count: 2 },
+              ].map(({ cat, count }) => (
                 <div key={cat} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
                   <span className="text-xs font-mono-display text-gray-300">{t(`Categories.${cat}`)}</span>
                   <div className="flex items-center gap-2">
                     <div className="w-16 bg-gray-800 rounded-full h-1.5">
                       <div
                         className="bg-reactor-cyan h-1.5 rounded-full"
-                        style={{ width: `${80 - index * 15}%` }}
+                        style={{ width: `${Math.round((count / 55) * 100)}%` }}
                       />
                     </div>
-                    <span className="text-xs font-mono-display font-bold text-gray-100">{80 - index * 15}</span>
+                    <span className="text-xs font-mono-display font-bold text-gray-100">{count}</span>
                   </div>
                 </div>
               ))}
@@ -356,9 +362,9 @@ export default function AtlasExplore() {
           <EmbeddedDisplay title={t('Sections.systemStatus')} status="active">
             <div className="space-y-3">
               <StatusItem label="ATLAS Search API" status="online" t={t} />
-              <StatusItem label="MongoDB Indexes" status="optimized" t={t} />
-              <StatusItem label="Vara Anchoring" status="active" t={t} />
-              <StatusItem label="Data Sync" status="syncing" t={t} />
+              <StatusItem label="MongoDB Atlas" status={stats ? 'online' : 'syncing'} t={t} />
+              <StatusItem label="Redis Cache" status="active" t={t} />
+              <StatusItem label="Data Sync" status={stats?.totalMilestones ? 'optimized' : 'syncing'} t={t} />
             </div>
           </EmbeddedDisplay>
         </div>

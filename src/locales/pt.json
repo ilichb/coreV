@@ -358,7 +358,6 @@
       "dataFreshness": "FRESCURA DOS DADOS",
       "unknown": "DESCONHECIDO",
       "lastSyncLabel": "ÚLTIMA SINCRONIZAÇÃO",
-      "minAgo": "min atrás",
       "minAgo": "min atrás"
     }
   },
@@ -997,5 +996,23 @@
         "unknown": "ERR: CMD_DESCONHECIDO_0x"
       }
     }
+  },
+  "PricingPage": {
+    "title": "Preços simples e transparentes",
+    "subtitle": "Infraestrutura de reputação verificável para plataformas que valorizam a confiança. Pague com PayPal ou crypto.",
+    "selectPlan": "1. Selecione seu plano",
+    "paymentMethod": "2. Método de pagamento",
+    "recommended": "Recomendado",
+    "contactUs": "Contate-nos",
+    "orderSummary": "Resumo do pedido",
+    "connectingWallet": "Conectando carteira...",
+    "processingPayment": "Processando pagamento...",
+    "payWithPaypal": "Pagar com PayPal",
+    "payWithAlgorand": "Pagar com Algorand",
+    "afterPayment": "Após o pagamento, envie um email para api@andromeda.computer com seu TX ID para ativar sua chave em 24h.",
+    "freeTitle": "Comece gratuitamente — sem pagamento necessário.",
+    "requestFreeKey": "Solicitar API Key Gratuita",
+    "paymentConfirmed": "Pagamento confirmado na Algorand",
+    "contactActivate": "Contate api@andromeda.computer com seu TX ID para ativar sua chave."
   }
 }
