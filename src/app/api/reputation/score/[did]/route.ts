@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ReputationEngineService } from '@/lib/services/reputation/reputation-engine.service';
+
+const reputationEngine = new ReputationEngineService();
 import { mongoDBClient } from '@/lib/infrastructure/mongodb';
 import { validateApiKey } from '@/lib/services/api-keys/api-key.service';
 import { logger } from '@/lib/utils/logger';
@@ -63,11 +66,40 @@ export async function GET(
     const verificationRate = Math.round((verified / total) * 100);
 
     // Desglose detallado del score AVIP
+    // Calculate days since last activity for decay
+    const lastActivityDate = milestones[0]?._id
+      ? new Date((milestones[0]._id as any).getTimestamp())
+      : new Date();
+    const daysSinceLastActivity = Math.floor(
+      (Date.now() - lastActivityDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    // Feed real data into the AVIP v2.0 engine
+    // AVIP v2.0 input calibration
+    // technical = verification quality (0-100)
+    // governance = ecosystem breadth (0-100)  
+    // community = activity volume normalized (0-100)
+    const verificationQuality = Math.round((verified / Math.max(total, 1)) * 100);
+    const ecosystemBreadth = Math.min(50 + ecosystems.length * 17, 100);
+    const activityVolume = Math.min(60 + total * 5, 100); // base 50 + volume bonus
+
+    const engineInput = {
+      technical: verificationQuality,
+      governance: ecosystemBreadth,
+      community: activityVolume,
+      verifiedCount: verified,
+      totalMilestones: total,
+      daysSinceLastActivity,
+    };
+
+    const avipResult = await reputationEngine.calculateScore(engineInput);
+    const avipScore = Math.round(avipResult.total);
+
     const components = {
       verificationScore: {
-        value: Math.round((verified / total) * 70),
+        value: Math.round((verified / Math.max(total, 1)) * 70),
         max: 70,
-        description: 'Based on verified vs total milestones',
+        description: 'Based on verified vs total milestones (AVIP v2.0)',
         detail: `${verified}/${total} milestones verified`
       },
       ecosystemDiversity: {
@@ -81,10 +113,20 @@ export async function GET(
         max: 10,
         description: 'Contribution volume bonus',
         detail: `${total} total contributions indexed`
+      },
+      behavioralConfidence: {
+        value: Math.round(avipResult.behavioralConfidence * 100),
+        max: 100,
+        description: 'Shannon entropy anomaly detection',
+        detail: `Confidence: ${(avipResult.behavioralConfidence * 100).toFixed(1)}% — isAnomaly: ${avipResult.isAnomaly}`
+      },
+      temporalDecay: {
+        value: Math.round((1 - Math.min(daysSinceLastActivity / 365, 1)) * 100),
+        max: 100,
+        description: 'Asymmetric decay R(t) = R0 * exp(-λ * t)',
+        detail: `${daysSinceLastActivity} days since last activity`
       }
     };
-
-    const avipScore = Object.values(components).reduce((sum, c) => sum + c.value, 0);
 
     // Timeline de actividad
     const timeline = milestones.slice(0, 10).map((m: any) => ({

@@ -10,9 +10,16 @@ export interface AlgorandTransaction {
   timestamp: number;
 }
 
+export interface PaymentResult {
+  txId: string;
+  confirmedRound: number;
+  timestamp: Date;
+}
+
 export class AlgorandClient {
   private client: algosdk.Algodv2;
   private indexer: algosdk.Indexer;
+  private rewardAccount: algosdk.Account | null = null;
 
   constructor(
     token: string = '',
@@ -22,6 +29,21 @@ export class AlgorandClient {
   ) {
     this.client = new algosdk.Algodv2(token, server, port);
     this.indexer = new algosdk.Indexer(token, indexerServer, port);
+    this.initRewardAccount();
+  }
+
+  private initRewardAccount(): void {
+    const mnemonic = process.env.ALGORAND_REWARD_MNEMONIC;
+    if (mnemonic) {
+      try {
+        this.rewardAccount = algosdk.mnemonicToSecretKey(mnemonic);
+        logger.info(`✅ Reward account initialized: ${this.rewardAccount.addr}`);
+      } catch (err) {
+        logger.error('Failed to initialize reward account from mnemonic:', err);
+      }
+    } else {
+      logger.warn('⚠️ ALGORAND_REWARD_MNEMONIC not set. Payment sending disabled.');
+    }
   }
 
   async getTransaction(txId: string): Promise<AlgorandTransaction> {
@@ -51,10 +73,86 @@ export class AlgorandClient {
     }
   }
 
+  /**
+   * Envía un pago desde la cuenta de recompensas (tesorería) a una dirección destino.
+   * @param to Dirección destino (Algorand address)
+   * @param amount Cantidad en microAlgos (1 ALGO = 1,000,000 microAlgos)
+   * @param note Nota opcional (texto)
+   * @returns Resultado con txId, round confirmado y timestamp
+   */
+  async sendPayment(to: string, amount: number, note?: string): Promise<PaymentResult> {
+    if (!this.rewardAccount) {
+      throw new Error('Reward account not configured. Set ALGORAND_REWARD_MNEMONIC.');
+    }
+
+    try {
+      const params = await this.client.getTransactionParams().do();
+      const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        from: this.rewardAccount.addr,
+        to: to,
+        amount: amount,
+        note: note ? new TextEncoder().encode(note) : undefined,
+        suggestedParams: params,
+      });
+
+      const signedTxn = txn.signTxn(this.rewardAccount.sk);
+      const { txId } = await this.client.sendRawTransaction(signedTxn).do();
+
+      logger.info(`💸 Payment sent: ${amount} microAlgos to ${to} (txId: ${txId})`);
+
+      // Esperar confirmación (máximo 30 segundos)
+      const confirmed = await this.waitForConfirmation(txId);
+      return {
+        txId,
+        confirmedRound: confirmed['confirmed-round'],
+        timestamp: new Date(confirmed['timestamp'] * 1000)
+      };
+    } catch (error: any) {
+      logger.error('Error sending payment:', error);
+      throw new Error(`Payment failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Obtiene el saldo de una cuenta (en microAlgos).
+   */
+  async getBalance(address: string): Promise<number> {
+    try {
+      const accountInfo = await this.client.accountInformation(address).do();
+      return accountInfo.amount;
+    } catch (error: any) {
+      logger.error('Error fetching balance:', error);
+      throw new Error(`Balance fetch failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Espera la confirmación de una transacción.
+   * @param txId ID de la transacción
+   * @param timeoutSegundos Tiempo máximo de espera
+   * @returns Información de la transacción confirmada
+   */
+  private async waitForConfirmation(txId: string, timeoutSegundos: number = 30): Promise<any> {
+    const start = Date.now();
+    let waitTime = 1000;
+    while (Date.now() - start < timeoutSegundos * 1000) {
+      const pendingInfo = await this.client.pendingTransactionInformation(txId).do();
+      if (pendingInfo['confirmed-round']) {
+        return pendingInfo;
+      }
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+      waitTime = Math.min(waitTime * 2, 10000);
+    }
+    throw new Error(`Transaction ${txId} not confirmed after ${timeoutSegundos} seconds`);
+  }
+
   private async getRoundTimestamp(round: number): Promise<number> {
     const roundInfo = (await this.client.block(round).do()) as any;
-    // En algosdk v2, el timestamp suele estar en roundInfo.block.ts o roundInfo.timestamp
     return (roundInfo.block?.ts || roundInfo.timestamp || Math.floor(Date.now() / 1000)) * 1000;
+  }
+
+  getRewardAddress(): string | null {
+    return this.rewardAccount?.addr || null;
   }
 }
 

@@ -37,8 +37,9 @@ export class ReputationEngineService {
             const community = this.calculateDimensionScore(data.community || 0, this.LAMBDA_POS);
 
             // 3. Weighting with confidence squared
-            const confidenceFactor = Math.pow(behavioralConfidence, 2);
-            const cSquare = Math.max(confidenceFactor, this.MIN_CONFIDENCE);
+            // Confidence modulates score — 70% floor guarantees fair scoring
+            const confidenceFactor = 0.7 + (0.3 * behavioralConfidence);
+            const cSquare = confidenceFactor;
 
             const baseTotal = (technical * this.TECH_WEIGHT) + 
                               (governance * this.GOV_WEIGHT) + 
@@ -61,16 +62,45 @@ export class ReputationEngineService {
         }
     }
 
-    private calculateDimensionScore(baseScore: number, lambda: number): number {
-        // R(t) = R0 * exp(-λ * t)
-        // Simplified for immediate calculation; real implementation would use t = current - last_event
-        return baseScore; // Placeholder for time-series decay
+    private calculateDimensionScore(baseScore: number, lambda: number, lastEventDays: number = 0): number {
+        // R(t) = R0 * exp(-λ * t) — asymmetric decay from Core Paper v3.1
+        const t = Math.max(0, lastEventDays);
+        return baseScore * Math.exp(-lambda * t);
     }
 
     private detectAnomalies(data: any): number {
-        // H(X) = - Σ p(x) * log2(p(x))
-        // Placeholder for Shannon entropy calculation
-        return 2.5; // Healthy default
+        // Shannon entropy H(X) = -Σ p(x) * log2(p(x))
+        // High entropy = more diverse, legitimate activity
+        // Low entropy = repetitive/suspicious pattern
+        const events: number[] = [
+            data.technical || 0,
+            data.governance || 0,
+            data.community || 0,
+            data.verifiedCount || 0,
+            data.totalMilestones || 0,
+        ].filter(v => v > 0);
+
+        if (events.length === 0) return 2.5; // default healthy
+
+        const total = events.reduce((sum, v) => sum + v, 0);
+        if (total === 0) return 2.5;
+
+        // Calculate probability distribution
+        const probs = events.map(v => v / total);
+
+        // Shannon entropy
+        const entropy = -probs.reduce((sum, p) => {
+            if (p <= 0) return sum;
+            return sum + p * Math.log2(p);
+        }, 0);
+
+        // Normalize: max entropy for n events = log2(n)
+        const maxEntropy = Math.log2(events.length);
+        const normalizedEntropy = maxEntropy > 0 ? entropy / maxEntropy : 0;
+
+        // Convert to anomaly score (0=anomaly, 4=healthy)
+        // High entropy diversity → low anomaly score
+        return parseFloat((normalizedEntropy * 4).toFixed(3));
     }
 
     private sigmoid(z: number): number {

@@ -14,7 +14,6 @@ import { redisService } from '../../../../lib/services/coordination/redis';
 import { Scorecard, parseDid } from '../../../../types/coordination/scorecard';
 import { logger } from '../../../../lib/utils/logger';
 import { achievementWebhookService } from '../../../../lib/services/notifications/achievement-webhook.service';
-import { atlasOrchestrator } from "@/lib/services/coordination/atlas-orchestrator";
 import { avipViemAdapter } from '../../../../lib/services/coordination/avip-viem-adapter';
 
 // Configuración EIP-712 para Ethereum y cadenas EVM
@@ -296,21 +295,6 @@ export async function POST(request: NextRequest) {
       };
 
       dbRecord = await saveFinalScorecard(scorecardData);
-      // Ejecutar workflow de Atlas para convertir el Scorecard en milestone y pagar recompensas
-      try {
-        const atlasResult = await atlasOrchestrator.executeFullWorkflow(
-          scorecard as SignedScorecard,
-          ipfsResult.cid,
-          validationResult.clarityDelta
-        );
-        if (atlasResult.success) {
-          logger.info(`✅ Atlas workflow completed: ${atlasResult.finalStatus}`);
-        } else {
-          logger.warn(`⚠️ Atlas workflow issues: ${atlasResult.errors.join(", ")}`);
-        }
-      } catch (atlasErr) {
-        logger.error("❌ Atlas workflow failed (non-critical):", atlasErr);
-      }
 
       logger.info(`💾 Saved to database: ${dbRecord.id}`);
 
