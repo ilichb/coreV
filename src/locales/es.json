@@ -601,12 +601,18 @@
     },
     "Header": {
       "phase": "FASE 03: AUDITORÍA DE SEGURIDAD Y CALIDAD",
-      "title": "AUDITORÍA DE SEGURIDAD & CALIDAD",
+      "title": "SEGURIDAD Y CALIDAD",
+      "titlePart1": "SEGURIDAD",
+      "titlePart2": "CALIDAD",
+      "titlePart3": "AUDITORÍA",
+      "tagline": "CONFIAR_PERO_VERIFICAR",
       "subtitle": "Evaluación continua de la integridad del protocolo y cumplimiento de estándares técnicos.",
       "riskLevel": "Nivel de Riesgo",
       "elevated": "ELEVADO",
-      "triggerScan": "INICIAR ESCANEO DIAGNÓSTICO",
-      "runningScan": "EJECUTANDO ESCANEO..."
+      "triggerScan": "INICIAR ESCANEO",
+      "runningScan": "EJECUTANDO ESCANEO...",
+      "cooldownActive": "COOLDOWN ACTIVADO",
+      "restoringIn": "restaurando en"
     },
     "Nav": {
       "overview": "Vista General",
@@ -621,12 +627,122 @@
       "active": "ACTIVO",
       "healthy": "SALUDABLE",
       "shielded": "BLINDADO",
-      "monitoring": "MONITOREO ACTIVO"
+      "monitoring": "MONITOREO ACTIVO",
+      "unverified": "SIN VERIFICAR",
+      "auditing": "AUDITANDO",
+      "nominal": "NOMINAL",
+      "bypassed": "OMITIDO",
+      "warnLow": "AVISO_BAJO",
+      "low": "BAJA",
+      "elevated": "ELEVADA",
+      "secure": "SEGURO",
+      "enforced": "REFORZADO",
+      "warning": "ADVERTENCIA",
+      "moderate": "MODERADO",
+      "ms": "MS"
     },
     "Dashboard": {
       "title": "PANEL DE CONTROL DE AUDITORÍA",
       "source": "FUENTE: ANDROMEDA SECURITY ORCHESTRATOR",
       "filter": "Filtrar hallazgos..."
+    },
+    "AuditReport": {
+      "Matrix": {
+        "critical": "VULNERABILIDAD CRÍTICA",
+        "activeExploits": "Exploits Activos",
+        "medium": "RIESGO MEDIO",
+        "systemLeaks": "Fugas de Sistema (Leaks)",
+        "low": "BAJO IMPACTO",
+        "codeInconsistencies": "Inconsistencias de Código",
+        "mitigated": "MITIGADO",
+        "remediatedIssues": "Problemas Remediados"
+      },
+      "Manifest": {
+        "title": "MANIFIESTO DE VULNERABILIDAD V2.0",
+        "lastScan": "Último escaneo del sistema",
+        "exportPdf": "EXPORTAR REPORTE (.PDF)",
+        "id": "ID",
+        "status": "ESTADO",
+        "severity": "SEVERIDAD",
+        "layer": "CAPA DE SEGURIDAD",
+        "details": "DETALLES",
+        "risk": "EVALUACIÓN DE RIESGO",
+        "remediation": "ESTRATEGIA DE REMEDIACIÓN"
+      },
+      "Finding": {
+        "observationDetails": "Detalles de Observación",
+        "operationalRisk": "Riesgo Operacional",
+        "remediationStrategy": "Estrategia de Remediación",
+        "remediationPending": "Estrategia de remediación pendiente de análisis profundo.",
+        "verifyPatch": "Verificar Parche"
+      },
+      "Readiness": {
+        "logicalTitle": "INDICADORES DE PREPARACIÓN DEL SISTEMA",
+        "businessIntegrity": "Integridad de Lógica de Negocio",
+        "coordinationStability": "Estabilidad del Protocolo de Coordinación"
+      },
+      "layers": {
+        "perimeter": "PERÍMETRO",
+        "application": "APLICACIÓN",
+        "data": "DATOS",
+        "infrastructure": "INFRAESTRUCTURA"
+      },
+      "findings": {
+        "L7-WAF": {
+          "title": "Punto de Entrada de Tráfico No Filtrado",
+          "detail": "Solicitudes que eluden las reglas del firewall L7, exponiendo endpoints internos a tráfico no confiable.",
+          "risk": "Explotación directa de vulnerabilidades de la aplicación mediante patrones SQLi o XSS.",
+          "remediation": "Activar L7-Shielding y aplicar validación estricta de rutas."
+        },
+        "DB-RLS": {
+          "title": "Seguridad de Fila (RLS) Incompleta",
+          "detail": "Tablas de datos actualmente accesibles mediante claves anónimas sin políticas RLS adecuadas.",
+          "risk": "Exfiltración de datos no autorizada y potencial exposición de PII.",
+          "remediation": "Aplicar políticas RLS granulares a todas las tablas base de producción."
+        },
+        "SEC-HDR": {
+          "title": "Política de Cabeceras de Seguridad Débil",
+          "detail": "Ausencia de cabeceras HSTS y CSP, aumentando el riesgo de ataques MITM e inyección.",
+          "risk": "Explotación del lado del cliente mediante degradación de protocolo y scripts no verificados.",
+          "remediation": "Inyectar Strict-Transport-Security y Content-Security-Policy globalmente."
+        },
+        "C-01": {
+          "title": "Invariante de Lógica de Consenso Central",
+          "detail": "Los controles de consenso heredados permitían la ejecución fuera de orden en casos extremos.",
+          "risk": "Divergencia de estado entre los nodos concurrentes de la red.",
+          "remediation": "Ordenación atómica implementada en el núcleo de coordinación."
+        },
+        "C-02": {
+          "title": "Unificación de Estructura de Contratos",
+          "detail": "Múltiples puntos de entrada para contratos de Vara y Rootstock crean sobrecarga de sincronización.",
+          "risk": "Aumento de la superficie de ataque y complejidad de mantenimiento.",
+          "remediation": "Refactorización en un controlador de puente multi-cadena unificado."
+        },
+        "M-01": {
+          "title": "Bypass de Limitación de Tasa",
+          "detail": "La configuración del middleware Redis permite ráfagas más allá de los umbrales seguros.",
+          "risk": "Potencial agotamiento de recursos (DoS) durante eventos de alto tráfico.",
+          "remediation": "Configurando limitación de tasa de ventana deslizante en Upstash."
+        },
+        "M-02": {
+          "title": "Fuga del Administrador de Secretos",
+          "detail": "Variables de entorno registradas en logs durante las secuencias de inicio.",
+          "risk": "Exposición de claves API sensibles en logs de diagnóstico.",
+          "remediation": "Registro enmascarado implementado para todos los secretos identificados."
+        },
+        "B-01": {
+          "title": "Depreciación de API Heredada",
+          "detail": "Acceso público aún activo para endpoints v1.0 programados para eliminación.",
+          "risk": "Usuarios persistiendo en el uso de interfaces heredadas inseguras.",
+          "remediation": "Aplicar redirecciones 301 a V2.0 y deshabilitar rutas v1.0."
+        },
+        "B-02": {
+          "title": "Inconsistencia en el Rastro de Auditoría",
+          "detail": "Falta rotación de registros en los nodos de infraestructura de desarrollo.",
+          "risk": "Potencial presión de disco y pérdida de contexto histórico de auditoría.",
+          "remediation": "Activada la persistencia automatizada en S3 y política de rotación."
+        }
+      }
     },
     "FooterLogs": {
       "initialized": "NÚCLEO INICIALIZADO",
@@ -784,14 +900,38 @@
       "verifyPatch": "Verificar Parche en Staging"
     },
     "Readiness": {
-      "logicalTitle": "Preparación de Arquitectura Lógica",
-      "operationalTitle": "Preparación de Seguridad Operacional",
-      "businessIntegrity": "Integridad de Lógica de Negocio",
-      "coordinationStability": "Estabilidad de la Capa de Coordinación",
-      "secretManagement": "Gestión de Secretos",
-      "blockchainRealism": "Realismo de Blockchain"
+      "logicalTitle": "PREPARACIÓN DE ARQUITECTURA LÓGICA",
+      "operationalTitle": "PREPARACIÓN DE SEGURIDAD OPERACIONAL",
+      "businessIntegrity": "INTEGRIDAD DE INVARIANTES LÓGICOS",
+      "coordinationStability": "ESTABILIDAD DE CAPA DE COORDINACIÓN",
+      "secretManagement": "GESTIÓN DE SECRETOS Y ENTORNO",
+      "blockchainRealism": "SINCRONÍA DE CONSENSO VARA"
+    },
+    "layers": {
+      "perimeter": "PERÍMETRO",
+      "application": "APLICACIÓN",
+      "data": "DATOS",
+      "infrastructure": "INFRAESTRUCTURA"
     },
     "findings": {
+      "L7-WAF": {
+        "title": "Integración de Firewall de Capa 7 (WAF)",
+        "detail": "La lógica de Andromeda Shield monitorea el tráfico L7 en busca de firmas SQLi/XSS.",
+        "risk": "Exposición a ataques de inyección si se omiten las defensas perimetrales.",
+        "remediation": "Reglas estrictas de WAF aplicadas y monitoreo de amenazas en tiempo real."
+      },
+      "DB-RLS": {
+        "title": "Seguridad de Nivel de Fila (RLS) en BD",
+        "detail": "Integridad de la capa de acceso a datos mediante políticas RLS de Supabase.",
+        "risk": "Exposición no autorizada de datos si RLS está desactivado en esquemas públicos.",
+        "remediation": "Validación de todas las tablas con políticas de acceso solo autenticado."
+      },
+      "SEC-HDR": {
+        "title": "Cabeceras de Seguridad Perimetral",
+        "detail": "Cabeceras de seguridad HTTP modernas (HSTS, CSP, XFO, XCTO).",
+        "risk": "Vulnerabilidad a ataques MITM y scripting entre sitios.",
+        "remediation": "Políticas de seguridad estrictas aplicadas en next.config.js."
+      },
       "C-01": {
         "title": "Exposición de Credenciales de Producción en el Repositorio",
         "detail": "El archivo contiene keys con privilegios totales: SUPABASE_SERVICE_ROLE_KEY, PINATA_JWT, UPSTASH_REDIS_REST_TOKEN.",
@@ -832,27 +972,27 @@
   },
   "VerificationDepth": {
     "Header": {
-      "title": "EXPLORADOR DE PROFUNDIDAD DE VERIFICACIÓN",
-      "subtitle": "Escrutinio multinivel de la integridad de los artefactos del ecosistema.",
+      "title": "AUDITORÍA DE ARQUITECTURA LÓGICA",
+      "subtitle": "Escrutinio multinivel de la integridad de invariantes y consenso.",
       "total": "TOTAL",
       "avg": "PROM"
     },
     "Levels": {
       "0": {
-        "name": "Nivel 0: Auto-Atestación",
-        "description": "Declaración inicial de intención. Compromiso básico en cadena sin validación de pares."
+        "name": "TIER 0: CONFIGURACIÓN E IDL",
+        "description": "Integridad de variables de entorno y esquemas de contrato Gear/Vara."
       },
       "1": {
-        "name": "Nivel 1: Revisión por Pares",
-        "description": "Validación por operadores autorizados. Especificación técnica y consistencia verificada."
+        "name": "TIER 1: CUMPLIMIENTO DE API",
+        "description": "Validación de tipos y seguridad de los endpoints del sistema central."
       },
       "2": {
-        "name": "Nivel 2: Consenso de Protocolo",
-        "description": "Validación sintetizada vía acuerdo multi-agente. Fundamentación criptográfica de artefactos."
+        "name": "TIER 2: CONSENSO DE PROTOCOLO",
+        "description": "Sincronía entre capas y estabilidad de la red de consenso Vara."
       },
       "3": {
-        "name": "Nivel 3: Prueba Matemática",
-        "description": "Verificación formal. Certeza absoluta determinística a través de invariantes computacionales."
+        "name": "TIER 3: INTEGRIDAD DE INVARIANTES",
+        "description": "Verificación matemática formal y validación determinística de la lógica."
       }
     },
     "Distribution": {
@@ -1018,6 +1158,14 @@
     "refreshFeed": "Actualizar Feed",
     "noProposals": "No se encontraron propuestas",
     "mainnet": "ROOTSTOCK MAINNET"
+  },
+  "BlockedPage": {
+    "title": "ANDROMEDA SHIELD // ACCESO SUSPENDIDO",
+    "subtitle": "AMENAZA_DETECTADA",
+    "description": "Nuestro Firewall de Capa 7 (Andromeda Shield) ha detectado actividad anómala desde su firma. Su solicitud ha sido mitigada por seguridad del protocolo.",
+    "protocol": "Integridad del PROTOCOLO // SEC-WAF-01",
+    "remediation": "Si cree que esto es un falso positivo, por favor contacte con la administración del sistema.",
+    "back": "VOLVER AL SISTEMA"
   },
   "PricingPage": {
     "title": "Precios simples y transparentes",

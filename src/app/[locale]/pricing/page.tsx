@@ -123,8 +123,8 @@ export default function PricingPage() {
       const amountMicroAlgos = selectedPlan === 'pro' ? 200_000_000 : 1_000_000;
 
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        sender: accounts[0],
-        receiver: '6DTZ56A2IPXLF6OTHFE3OHHMAJTOI3UKKR75ZJKODDXETKVT3Y7AD2EHMA',
+        from: accounts[0],
+        to: '6DTZ56A2IPXLF6OTHFE3OHHMAJTOI3UKKR75ZJKODDXETKVT3Y7AD2EHMA',
         amount: amountMicroAlgos,
         note: new TextEncoder().encode(`ANDROMEDA_API_${selectedPlan.toUpperCase()}`),
         suggestedParams: params,

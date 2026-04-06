@@ -33,5 +33,15 @@ export const redisService = {
     }
     await this.set(key, (count + 1).toString(), windowSeconds);
     return { allowed: true };
+  },
+  async healthCheck(): Promise<boolean> {
+    try {
+      const res = await redis.ping();
+      return res === 'PONG';
+    } catch (err) {
+      logger.error('Redis health check error:', err);
+      return false;
+    }
   }
 };
+

@@ -176,12 +176,20 @@ function calculateStats(milestones: MilestoneSample[], t: any): VerificationStat
   };
 }
 
-export default function VerificationDepth() {
+export default function VerificationDepth({ diagnosticData }: { diagnosticData?: any }) {
   const t = useTranslations('VerificationDepth');
   const [milestones, setMilestones] = useState<MilestoneSample[]>(demoMilestones);
   const [isLoading, setIsLoading] = useState(false);
   const [stats, setStats] = useState<VerificationStats>(() => calculateStats(demoMilestones, t));
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
+
+  // Derive Tier Statuses from Diagnostic Telemetry
+  const tiers = {
+    0: (diagnosticData?.layers?.blockchain?.unified === 'verified'),
+    1: (diagnosticData?.status === 'ok' || diagnosticData?.status === 'warning'),
+    2: (diagnosticData?.layers?.blockchain?.consensus === 'healthy'),
+    3: (diagnosticData?.layers?.logic?.invariants === 'verified')
+  };
 
   // Simular carga de datos reales
   useEffect(() => {
@@ -278,38 +286,40 @@ export default function VerificationDepth() {
 
       {/* Verification Level Distribution */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {stats.levelBreakdown.map(level => (
-          <div
-            key={level.level}
-            className={`p-4 border rounded-[2px] cursor-pointer transition-all hover:opacity-90 ${level.bgColor} ${level.borderColor} ${selectedLevel === level.level ? 'ring-1 ring-white/20' : ''
-              }`}
-            onClick={() => setSelectedLevel(selectedLevel === level.level ? null : level.level)}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className={`p-2 rounded-[2px] ${level.bgColor}`}>
-                {level.icon}
-              </div>
-              <span className="text-[10px] font-mono-display text-gray-500 uppercase">
-                LEVEL {level.level}
-              </span>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-lg font-mono-display font-bold text-white">
-                {level.count}
-                <span className={`text-sm ml-1 ${level.color}`}>
-                  ({level.percentage.toFixed(0)}%)
+        {stats.levelBreakdown.map(level => {
+          const isActive = (tiers as any)[level.level];
+          return (
+            <div
+              key={level.level}
+              className={`p-4 border rounded-[2px] cursor-pointer transition-all hover:opacity-90 
+                ${isActive ? level.bgColor : 'bg-red-500/5'} 
+                ${isActive ? level.borderColor : 'border-red-500/20'} 
+                ${selectedLevel === level.level ? 'ring-1 ring-white/20' : ''}`}
+              onClick={() => setSelectedLevel(selectedLevel === level.level ? null : level.level)}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className={`p-2 rounded-[2px] ${isActive ? level.bgColor : 'bg-red-500/10'}`}>
+                  {isActive ? <CheckCircle className="w-4 h-4 text-green-500" /> : <AlertTriangle className="w-4 h-4 text-red-500" />}
+                </div>
+                <span className={`text-[10px] font-mono-display uppercase ${isActive ? 'text-gray-500' : 'text-red-500 animate-pulse'}`}>
+                  {isActive ? 'VERIFIED' : 'UNSTABLE'}
                 </span>
-              </p>
-              <p className="text-xs font-mono-display font-bold text-gray-300">
-                {level.name}
-              </p>
-              <p className="text-[10px] text-gray-500 leading-relaxed">
-                {level.description}
-              </p>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-lg font-mono-display font-bold text-white uppercase">
+                  {level.name.split(':')[0]}
+                </p>
+                <div className="h-1 w-full bg-black/40 rounded-full overflow-hidden">
+                  <div className={`h-full transition-all duration-1000 ${isActive ? 'bg-green-500' : 'bg-red-500'}`} style={{ width: isActive ? '100%' : '20%' }} />
+                </div>
+                <p className="text-[10px] text-gray-500 leading-relaxed">
+                  {level.description}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Progress Visualization */}

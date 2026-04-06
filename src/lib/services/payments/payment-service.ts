@@ -42,12 +42,52 @@ export class PaymentService {
   /**
    * Distribuye recompensas a validadores.
    * Automatización para CU-02.
+   * Grado Aeroespacial: Pago real desde la cuenta de recompensas.
    */
   async distributeValidationRewards(validatorAddress: string, amount: number): Promise<string> {
-    // Lógica para enviar ALGOs desde la tesorería usando algorandClient
-    logger.info(`💰 Distributing ${amount} microAlgos to validator: ${validatorAddress}`);
-    // implementation pending: requires secure mnemonic loading
-    return 'mock-tx-id';
+    try {
+      logger.info(`💰 Distributing ${amount} microAlgos to validator: ${validatorAddress} from rewards account`);
+      
+      const result = await algorandClient.sendPayment(
+        validatorAddress,
+        amount,
+        `Andromeda Core Reward: Validator Validation`
+      );
+
+      if (!result?.txId) {
+        throw new Error('Transaction failed: No txId returned');
+      }
+
+      logger.info(`✅ Reward distributed. TX ID: ${result.txId}`);
+      return result.txId;
+    } catch (error) {
+      logger.error(`❌ Failed to distribute reward to ${validatorAddress}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Procesa micropagos de agentes autónomos (CU-04/Fase 2).
+   */
+  async processAgentMicropayment(agentId: string, txId: string, expectedAmount: number): Promise<boolean> {
+    logger.info(`🤖 Verifying agent micropayment for agent: ${agentId}`);
+    
+    // Verificamos el pago usando el receptor de la Tesorería (inbound)
+    const treasuryAddr = process.env.NEXT_PUBLIC_TREASURY_ADDRESS;
+    if (!treasuryAddr) {
+      logger.error('❌ NEXT_PUBLIC_TREASURY_ADDRESS not configured');
+      return false;
+    }
+
+    const isValid = await algorandClient.verifyPayment(txId, treasuryAddr, expectedAmount);
+    
+    if (isValid) {
+      logger.info(`✅ Agent ${agentId} micropayment verified. TX: ${txId}`);
+      return true;
+    }
+
+    logger.warn(`⚠️ Invalid agent micropayment for ${agentId}. TX: ${txId}`);
+    return false;
   }
 }
 

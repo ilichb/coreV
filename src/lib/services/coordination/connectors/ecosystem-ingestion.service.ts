@@ -2,6 +2,7 @@ import { RootstockConnector } from './rootstock-connector';
 import { AlgorandConnector } from './algorand-connector';
 import { OptimismConnector } from './optimism-connector';
 import { ArbitrumConnector } from './arbitrum-connector';
+import { PolkadotConnector } from './polkadot-connector';
 import { EcosystemConnector, StandardGovernanceDecision } from '@/lib/infrastructure/base-connector';
 import { registryService } from '../registry';
 import { varaBatchAdapter } from '../vara-adapter';
@@ -30,6 +31,7 @@ export class EcosystemIngestionService {
       ['algorand', new AlgorandConnector()],
       ['optimism', new OptimismConnector()],
       ['arbitrum', new ArbitrumConnector()],
+      ['polkadot', new PolkadotConnector()],
     ]);
   }
 
@@ -63,18 +65,24 @@ export class EcosystemIngestionService {
         logger.info(`💾 Registrando decisiones (IPFS + DB)...`);
         const registryResults = await this.registerDecisions(normalized, ecosystem);
 
-        // 4. Anchor to Vara (Batching)
+        // 4. Anchor to Solana (Batching)
         let anchoredCount = 0;
-        if (process.env.VARA_ENABLED === 'true') {
-          logger.info(`🔗 Enviando ${registryResults.length} decisiones al buffer de Vara...`);
-          for (const decision of registryResults) {
-            await varaBatchAdapter.submitToBatch(decision);
-            anchoredCount++;
-          }
-          // Forzar flush al final de cada ecosistema si estamos en un test directo
-          logger.info(`🚀 Ejecutando flush de lotes en Vara...`);
-          await varaBatchAdapter.flushAllBatches();
+        const { solanaBatchAdapter } = await import('../solana-adapter');
+        
+        logger.info(`🔗 Sending ${registryResults.length} decisions to Solana buffer...`);
+        for (const decision of registryResults) {
+          await solanaBatchAdapter.submitToBatch({
+            merkle_root: decision.proposal_id, // Usamos proposal_id como root temporal o el hash real si estuviera disponible
+            ipfs_cid: decision.ipfs_cid!,
+            ecosystem: decision.ecosystem,
+            dao_identifier: decision.dao_identifier
+          });
+          anchoredCount++;
         }
+        
+        // Force flush at the end of each ecosystem sync
+        logger.info(`🚀 Executing batch flush on Solana Testnet...`);
+        await solanaBatchAdapter.flushAllBatches();
 
         results.push({
           ecosystem,
@@ -84,7 +92,7 @@ export class EcosystemIngestionService {
           anchored: anchoredCount
         });
 
-        logger.info(`✨ Resumen ${ecosystem}: ${decisions.length} halladas, ${registryResults.length} en registro local, ${anchoredCount} ancladas a Vara.`);
+        logger.info(`✨ Summary ${ecosystem}: ${decisions.length} found, ${registryResults.length} in local registry, ${anchoredCount} anchored to Solana.`);
 
         // Notify session summary
         if (decisions.length > 0) {
@@ -122,13 +130,14 @@ export class EcosystemIngestionService {
 
       await Promise.all(batch.map(async (decision) => {
         try {
-          // Prepare data for IPFS
+          // 1. Prepare data for IPFS
+          const isMock = (decision.verification_proofs || []).some(p => p.includes('mock'));
           const scorecard = {
             metadata: {
               ecosystem: decision.ecosystem,
               dao: decision.dao_identifier,
               proposal_id: decision.proposal_id,
-              source: 'thegraph',
+              source: isMock ? 'mock' : 'thegraph',
               status: decision.status
             },
             'A. Problema': { content: { description: decision.description || '' }, clarity: 80 },
@@ -137,52 +146,59 @@ export class EcosystemIngestionService {
             'D. Esfuerzo': { content: { created_at: decision.created_at }, clarity: 100 }
           };
 
-          // 2. Real upload to IPFS (Pinata)
-          let cid = decision.ipfs_cid;
-          if (!cid) {
-            try {
-              logger.info(`☁️ Subiendo propuesta ${decision.proposal_id} a IPFS...`);
-              const uploadResult = await uploadScorecardToIPFS(scorecard);
-              cid = uploadResult.cid;
-              decision.ipfs_cid = cid;
-            } catch (ipfsError: any) {
-              logger.warn(`⚠️ Error en IPFS para ${decision.proposal_id}: ${ipfsError.message}`);
-              cid = `fake-cid-${decision.proposal_id}`;
-              decision.ipfs_cid = cid;
-            }
-          }
-
-          // 3. Register in local Registry (Supabase)
-          try {
-            logger.info(`💾 Registrando en Supabase: ${decision.proposal_id}...`);
-            const result = await registryService.publishScorecard(
-              scorecard,
-              cid!,
-              {
-                signerDid: `did:andromeda:${ecosystem}:dao`,
-                signature: `signed-by-${ecosystem}-dao`,
-                chain: ecosystem,
-                nonce: Date.now().toString(),
-                signatureType: 'none'
+          // Bypass for mock data to test Solana anchoring
+          if (isMock) {
+             logger.info(`🧪 Mock decision detected, bypassing IPFS/Supabase: ${decision.proposal_id}`);
+             decision.ipfs_cid = 'mock-cid-' + decision.proposal_id;
+             registered.push(decision);
+          } else {
+            // 2. Real upload to IPFS (Pinata)
+            let cid = decision.ipfs_cid;
+            if (!cid) {
+              try {
+                logger.info(`☁️ Subiendo propuesta ${decision.proposal_id} a IPFS...`);
+                const uploadResult = await uploadScorecardToIPFS(scorecard);
+                cid = uploadResult.cid;
+                decision.ipfs_cid = cid;
+              } catch (ipfsError: any) {
+                logger.warn(`⚠️ Error en IPFS para ${decision.proposal_id}: ${ipfsError.message}`);
+                cid = `fake-cid-${decision.proposal_id}`;
+                decision.ipfs_cid = cid;
               }
-            );
-
-            if (result.success || result.error?.includes('Duplicate')) {
-              logger.info(`✅ Registro local exitoso: ${decision.proposal_id}`);
-            } else {
-              logger.warn(`⚠️ No se pudo registrar localmente ${decision.proposal_id}: ${result.error}`);
             }
-          } catch (dbError: any) {
-            logger.error(`❌ Error de base de datos para ${decision.proposal_id}: ${dbError.message}`);
-          }
 
-          // 4. ALWAYS try to ingest to ATLAS (MongoDB) regardless of Supabase status
-          try {
-            logger.info(`🧭 Ingresando a ATLAS el hito: ${decision.proposal_id}...`);
-            await atlasIngestionService.ingestToAtlas(decision);
-            registered.push(decision);
-          } catch (atlasError: any) {
-            logger.error(`❌ Error en ATLAS Ingestion para ${decision.proposal_id}:`, atlasError.message);
+            // 3. Register in local Registry (Supabase)
+            try {
+              logger.info(`💾 Registrando en Supabase: ${decision.proposal_id}...`);
+              const result = await registryService.publishScorecard(
+                scorecard,
+                cid!,
+                {
+                  signerDid: `did:andromeda:${ecosystem}:dao`,
+                  signature: `signed-by-${ecosystem}-dao`,
+                  chain: ecosystem,
+                  nonce: Date.now().toString(),
+                  signatureType: 'none'
+                }
+              );
+
+              if (result.success || result.error?.includes('Duplicate')) {
+                logger.info(`✅ Registro local exitoso: ${decision.proposal_id}`);
+              } else {
+                logger.warn(`⚠️ No se pudo registrar localmente ${decision.proposal_id}: ${result.error}`);
+              }
+            } catch (dbError: any) {
+              logger.error(`❌ Error de base de datos para ${decision.proposal_id}: ${dbError.message}`);
+            }
+
+            // 4. ALWAYS try to ingest to ATLAS (MongoDB) regardless of Supabase status
+            try {
+              logger.info(`🧭 Ingresando a ATLAS el hito: ${decision.proposal_id}...`);
+              await atlasIngestionService.ingestToAtlas(decision);
+              registered.push(decision);
+            } catch (atlasError: any) {
+              logger.error(`❌ Error en ATLAS Ingestion para ${decision.proposal_id}:`, atlasError.message);
+            }
           }
 
         } catch (error: any) {
@@ -209,14 +225,42 @@ export class EcosystemIngestionService {
       const normalized = await Promise.all(decisions.map(async d => await connector.normalizeDecision(d)));
       const registered = await this.registerDecisions(normalized, ecosystem);
 
+      // 4. Anchor to Solana (Batching)
+      let anchoredCount = 0;
+      const { solanaBatchAdapter } = await import('../solana-adapter');
+      
+      logger.info(`🔗 Sending ${registered.length} decisions to Solana buffer...`);
+      for (const decision of registered) {
+        await solanaBatchAdapter.submitToBatch({
+          merkle_root: decision.proposal_id,
+          ipfs_cid: decision.ipfs_cid!,
+          ecosystem: decision.ecosystem,
+          dao_identifier: decision.dao_identifier
+        });
+        anchoredCount++;
+      }
+      
+      await solanaBatchAdapter.flushAllBatches();
+
+      // Notify session summary
+      if (decisions.length > 0) {
+        await achievementWebhookService.notifyGenericSuccess(
+          `🔄 Sync Complete: ${ecosystem.toUpperCase()}`,
+          `Decisions identified: ${decisions.length}\nRegistered (IPFS/DB): ${registered.length}\nAnchored (Solana): ${anchoredCount}`,
+          `system-ingestion`
+        );
+      }
+
       return {
         ecosystem,
         success: true,
         decisions: decisions.length,
-        registered: registered.length
+        registered: registered.length,
+        anchored: anchoredCount
       };
 
     } catch (error: any) {
+      logger.error(`❌ Sync failed for ${ecosystem}:`, error.message);
       return {
         ecosystem,
         success: false,

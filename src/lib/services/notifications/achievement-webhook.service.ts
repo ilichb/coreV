@@ -232,9 +232,19 @@ export class AchievementWebhookService {
         // 1. Telegram (System/Test Channel)
         if (this.telegramBot && process.env.TELEGRAM_TEST_CHAT_ID) {
             try {
+                const searchFriendlyContent = `
+🚀 <b>ANDROMEDA SYSTEM LOG</b>
+━━━━━━━━━━━━━━━━━━
+📌 <b>EVENT:</b> ${title}
+📜 <b>DETAILS:</b> 
+${content}
+
+#AndromedaAudit #SolanaTestnet #SystemLog ${userDid ? `#Operator_${userDid.replace(/[^a-zA-Z0-9]/g, '_')}` : ''}
+                `;
+
                 await this.telegramBot.sendMessage(
                     process.env.TELEGRAM_TEST_CHAT_ID,
-                    `<b>${title}</b>\n\n${content}${userDid ? `\n\n<i>Operator: ${userDid}</i>` : ''}`,
+                    searchFriendlyContent,
                     { parse_mode: 'HTML' }
                 );
             } catch (e) {

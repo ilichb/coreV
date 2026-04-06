@@ -598,11 +598,17 @@
     "Header": {
       "phase": "PHASE 03: SECURITY & QUALITY AUDIT",
       "title": "SECURITY & QUALITY AUDIT",
+      "titlePart1": "SECURITY",
+      "titlePart2": "QUALITY",
+      "titlePart3": "AUDIT",
+      "tagline": "TRUST_BUT_VERIFY",
       "subtitle": "Continuous assessment of protocol integrity and technical standard compliance.",
       "riskLevel": "Risk Level",
       "elevated": "ELEVATED",
       "triggerScan": "START DIAGNOSTIC SCAN",
-      "runningScan": "RUNNING SCAN..."
+      "runningScan": "RUNNING SCAN...",
+      "cooldownActive": "COOLDOWN ACTIVE",
+      "restoringIn": "restoring in"
     },
     "Nav": {
       "overview": "Overview",
@@ -617,12 +623,122 @@
       "active": "ACTIVE",
       "healthy": "HEALTHY",
       "shielded": "SHIELDED",
-      "monitoring": "ACTIVE MONITORING"
+      "monitoring": "ACTIVE MONITORING",
+      "unverified": "UNVERIFIED",
+      "auditing": "AUDITING",
+      "nominal": "NOMINAL",
+      "bypassed": "BYPASSED",
+      "warnLow": "WARN_LOW",
+      "low": "LOW",
+      "elevated": "ELEVATED",
+      "secure": "SECURE",
+      "enforced": "ENFORCED",
+      "warning": "WARNING",
+      "moderate": "MODERATE",
+      "ms": "MS"
     },
     "Dashboard": {
       "title": "AUDIT CONTROL PANEL",
       "source": "SOURCE: ANDROMEDA SECURITY ORCHESTRATOR",
       "filter": "Filter findings..."
+    },
+    "AuditReport": {
+      "Matrix": {
+        "critical": "CRITICAL VULNERABILITY",
+        "activeExploits": "Active Exploits",
+        "medium": "MEDIUM RISK",
+        "systemLeaks": "System Leaks",
+        "low": "LOW IMPACT",
+        "codeInconsistencies": "Code Inconsistencies",
+        "mitigated": "MITIGATED",
+        "remediatedIssues": "Remediated Issues"
+      },
+      "Manifest": {
+        "title": "VULNERABILITY MANIFESTO V2.0",
+        "lastScan": "Last system scan",
+        "exportPdf": "EXPORT REPORT (.PDF)",
+        "id": "ID",
+        "status": "STATUS",
+        "severity": "SEVERITY",
+        "layer": "SECURITY LAYER",
+        "details": "DETAILS",
+        "risk": "RISK ASSESSMENT",
+        "remediation": "REMEDIATION STRATEGY"
+      },
+      "Finding": {
+        "observationDetails": "Observation Details",
+        "operationalRisk": "Operational Risk",
+        "remediationStrategy": "Remediation Strategy",
+        "remediationPending": "Remediation strategy pending deep analysis.",
+        "verifyPatch": "Verify Patch"
+      },
+      "Readiness": {
+        "logicalTitle": "SYSTEM READINESS INDICATORS",
+        "businessIntegrity": "Business Logic Integrity",
+        "coordinationStability": "Coordination Protocol Stability"
+      },
+      "layers": {
+        "perimeter": "PERIMETER",
+        "application": "APPLICATION",
+        "data": "DATA",
+        "infrastructure": "INFRASTRUCTURE"
+      },
+      "findings": {
+        "L7-WAF": {
+          "title": "Unfiltered Traffic Entry Point",
+          "detail": "Requests bypassing the L7 firewall rules, exposing internal endpoints to untrusted traffic.",
+          "risk": "Direct exploitation of application vulnerabilities via SQLi or XSS patterns.",
+          "remediation": "Activate L7-Shielding and enforce strict path validation."
+        },
+        "DB-RLS": {
+          "title": "Incomplete Row Level Security",
+          "detail": "Data tables currently accessible via anonymous keys without proper RLS policies.",
+          "risk": "Unauthorized data exfiltration and potential PII exposure.",
+          "remediation": "Apply granular RLS policies to all core production tables."
+        },
+        "SEC-HDR": {
+          "title": "Weak Security Header Policy",
+          "detail": "Missing HSTS and CSP headers, increasing risk of MITM and injection attacks.",
+          "risk": "Client-side exploitation through protocol downgrade and unverified scripts.",
+          "remediation": "Inject Strict-Transport-Security and Content-Security-Policy globally."
+        },
+        "C-01": {
+          "title": "Core Consensus Logic Invariant",
+          "detail": "Legacy consensus checks allowed out-of-order execution in edge cases.",
+          "risk": "State divergence between concurrent network nodes.",
+          "remediation": "Implemented atomic ordering in the coordination kernel."
+        },
+        "C-02": {
+          "title": "Contract Structure Unification",
+          "detail": "Multiple entry points for Vara and Rootstock contracts create sync overhead.",
+          "risk": "Increased attack surface and maintenance complexity.",
+          "remediation": "Refactoring into a unified multi-chain bridge controller."
+        },
+        "M-01": {
+          "title": "Rate Limiting Bypass",
+          "detail": "Redis middleware configuration allows bursting beyond safe thresholds.",
+          "risk": "Potential resource exhaustion (DoS) during high-traffic events.",
+          "remediation": "Configuring sliding window rate limiting in Upstash."
+        },
+        "M-02": {
+          "title": "Secret Manager Leakage",
+          "detail": "Environment variables being logged during startup sequences.",
+          "risk": "Exposure of sensitive API keys to diagnostic logs.",
+          "remediation": "Implemented masked logging for all identified secrets."
+        },
+        "B-01": {
+          "title": "Legacy API Deprecation",
+          "detail": "Public access still active for v1.0 endpoints scheduled for removal.",
+          "risk": "Users continuing to use insecure legacy interfaces.",
+          "remediation": "Apply 301 redirects to V2.0 and disable v1.0 routes."
+        },
+        "B-02": {
+          "title": "Audit Trace Inconsistency",
+          "detail": "Log rotation missing on development infrastructure nodes.",
+          "risk": "Potential disk pressure and loss of historical audit context.",
+          "remediation": "Activated automated S3 log persistence and rotation policy."
+        }
+      }
     },
     "FooterLogs": {
       "initialized": "CORE INITIALIZED",
@@ -780,14 +896,38 @@
       "verifyPatch": "Verify Patch Staging"
     },
     "Readiness": {
-      "logicalTitle": "Logical Architecture Readiness",
-      "operationalTitle": "Operational Security Readiness",
-      "businessIntegrity": "BUSINESS LOGIC INTEGRITY",
+      "logicalTitle": "LOGIC ARCHITECTURE READINESS",
+      "operationalTitle": "OPERATIONAL SECURITY READINESS",
+      "businessIntegrity": "LOGIC INVARIANTS INTEGRITY",
       "coordinationStability": "COORDINATION LAYER STABILITY",
-      "secretManagement": "SECRET MANAGEMENT",
-      "blockchainRealism": "BLOCKCHAIN REALISM"
+      "secretManagement": "SECRET & ENVIRONMENT MANAGEMENT",
+      "blockchainRealism": "VARA CONSENSUS SYNCHRONY"
+    },
+    "layers": {
+      "perimeter": "PERIMETER",
+      "application": "APPLICATION",
+      "data": "DATA",
+      "infrastructure": "INFRASTRUCTURE"
     },
     "findings": {
+      "L7-WAF": {
+        "title": "Layer 7 Firewall (WAF) Integration",
+        "detail": "Andromeda Shield logic monitors incoming L7 traffic for SQLi/XSS signatures.",
+        "risk": "Exposure to injection attacks if perimeter defenses are bypassed.",
+        "remediation": "Enforced strict WAF rules and real-time threat monitoring."
+      },
+      "DB-RLS": {
+        "title": "Database Row Level Security (RLS)",
+        "detail": "Data access layer integrity via Supabase RLS policies.",
+        "risk": "Unauthorized data exposure if RLS is disabled on public schemas.",
+        "remediation": "Validated all tables against authenticated-only access policies."
+      },
+      "SEC-HDR": {
+        "title": "Perimeter Security Headers",
+        "detail": "Modern HTTP security headers (HSTS, CSP, XFO, XCTO).",
+        "risk": "Susceptibility to MITM and Cross-Site scripting attacks.",
+        "remediation": "Applied strict security policy headers in next.config.js."
+      },
       "C-01": {
         "title": "Production Credentials Exposure in Repository",
         "detail": "File contains keys with full privileges: SUPABASE_SERVICE_ROLE_KEY, PINATA_JWT, UPSTASH_REDIS_REST_TOKEN.",
@@ -828,27 +968,27 @@
   },
   "VerificationDepth": {
     "Header": {
-      "title": "VERIFICATION DEPTH EXPLORER",
-      "subtitle": "Multilevel scrutiny of ecosystem artifact integrity.",
+      "title": "LOGIC ARCHITECTURE AUDIT",
+      "subtitle": "Multilevel scrutiny of invariants and consensus integrity.",
       "total": "TOTAL",
       "avg": "AVG"
     },
     "Levels": {
       "0": {
-        "name": "Level 0: Self-Attestation",
-        "description": "Initial declaration of intent. Basic on-chain commitment without peer validation."
+        "name": "TIER 0: CONFIG & IDL",
+        "description": "Environment variables and Gear/Vara contract schema integrity."
       },
       "1": {
-        "name": "Level 1: Peer Review",
-        "description": "Validation by authorized operators. Verified technical specification and consistency."
+        "name": "TIER 1: API COMPLIANCE",
+        "description": "Type validation and security of core system endpoints."
       },
       "2": {
-        "name": "Level 2: Protocol Consensus",
-        "description": "Synthesized validation via multi-agent agreement. Cryptographic grounding of artifacts."
+        "name": "TIER 2: PROTOCOL CONSENSUS",
+        "description": "Cross-layer synchrony and stability of the Vara consensus network."
       },
       "3": {
-        "name": "Level 3: Math Proof",
-        "description": "Formal verification. Absolute deterministic certainty through computational invariants."
+        "name": "TIER 3: INVARIANT INTEGRITY",
+        "description": "Formal mathematical verification and deterministic logic validation."
       }
     },
     "Distribution": {
@@ -1014,6 +1154,14 @@
     "refreshFeed": "Refresh Feed",
     "noProposals": "No proposals found",
     "mainnet": "ROOTSTOCK MAINNET"
+  },
+  "BlockedPage": {
+    "title": "ANDROMEDA SHIELD // ACCESS SUSPENDED",
+    "subtitle": "THREAT_DETECTED",
+    "description": "Our Layer 7 Firewall (Andromeda Shield) has detected anomalous activity from your signature. Your request has been mitigated for protocol safety.",
+    "protocol": "PROTOCOL Integrity // SEC-WAF-01",
+    "remediation": "If you believe this is a false positive, please contact system administration.",
+    "back": "RETURN TO SYSTEM"
   },
   "PricingPage": {
     "title": "Simple, transparent pricing",

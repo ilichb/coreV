@@ -107,18 +107,18 @@ export class AtlasOrchestrator {
         
         if (updateResult.success) {
           finalStatus = 'IMMUTABLE';
-      // Enviar recompensa al validador
-      if (transformation.milestone.attestations.length > 0) {
-        const attestation = transformation.milestone.attestations[0];
-        const match = attestation.signerDid.match(/did:andromeda:algorand:(.+)/);
-        if (match && match[1]) {
-          try {
-            await paymentService.distributeValidationRewards(match[1], 1000);
-          } catch (rewardErr) {
-            logger.warn('Reward distribution failed:', rewardErr);
+          // Enviar recompensa al validador
+          if (transformation?.milestone?.attestations && transformation.milestone.attestations.length > 0) {
+            const attestation = transformation.milestone.attestations[0];
+            const match = attestation.signerDid?.match(/did:andromeda:algorand:(.+)/);
+            if (match && match[1]) {
+              try {
+                await paymentService.distributeValidationRewards(match[1], 1000);
+              } catch (rewardErr) {
+                logger.warn('Reward distribution failed:', rewardErr);
+              }
+            }
           }
-        }
-      }
           logger.info(`🔒 Hito marcado como IMMUTABLE: ${milestoneToPersist.atlasId}`);
         } else {
           warnings.push(`No se pudo marcar como IMMUTABLE: ${updateResult.error}`);
@@ -209,18 +209,7 @@ export class AtlasOrchestrator {
         
         if (updateResult.success) {
           finalStatus = 'IMMUTABLE';
-      // Enviar recompensa al validador
-      if (transformation.milestone.attestations.length > 0) {
-        const attestation = transformation.milestone.attestations[0];
-        const match = attestation.signerDid.match(/did:andromeda:algorand:(.+)/);
-        if (match && match[1]) {
-          try {
-            await paymentService.distributeValidationRewards(match[1], 1000);
-          } catch (rewardErr) {
-            logger.warn('Reward distribution failed:', rewardErr);
-          }
-        }
-      }
+          // Reward distribution handled in executeFullWorkflow
           logger.info(`🔒 Hito marcado como IMMUTABLE: ${milestoneToPersist.atlasId}`);
         } else {
           warnings.push(`No se pudo marcar como IMMUTABLE: ${updateResult.error}`);

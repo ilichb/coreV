@@ -37,7 +37,14 @@ export class AlgorandClient {
     if (mnemonic) {
       try {
         this.rewardAccount = algosdk.mnemonicToSecretKey(mnemonic);
-        logger.info(`✅ Reward account initialized: ${this.rewardAccount.addr}`);
+        const derivedAddr = this.rewardAccount.addr;
+        const configAddr = process.env.ALGORAND_REWARD_ADDRESS;
+        
+        if (configAddr && derivedAddr !== configAddr) {
+          logger.warn(`⚠️ Mnemonic mismatch! Derived: ${derivedAddr}, Config: ${configAddr}`);
+        } else {
+          logger.info(`✅ Reward account verified: ${derivedAddr}`);
+        }
       } catch (err) {
         logger.error('Failed to initialize reward account from mnemonic:', err);
       }

@@ -18,31 +18,73 @@ import {
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
-interface Finding {
-    id: string;
-    severity: 'CRITICAL' | 'MEDIUM' | 'LOW';
-    status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
+import { FINDING_IDS } from '@/lib/constants/audit';
+
+
+interface AuditReportProps {
+    diagnosticData?: any;
+    lastScanDate?: string;
 }
 
-const FINDING_IDS: Finding[] = [
-    { id: 'C-01', severity: 'CRITICAL', status: 'RESOLVED' },
-    { id: 'C-02', severity: 'CRITICAL', status: 'IN_PROGRESS' },
-    { id: 'M-01', severity: 'MEDIUM', status: 'IN_PROGRESS' },
-    { id: 'M-02', severity: 'MEDIUM', status: 'RESOLVED' },
-    { id: 'B-01', severity: 'LOW', status: 'OPEN' },
-    { id: 'B-02', severity: 'LOW', status: 'RESOLVED' }
-];
-
-export default function AuditReport() {
+export default function AuditReport({ diagnosticData, lastScanDate }: AuditReportProps) {
     const t = useTranslations('AuditReport');
+    const td = useTranslations('AuditPage.Diagnostics');
     const [expanded, setExpanded] = useState<string | null>(null);
 
-    const stats = {
-        critical: FINDING_IDS.filter(f => f.severity === 'CRITICAL').length,
-        medium: FINDING_IDS.filter(f => f.severity === 'MEDIUM').length,
-        low: FINDING_IDS.filter(f => f.severity === 'LOW').length,
-        resolved: FINDING_IDS.filter(f => f.status === 'RESOLVED').length
+    // Dynamic Findings Logic: Override static statuses with real-time diagnostic data
+    const getDynamicFindings = () => {
+        return FINDING_IDS.map(finding => {
+            const dynamic = { ...finding };
+            
+            if (diagnosticData) {
+                // WAF Status Mapping
+                if (finding.id === 'L7-WAF') {
+                    dynamic.status = diagnosticData.layers?.waf?.status === 'shielded' ? 'RESOLVED' : 'OPEN';
+                }
+                // RLS Status Mapping
+                if (finding.id === 'DB-RLS') {
+                    dynamic.status = diagnosticData.layers?.data?.status === 'protected' ? 'RESOLVED' : 'OPEN';
+                }
+                // Security Headers Mapping
+                if (finding.id === 'SEC-HDR') {
+                    dynamic.status = diagnosticData.layers?.perimeter?.verified ? 'RESOLVED' : 'OPEN';
+                }
+                // Blockchain Consensus Mapping (C-01)
+                if (finding.id === 'C-01') {
+                    dynamic.status = (diagnosticData.layers as any)?.blockchain?.consensus === 'healthy' ? 'RESOLVED' : 'OPEN';
+                }
+                // Unified Registry Mapping (C-02)
+                if (finding.id === 'C-02') {
+                    dynamic.status = (diagnosticData.layers as any)?.blockchain?.status === 'connected' ? 'RESOLVED' : 'OPEN';
+                }
+            }
+            
+            return dynamic;
+        });
     };
+
+    const dynamicFindings = getDynamicFindings();
+
+    const stats = {
+        critical: dynamicFindings.filter(f => f.severity === 'CRITICAL' && f.status !== 'RESOLVED').length,
+        medium: dynamicFindings.filter(f => f.severity === 'MEDIUM' && f.status !== 'RESOLVED').length,
+        low: dynamicFindings.filter(f => f.severity === 'LOW' && f.status !== 'RESOLVED').length,
+        mitigated: dynamicFindings.filter(f => f.status === 'RESOLVED').length
+    };
+
+    const getLayerName = (id: string) => {
+        if (id.startsWith('L7')) return t('layers.application');
+        if (id.startsWith('DB')) return t('layers.data');
+        if (id.startsWith('SEC')) return t('layers.perimeter');
+        if (id.startsWith('C')) return t('layers.infrastructure');
+        return t('layers.infrastructure');
+    };
+
+    // Calculate Readiness Percentages
+    const secretReadiness = (diagnosticData?.layers?.data?.status === 'protected' && !!diagnosticData?.layers?.perimeter?.headers) ? 100 : 45;
+    const blockchainRealism = ((diagnosticData?.layers as any)?.blockchain?.status === 'connected') ? 100 : 0;
+    const coordinationReadiness = (diagnosticData?.telemetry?.redis?.status === 'healthy') ? 95 : 15;
+    const logicIntegrity = ((diagnosticData?.layers as any)?.logic?.status === 'operational') ? 100 : 20;
 
     return (
         <div className="space-y-8">
@@ -80,7 +122,7 @@ export default function AuditReport() {
                         <ShieldCheck className="w-5 h-5 text-green-500" />
                         <span className="text-[10px] font-mono-display text-green-500/70">{t('Matrix.mitigated')}</span>
                     </div>
-                    <p className="text-3xl font-mono-display font-bold text-green-500">{stats.resolved}</p>
+                    <p className="text-3xl font-mono-display font-bold text-green-500">{stats.mitigated}</p>
                     <p className="text-[10px] text-gray-500 font-mono-display uppercase tracking-wider mt-2">{t('Matrix.remediatedIssues')}</p>
                 </div>
             </div>
@@ -93,20 +135,20 @@ export default function AuditReport() {
                         <span className="text-[10px] font-mono-display font-bold text-gray-300 tracking-[0.2em] uppercase">{t('Manifest.title')}</span>
                     </div>
                     <div className="flex items-center gap-6">
-                        <span className="text-[9px] font-mono-display text-gray-500 uppercase">{t('Manifest.lastScan')}: 2026-02-10</span>
+                        <span className="text-[9px] font-mono-display text-gray-500 uppercase">{t('Manifest.lastScan')}: {lastScanDate || '---'}</span>
                         <span className="text-[9px] font-mono-display text-reactor-cyan cursor-pointer hover:underline uppercase">{t('Manifest.exportPdf')}</span>
                     </div>
                 </div>
 
                 <div className="divide-y divide-white/5">
-                    {FINDING_IDS.map((finding) => (
+                    {dynamicFindings.map((finding) => (
                         <div key={finding.id} className={`transition-all duration-300 ${expanded === finding.id ? 'bg-white/5' : 'hover:bg-white/[0.02]'}`}>
                             <div
                                 className="px-6 py-4 flex items-center justify-between cursor-pointer"
                                 onClick={() => setExpanded(expanded === finding.id ? null : finding.id)}
                             >
                                 <div className="flex items-center gap-6 flex-1 min-w-0">
-                                    <div className="w-12">
+                                    <div className="w-16">
                                         <span className="text-[10px] font-mono-display font-bold text-gray-400">{finding.id}</span>
                                     </div>
 
@@ -119,12 +161,14 @@ export default function AuditReport() {
                                     </div>
 
                                     <div className="min-w-0 flex-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="text-[8px] font-mono-display text-reactor-cyan border border-reactor-cyan/20 px-1.5 py-0.5 rounded-[1px] tracking-widest uppercase">
+                                                {getLayerName(finding.id)}
+                                            </span>
+                                        </div>
                                         <h4 className="text-[11px] font-mono-display font-bold text-gray-200 uppercase tracking-wide truncate">
                                             {t(`findings.${finding.id}.title`)}
                                         </h4>
-                                        <p className="text-[9px] text-gray-500 font-mono-display mt-1 font-medium truncate">
-                                            {t('Finding.target')}: {finding.id.startsWith('C') ? '.env.local' : finding.id.startsWith('M') ? 'src/lib/services/coordination/' : '/api/coordination/'}
-                                        </p>
                                     </div>
                                 </div>
 
@@ -132,13 +176,15 @@ export default function AuditReport() {
                                     <div className="flex items-center gap-2">
                                         <div className={`w-1.5 h-1.5 rounded-full ${finding.status === 'RESOLVED' ? 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]' :
                                             finding.status === 'IN_PROGRESS' ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,0.5)]' :
-                                                'bg-gray-600'
+                                                'bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]'
                                             }`} />
                                         <span className={`text-[9px] font-mono-display font-bold ${finding.status === 'RESOLVED' ? 'text-green-500' :
                                             finding.status === 'IN_PROGRESS' ? 'text-amber-500' :
-                                                'text-gray-500'
+                                                'text-red-500'
                                             }`}>
-                                            {finding.status}
+                                            {finding.status === 'RESOLVED' ? td('healthy') : 
+                                             finding.status === 'OPEN' ? td('unverified') : 
+                                             finding.status === 'IN_PROGRESS' ? td('auditing') : finding.status}
                                         </span>
                                     </div>
                                     {expanded === finding.id ? <ChevronDown className="w-4 h-4 text-gray-600" /> : <ChevronRight className="w-4 h-4 text-gray-600" />}
@@ -147,7 +193,7 @@ export default function AuditReport() {
 
                             {expanded === finding.id && (
                                 <div className="px-6 pb-6 pt-2 animate-in slide-in-from-top duration-300">
-                                    <div className="ml-16 space-y-4">
+                                    <div className="ml-24 space-y-4">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                             <div className="space-y-2">
                                                 <div className="flex items-center gap-2 text-red-400">
@@ -203,19 +249,19 @@ export default function AuditReport() {
                         <div className="space-y-2">
                             <div className="flex justify-between text-[10px] font-mono-display text-gray-500 italic">
                                 <span>{t('Readiness.businessIntegrity')}</span>
-                                <span className="text-reactor-cyan">95%</span>
+                                <span className={logicIntegrity > 50 ? "text-reactor-cyan" : "text-red-500"}>{logicIntegrity}%</span>
                             </div>
                             <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden border border-white/5">
-                                <div className="h-full bg-reactor-cyan shadow-[0_0_10px_rgba(0,240,255,0.4)] transition-all duration-1000" style={{ width: '95%' }} />
+                                <div className={`h-full ${logicIntegrity > 50 ? 'bg-reactor-cyan shadow-[0_0_10px_rgba(0,240,255,0.4)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.4)]'} transition-all duration-1000`} style={{ width: `${logicIntegrity}%` }} />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <div className="flex justify-between text-[10px] font-mono-display text-gray-500 italic">
                                 <span>{t('Readiness.coordinationStability')}</span>
-                                <span className="text-reactor-cyan">88%</span>
+                                <span className={coordinationReadiness > 50 ? "text-reactor-cyan" : "text-amber-500"}>{coordinationReadiness}%</span>
                             </div>
                             <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden border border-white/5">
-                                <div className="h-full bg-reactor-cyan shadow-[0_0_10px_rgba(0,240,255,0.4)] transition-all duration-1000" style={{ width: '88%' }} />
+                                <div className={`h-full ${coordinationReadiness > 50 ? 'bg-reactor-cyan shadow-[0_0_10px_rgba(0,240,255,0.4)]' : 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.4)]'} transition-all duration-1000`} style={{ width: `${coordinationReadiness}%` }} />
                             </div>
                         </div>
                     </div>
@@ -227,19 +273,19 @@ export default function AuditReport() {
                         <div className="space-y-2">
                             <div className="flex justify-between text-[10px] font-mono-display text-gray-500 italic">
                                 <span>{t('Readiness.secretManagement')}</span>
-                                <span className="text-red-500">40%</span>
+                                <span className={secretReadiness > 50 ? "text-green-500" : "text-red-500"}>{secretReadiness}%</span>
                             </div>
                             <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden border border-white/5">
-                                <div className="h-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.4)] transition-all duration-1000" style={{ width: '40%' }} />
+                                <div className={`h-full ${secretReadiness > 50 ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.4)]'} transition-all duration-1000`} style={{ width: `${secretReadiness}%` }} />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <div className="flex justify-between text-[10px] font-mono-display text-gray-500 italic">
                                 <span>{t('Readiness.blockchainRealism')}</span>
-                                <span className="text-red-500">15%</span>
+                                <span className={blockchainRealism > 50 ? "text-green-500" : "text-red-500"}>{blockchainRealism}%</span>
                             </div>
                             <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden border border-white/5">
-                                <div className="h-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.4)] transition-all duration-1000" style={{ width: '15%' }} />
+                                <div className={`h-full ${blockchainRealism > 50 ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.4)]'} transition-all duration-1000`} style={{ width: `${blockchainRealism}%` }} />
                             </div>
                         </div>
                     </div>

@@ -10,9 +10,12 @@ export async function GET(request: NextRequest) {
   // Si se solicita una sincronización directa (para pruebas)
   if (action === 'sync' && ecosystem) {
     try {
+      console.log(`[SYNC] Triggering manual sync for ecosystem: ${ecosystem}`);
       const result = await ecosystemIngestionService.syncEcosystem(ecosystem);
+      console.log(`[SYNC] Manual sync completed:`, result);
       return NextResponse.json(result);
     } catch (error: any) {
+      console.error(`[SYNC] Critical error:`, error.message);
       return NextResponse.json(
         { error: error.message },
         { status: 500 }

@@ -111,16 +111,18 @@ export default function IndustrySelector({
     } else if (!required) {
       onChange(undefined);
     }
-  }, [selectedIndustry, selectedSubIndustry, selectedTransversalLayers, onChange, required]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIndustry, selectedSubIndustry, selectedTransversalLayers, required]);
 
-  // Efecto para inicializar desde el valor proporcionado
+  // Efecto para inicializar desde el valor proporcionado (solo en mount)
   useEffect(() => {
     if (value) {
       setSelectedIndustry(value.industryId);
       setSelectedSubIndustry(value.subIndustryId);
       setSelectedTransversalLayers(value.transversalLayers || []);
     }
-  }, [value]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Solo en mount — evita loop con onChange
 
   const handleIndustrySelect = (industryId: string) => {
     setSelectedIndustry(industryId);

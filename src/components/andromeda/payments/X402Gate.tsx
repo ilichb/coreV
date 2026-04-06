@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { PeraWalletConnect } from '@perawallet/connect';
+import { DeflyWalletConnect } from '@blockshake/defly-connect';
 import { Lock, CreditCard, ChevronRight, CheckCircle2, AlertCircle, Zap } from 'lucide-react';
 import { logger } from '../../../lib/utils/logger';
 
-const peraWallet = new PeraWalletConnect();
+const deflyWallet = new DeflyWalletConnect();
 
 interface X402GateProps {
   scorecardId: string;
@@ -23,7 +23,7 @@ export default function X402Gate({ scorecardId, onUnlocked, price = "0.001 ALGO"
     setIsConnecting(true);
     setError(null);
     try {
-      const accounts = await peraWallet.connect();
+      const accounts = await deflyWallet.connect();
       setAccountAddress(accounts[0]);
     } catch (err) {
       setError('Pera Connection Error');
@@ -48,17 +48,17 @@ export default function X402Gate({ scorecardId, onUnlocked, price = "0.001 ALGO"
       const amountMicroAlgos = Math.floor(amountAlgo * 1_000_000);
 
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        sender: accountAddress,
+        from: accountAddress,
         // For testnet demo purposes, if no treasury address is defined, the user sends the micropayment to themselves.
         // The validation only cares that the transaction exists on-chain with the correct parameters and note.
-        receiver: process.env.NEXT_PUBLIC_TREASURY_ADDRESS || accountAddress,
+        to: process.env.NEXT_PUBLIC_TREASURY_ADDRESS || accountAddress,
         amount: amountMicroAlgos,
         note: new TextEncoder().encode(`ATLAS_PREMIUM_SEARCH:${scorecardId}`),
         suggestedParams,
       });
 
       const singleTxnGroups = [{ txn: txn, signers: [accountAddress] }];
-      const signedTxn = await peraWallet.signTransaction([singleTxnGroups]);
+      const signedTxn = await deflyWallet.signTransaction([singleTxnGroups]);
       
       const response = await algodClient.sendRawTransaction(signedTxn[0]).do();
       const txId = (response as any).txId || (response as any).txid;
@@ -92,7 +92,7 @@ export default function X402Gate({ scorecardId, onUnlocked, price = "0.001 ALGO"
           className="group flex items-center justify-between px-3 py-2 bg-reactor-cyan/5 border border-reactor-cyan/30 hover:bg-reactor-cyan/10 hover:border-reactor-cyan transition-all rounded-[1px]"
         >
           <span className="text-[9px] font-mono-display font-bold text-gray-400 group-hover:text-reactor-cyan tracking-widest uppercase">
-            {isConnecting ? 'LINKING...' : 'CONNECT PERA'}
+            {isConnecting ? 'LINKING...' : 'CONNECT DEFLY'}
           </span>
           <ChevronRight className="w-3 h-3 text-reactor-cyan/50" />
         </button>
