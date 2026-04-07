@@ -318,7 +318,7 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
       <g
         key={node.id}
         transform={`translate(${node.x}, ${node.y})`}
-        className="cursor-pointer transition-all duration-200"
+        className="w-full h-full min-h-[400px] relative"
         onClick={() => setSelectedNode(node)}
         onMouseEnter={() => setSelectedNode(node)}
         onMouseLeave={() => !isSelected && setSelectedNode(null)}
@@ -331,7 +331,7 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
             stroke={node.color}
             strokeWidth="2"
             strokeOpacity="0.4"
-            className="animate-pulse"
+            className="w-full h-full min-h-[400px] relative"
           />
         )}
         
@@ -342,7 +342,7 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
           fillOpacity={isHovered ? 0.9 : 0.7}
           stroke={isSelected ? '#ffffff' : node.color}
           strokeWidth={isSelected ? 3 : 2}
-          className="transition-all duration-200"
+          className="w-full h-full min-h-[400px] relative"
         />
         
         {/* Indicador de tipo */}
@@ -353,7 +353,7 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
             fontSize="10"
             fill="#ffffff"
             fontWeight="bold"
-            className="select-none"
+            className="w-full h-full min-h-[400px] relative"
           >
             B
           </text>
@@ -365,7 +365,7 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
             fontSize="10"
             fill="#ffffff"
             fontWeight="bold"
-            className="select-none"
+            className="w-full h-full min-h-[400px] relative"
           >
             P
           </text>
@@ -377,7 +377,7 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
             fontSize="10"
             fill="#ffffff"
             fontWeight="bold"
-            className="select-none"
+            className="w-full h-full min-h-[400px] relative"
           >
             E
           </text>
@@ -393,14 +393,14 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
               height="16"
               rx="4"
               fill="rgba(0, 0, 0, 0.8)"
-              className="transition-opacity duration-200"
+              className="w-full h-full min-h-[400px] relative"
             />
             <text
               y="2"
               textAnchor="middle"
               fontSize="10"
               fill="#ffffff"
-              className="select-none"
+              className="w-full h-full min-h-[400px] relative"
             >
               {node.label}
             </text>
@@ -436,7 +436,7 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
         stroke={strokeColor}
         strokeWidth={isHovered ? 3 : edge.strength * 2}
         strokeOpacity={isHovered ? 0.8 : 0.3}
-        className="transition-all duration-200 cursor-pointer"
+        className="w-full h-full min-h-[400px] relative"
         onMouseEnter={() => setHoveredEdge(edge)}
         onMouseLeave={() => setHoveredEdge(null)}
       />
@@ -476,52 +476,52 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
     <EmbeddedDisplay 
       title="ATLAS NETWORK GRAPH" 
       status="active"
-      className="min-h-[500px]"
+      className="w-full h-full min-h-[400px] relative"
     >
-      <div className="p-4">
+      <div className="w-full h-full min-h-[400px] relative">
         {/* Estadísticas rápidas */}
-        <div className="grid grid-cols-4 gap-2 mb-4">
-          <div className="bg-black/20 rounded-[2px] p-2 text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Users className="w-3 h-3 text-reactor-cyan" />
-              <span className="text-xs text-gray-500 font-mono-display">Builders</span>
+        <div className="w-full h-full min-h-[400px] relative">
+          <div className="w-full h-full min-h-[400px] relative">
+            <div className="w-full h-full min-h-[400px] relative">
+              <Users className="w-full h-full min-h-[400px] relative" />
+              <span className="w-full h-full min-h-[400px] relative">Builders</span>
             </div>
-            <div className="text-xl font-bold text-white font-mono-display">{stats.builderCount}</div>
+            <div className="w-full h-full min-h-[400px] relative">{stats.builderCount}</div>
           </div>
-          <div className="bg-black/20 rounded-[2px] p-2 text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Target className="w-3 h-3 text-green-400" />
-              <span className="text-xs text-gray-500 font-mono-display">Projects</span>
+          <div className="w-full h-full min-h-[400px] relative">
+            <div className="w-full h-full min-h-[400px] relative">
+              <Target className="w-full h-full min-h-[400px] relative" />
+              <span className="w-full h-full min-h-[400px] relative">Projects</span>
             </div>
-            <div className="text-xl font-bold text-white font-mono-display">{stats.projectCount}</div>
+            <div className="w-full h-full min-h-[400px] relative">{stats.projectCount}</div>
           </div>
-          <div className="bg-black/20 rounded-[2px] p-2 text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Network className="w-3 h-3 text-purple-400" />
-              <span className="text-xs text-gray-500 font-mono-display">Edges</span>
+          <div className="w-full h-full min-h-[400px] relative">
+            <div className="w-full h-full min-h-[400px] relative">
+              <Network className="w-full h-full min-h-[400px] relative" />
+              <span className="w-full h-full min-h-[400px] relative">Edges</span>
             </div>
-            <div className="text-xl font-bold text-white font-mono-display">{stats.totalEdges}</div>
+            <div className="w-full h-full min-h-[400px] relative">{stats.totalEdges}</div>
           </div>
-          <div className="bg-black/20 rounded-[2px] p-2 text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Cpu className="w-3 h-3 text-yellow-400" />
-              <span className="text-xs text-gray-500 font-mono-display">Avg Rep</span>
+          <div className="w-full h-full min-h-[400px] relative">
+            <div className="w-full h-full min-h-[400px] relative">
+              <Cpu className="w-full h-full min-h-[400px] relative" />
+              <span className="w-full h-full min-h-[400px] relative">Avg Rep</span>
             </div>
-            <div className="text-xl font-bold text-white font-mono-display">{stats.averageReputation}</div>
+            <div className="w-full h-full min-h-[400px] relative">{stats.averageReputation}</div>
           </div>
         </div>
         
         {/* Gráfico de red */}
-        <div className="relative border border-reactor-cyan/20 rounded-[2px] bg-black/40 mb-4 overflow-hidden">
+        <div className="w-full h-full min-h-[400px] relative">
           {isLoading ? (
-            <div className="flex items-center justify-center h-[350px]">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-reactor-cyan mx-auto mb-2"></div>
-                <div className="text-xs text-gray-500 font-mono-display">LOADING NETWORK DATA...</div>
+            <div className="w-full h-full min-h-[400px] relative">
+              <div className="w-full h-full min-h-[400px] relative">
+                <div className="w-full h-full min-h-[400px] relative"></div>
+                <div className="w-full h-full min-h-[400px] relative">LOADING NETWORK DATA...</div>
               </div>
             </div>
           ) : (
-            <svg width="100%" height="350" className="select-none">
+            <svg width="100%" height="350" className="w-full h-full min-h-[400px] relative">
               {/* Conexiones */}
               <g>
                 {edges.map((edge, index) => renderEdge(edge, index))}
@@ -535,17 +535,17 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
               {/* Leyenda */}
               <g transform="translate(20, 320)">
                 <circle cx="0" cy="0" r="4" fill="#3b82f6" />
-                <text x="10" y="4" fontSize="10" fill="#9ca3af" className="font-mono-display">
+                <text x="10" y="4" fontSize="10" fill="#9ca3af" className="w-full h-full min-h-[400px] relative">
                   Builder
                 </text>
                 
                 <circle cx="70" cy="0" r="4" fill="#10b981" />
-                <text x="80" y="4" fontSize="10" fill="#9ca3af" className="font-mono-display">
+                <text x="80" y="4" fontSize="10" fill="#9ca3af" className="w-full h-full min-h-[400px] relative">
                   Project
                 </text>
                 
                 <circle cx="140" cy="0" r="4" fill="#8b5cf6" />
-                <text x="150" y="4" fontSize="10" fill="#9ca3af" className="font-mono-display">
+                <text x="150" y="4" fontSize="10" fill="#9ca3af" className="w-full h-full min-h-[400px] relative">
                   Ecosystem
                 </text>
               </g>
@@ -553,7 +553,7 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
           )}
           
           {/* Indicador de modo live/demo */}
-          <div className="absolute top-2 right-2">
+          <div className="w-full h-full min-h-[400px] relative">
             <div className={`text-[10px] font-mono-display bg-black/60 px-2 py-1 rounded-[2px] ${
               isLiveData ? 'text-green-400' : 'text-gray-500'
             }`}>
@@ -563,75 +563,75 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
         </div>
         
         {/* Panel de detalles */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="w-full h-full min-h-[400px] relative">
           {/* Información del nodo seleccionado */}
-          <div className="col-span-2">
-            <div className="text-xs text-gray-500 font-mono-display mb-2">SELECTED NODE</div>
+          <div className="w-full h-full min-h-[400px] relative">
+            <div className="w-full h-full min-h-[400px] relative">SELECTED NODE</div>
             {selectedNode ? (
-              <div className="bg-black/20 rounded-[2px] p-3">
-                <div className="flex items-center gap-3 mb-2">
+              <div className="w-full h-full min-h-[400px] relative">
+                <div className="w-full h-full min-h-[400px] relative">
                   <div 
-                    className="w-4 h-4 rounded-full" 
+                    className="w-full h-full min-h-[400px] relative" 
                     style={{ backgroundColor: selectedNode.color }}
                   />
                   <div>
-                    <div className="text-sm font-bold text-white">
+                    <div className="w-full h-full min-h-[400px] relative">
                       {selectedNode.label}
-                      <span className="ml-2 text-xs text-gray-500 font-mono-display">
+                      <span className="w-full h-full min-h-[400px] relative">
                         ({selectedNode.type.toUpperCase()})
                       </span>
                     </div>
-                    <div className="text-xs text-gray-500 font-mono-display">
+                    <div className="w-full h-full min-h-[400px] relative">
                       ID: {selectedNode.id}
                     </div>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-2 mt-3">
-                  <div className="text-xs">
-                    <span className="text-gray-500">Reputation:</span>
-                    <span className="ml-2 text-white font-bold">{selectedNode.reputation}</span>
+                <div className="w-full h-full min-h-[400px] relative">
+                  <div className="w-full h-full min-h-[400px] relative">
+                    <span className="w-full h-full min-h-[400px] relative">Reputation:</span>
+                    <span className="w-full h-full min-h-[400px] relative">{selectedNode.reputation}</span>
                   </div>
                   {selectedNode.industry && (
-                    <div className="text-xs">
-                      <span className="text-gray-500">Industry:</span>
-                      <span className="ml-2 text-white">{selectedNode.industry}</span>
+                    <div className="w-full h-full min-h-[400px] relative">
+                      <span className="w-full h-full min-h-[400px] relative">Industry:</span>
+                      <span className="w-full h-full min-h-[400px] relative">{selectedNode.industry}</span>
                     </div>
                   )}
                   {selectedNode.ecosystem && (
-                    <div className="text-xs">
-                      <span className="text-gray-500">Ecosystem:</span>
-                      <span className="ml-2 text-white">{selectedNode.ecosystem}</span>
+                    <div className="w-full h-full min-h-[400px] relative">
+                      <span className="w-full h-full min-h-[400px] relative">Ecosystem:</span>
+                      <span className="w-full h-full min-h-[400px] relative">{selectedNode.ecosystem}</span>
                     </div>
                   )}
                 </div>
                 
                 {nodeDetails && (
-                  <div className="mt-3 pt-3 border-t border-white/10">
-                    <div className="text-xs text-gray-500 mb-1">CONNECTIONS</div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-xs">
-                        <span className="text-gray-500">Total:</span>
-                        <span className="ml-2 text-white font-bold">{nodeDetails.connectedCount}</span>
+                  <div className="w-full h-full min-h-[400px] relative">
+                    <div className="w-full h-full min-h-[400px] relative">CONNECTIONS</div>
+                    <div className="w-full h-full min-h-[400px] relative">
+                      <div className="w-full h-full min-h-[400px] relative">
+                        <span className="w-full h-full min-h-[400px] relative">Total:</span>
+                        <span className="w-full h-full min-h-[400px] relative">{nodeDetails.connectedCount}</span>
                       </div>
-                      <div className="text-xs">
-                        <span className="text-gray-500">Contributions:</span>
-                        <span className="ml-2 text-blue-400">{nodeDetails.contributionCount}</span>
+                      <div className="w-full h-full min-h-[400px] relative">
+                        <span className="w-full h-full min-h-[400px] relative">Contributions:</span>
+                        <span className="w-full h-full min-h-[400px] relative">{nodeDetails.contributionCount}</span>
                       </div>
-                      <div className="text-xs">
-                        <span className="text-gray-500">Collaborations:</span>
-                        <span className="ml-2 text-green-400">{nodeDetails.collaborationCount}</span>
+                      <div className="w-full h-full min-h-[400px] relative">
+                        <span className="w-full h-full min-h-[400px] relative">Collaborations:</span>
+                        <span className="w-full h-full min-h-[400px] relative">{nodeDetails.collaborationCount}</span>
                       </div>
                     </div>
                     
                     {nodeDetails.connectedNodes.length > 0 && (
-                      <div className="mt-2">
-                        <div className="text-[10px] text-gray-500 mb-1">CONNECTED TO:</div>
-                        <div className="flex flex-wrap gap-1">
+                      <div className="w-full h-full min-h-[400px] relative">
+                        <div className="w-full h-full min-h-[400px] relative">CONNECTED TO:</div>
+                        <div className="w-full h-full min-h-[400px] relative">
                           {nodeDetails.connectedNodes.map(node => (
                             <div 
                               key={node.id}
-                              className="text-[10px] px-2 py-1 rounded-[2px] bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors"
+                              className="w-full h-full min-h-[400px] relative"
                               onClick={() => setSelectedNode(node)}
                             >
                               {node.label}
@@ -644,11 +644,11 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
                 )}
               </div>
             ) : (
-              <div className="bg-black/20 rounded-[2px] p-3 text-center">
-                <div className="text-sm text-gray-500 font-mono-display">
+              <div className="w-full h-full min-h-[400px] relative">
+                <div className="w-full h-full min-h-[400px] relative">
                   Select a node to view details
                 </div>
-                <div className="text-[10px] text-gray-600 mt-1">
+                <div className="w-full h-full min-h-[400px] relative">
                   Click or hover over any node in the graph
                 </div>
               </div>
@@ -657,10 +657,10 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
           
           {/* Controles */}
           <div>
-            <div className="text-xs text-gray-500 font-mono-display mb-2">CONTROLS</div>
-            <div className="space-y-2">
+            <div className="w-full h-full min-h-[400px] relative">CONTROLS</div>
+            <div className="w-full h-full min-h-[400px] relative">
               <button 
-                className="w-full text-xs font-mono-display bg-reactor-cyan/10 hover:bg-reactor-cyan/20 border border-reactor-cyan/30 text-reactor-cyan px-3 py-2 rounded-[2px] transition-colors"
+                className="w-full h-full min-h-[400px] relative"
                 onClick={() => {
                   const { nodes: newNodes, edges: newEdges } = generateDemoGraph(maxNodes);
                   setNodes(newNodes);
@@ -671,29 +671,29 @@ export default function NetworkGraph({ maxNodes = 15, animate = true }: NetworkG
                 REGENERATE GRAPH
               </button>
               
-              <div className="bg-black/20 rounded-[2px] p-3">
-                <div className="text-[10px] text-gray-500 mb-1">FILTER BY TYPE</div>
-                <div className="space-y-1">
+              <div className="w-full h-full min-h-[400px] relative">
+                <div className="w-full h-full min-h-[400px] relative">FILTER BY TYPE</div>
+                <div className="w-full h-full min-h-[400px] relative">
                   {['builder', 'project', 'ecosystem'].map(type => (
-                    <label key={type} className="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                    <label key={type} className="w-full h-full min-h-[400px] relative">
                       <input 
                         type="checkbox" 
                         defaultChecked 
-                        className="w-3 h-3 accent-reactor-cyan"
+                        className="w-full h-full min-h-[400px] relative"
                       />
-                      <span className="capitalize">{type}s</span>
+                      <span className="w-full h-full min-h-[400px] relative">{type}s</span>
                     </label>
                   ))}
                 </div>
               </div>
               
-              <div className="text-[10px] text-gray-600 pt-2 border-t border-white/10">
-                <div className="flex items-center gap-2 mb-1">
-                  <GitMerge className="w-3 h-3" />
+              <div className="w-full h-full min-h-[400px] relative">
+                <div className="w-full h-full min-h-[400px] relative">
+                  <GitMerge className="w-full h-full min-h-[400px] relative" />
                   <span>Network Graph v1.0</span>
                 </div>
                 <div>Shows builder-project relationships</div>
-                <div className="mt-1 text-[9px] text-gray-700">
+                <div className="w-full h-full min-h-[400px] relative">
                   Data source: {isLiveData ? 'MongoDB Atlas (live)' : 'MongoDB Atlas (demo mode)'}
                 </div>
               </div>

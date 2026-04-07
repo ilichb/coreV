@@ -38,7 +38,7 @@ export default function CoordinationPage() {
 
   return (
     <DashboardUnified>
-      <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-500">
+      <div className="max-w-full max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
         {/* industrial Header */}
         <header className="relative border-b border-[#1e2430] pb-10 mb-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
@@ -71,7 +71,7 @@ export default function CoordinationPage() {
                     price="0.001 ALGO"
                   />
                 ) : (
-                  <div className="panel p-4 min-w-[200px] border-l-green-500/40 bg-green-500/5 transition-all animate-in zoom-in-95">
+                  <div className="panel p-4 min-w-full max-w-4xl border-l-green-500/40 bg-green-500/5 transition-all animate-in zoom-in-95">
                     <div className="panel-corner tl !bg-green-500"></div>
                     <div className="panel-corner tr !bg-green-500"></div>
                     <div className="panel-corner bl !bg-green-500"></div>

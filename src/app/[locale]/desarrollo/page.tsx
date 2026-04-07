@@ -61,9 +61,9 @@ export default function DesarrolloPage() {
 
                             <div>
                                 <h1 className="title-orbitron text-4xl md:text-5xl font-bold mb-4 drop-shadow-[0_0_15px_rgba(34,197,94,0.1)]">
-                                    {t('Header.system')} <span className="text-green-500 opacity-80">{t('Header.terminal')}</span> & <span className="text-reactor-cyan opacity-80">{t('Header.debugger')}</span>
+                                    {t('Header.system')} <span className="text-green-500 opacity-100">{t('Header.terminal')}</span> & <span className="text-reactor-cyan opacity-100">{t('Header.debugger')}</span>
                                 </h1>
-                                <p className="text-gray-500 font-sans text-sm max-w-2xl leading-relaxed italic opacity-80 border-l-2 border-green-500/30 pl-4 uppercase tracking-wider">
+                                <p className="text-gray-500 font-sans text-sm max-w-2xl leading-relaxed italic opacity-100 border-l-2 border-green-500/30 pl-4 uppercase tracking-wider">
                                     {t('Header.subtitle')}
                                     <span className="text-green-500/60 ml-2 text-mono font-bold tracking-widest text-[9px] uppercase opacity-40">{t('Header.codeIsLaw')}</span>
                                 </p>
@@ -169,7 +169,7 @@ export default function DesarrolloPage() {
                             <div className="panel-corner br"></div>
                             <div className="flex items-center gap-3 mb-6 border-b border-[#1e2430] pb-3">
                                 <Lock className="w-4 h-4 text-green-500 opacity-60" />
-                                <span className="title-orbitron text-[9px] font-bold text-green-500 uppercase tracking-widest opacity-80">{t('Sections.kernelLogs')}</span>
+                                <span className="title-orbitron text-[9px] font-bold text-green-500 uppercase tracking-widest opacity-100">{t('Sections.kernelLogs')}</span>
                             </div>
                             <div className="space-y-2.5 text-mono text-[9px] text-green-500/50">
                                 <p className="flex justify-between items-center"><span className="opacity-40">[04:12:01]</span> <span className="text-green-500/80">INVARIANTS_PASSED: did:eth:0x412...</span></p>

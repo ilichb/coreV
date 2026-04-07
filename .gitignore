@@ -13,3 +13,5 @@ out/
 *.md
 !README.md
 *.txt
+.env
+.env.local

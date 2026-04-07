@@ -151,7 +151,7 @@ export default function AuditPage() {
 
                             <div>
                                 <h1 className="title-orbitron text-4xl md:text-5xl font-bold mb-4 drop-shadow-[0_0_15px_rgba(239,68,68,0.1)] uppercase">
-                                    {t('Header.titlePart1') || 'SECURITY'} <span className="text-red-500 opacity-80">&</span> {t('Header.titlePart2') || 'QUALITY'} <span className="text-reactor-cyan opacity-80">{t('Header.titlePart3') || 'AUDIT'}</span>
+                                    <span className="inline-block">{t('Header.titlePart1') || 'SECURITY'}</span> <span className="text-red-500 font-bold">&</span> <span className="inline-block">{t('Header.titlePart2') || 'QUALITY'}</span> <span className="text-reactor-cyan font-semibold block sm:inline">{t('Header.titlePart3') || 'AUDIT'}</span>
                                 </h1>
                                 <p className="text-gray-500 font-sans text-sm max-w-2xl leading-relaxed italic opacity-80 border-l-2 border-red-500/30 pl-4 uppercase tracking-wider">
                                     {t('Header.subtitle')}

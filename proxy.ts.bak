@@ -1,0 +1,18 @@
+import { NextRequest, NextResponse } from 'next/server';
+import createI18nMiddleware from 'next-intl/middleware';
+import { locales, defaultLocale } from './src/i18n/locales';
+
+const EXCLUDED_PATHS = [
+  '/api', '/_next', '/favicon.ico', '/robots.txt',
+  '/sitemap.xml', '/manifest.json', '/sw.js', '/_vercel'
+];
+const STATIC_FILE_EXTENSIONS = /\.(ico|png|jpg|jpeg|svg|css|js|json|map|txt|xml|webmanifest)$/i;
+
+export default function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  if (EXCLUDED_PATHS.some(p => pathname.startsWith(p)) || STATIC_FILE_EXTENSIONS.test(pathname)) {
+    return NextResponse.next();
+  }
+  const handleI18n = createI18nMiddleware({ locales, defaultLocale, localeDetection: true, localePrefix: 'always' });
+  return handleI18n(request);
+}
