@@ -2,14 +2,14 @@ import {getRequestConfig} from 'next-intl/server';
 import {locales, defaultLocale} from './locales';
 
 export default getRequestConfig(async ({locale}) => {
-  // Si el locale es un archivo estático o inválido, usamos el default
-  const validatedLocale = locales.includes(locale as any) 
+  // Validamos el locale y aseguramos que TypeScript lo vea como string no-nula
+  const currentLocale = locale && locales.includes(locale as any) 
     ? locale 
     : defaultLocale;
 
   return {
-    messages: (await import(`../locales/${validatedLocale}.json`)).default,
+    messages: (await import(`../locales/${currentLocale}.json`)).default,
     timeZone: 'America/Caracas',
-    locale: validatedLocale
+    locale: currentLocale as string
   };
 });
