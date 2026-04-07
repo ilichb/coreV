@@ -2,13 +2,10 @@ import {getRequestConfig} from 'next-intl/server';
 import {locales, defaultLocale} from './locales';
 
 export default getRequestConfig(async ({locale}) => {
-  // Ensure that the incoming `locale` parameter is valid
-  const validatedLocale = locale || defaultLocale;
-  
-  if (!locales.includes(validatedLocale as any)) {
-    // This will trigger the not-found page
-    throw new Error(`Invalid locale: ${locale}`);
-  }
+  // Si el locale es un archivo estático o inválido, usamos el default
+  const validatedLocale = locales.includes(locale as any) 
+    ? locale 
+    : defaultLocale;
 
   return {
     messages: (await import(`../locales/${validatedLocale}.json`)).default,
