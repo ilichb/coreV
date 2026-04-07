@@ -7,17 +7,16 @@ export default function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/api')) {
     return NextResponse.next();
   }
-
+  
   const handleI18n = createMiddleware({
     locales,
     defaultLocale,
     localeDetection: true,
     localePrefix: 'always'
   });
-
+  
   return handleI18n(request);
 }
 
-export const config = {
-  matcher: ['/((?!_next|_vercel|.*\\..*|favicon\\.ico).*)']
-};
+// No exportamos config.matcher para que el middleware se ejecute en todas las rutas
+// y la exclusión de /api se maneje internamente.
