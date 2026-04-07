@@ -3,8 +3,11 @@ import { locales, defaultLocale } from './i18n/locales';
 import { NextRequest, NextResponse } from 'next/server';
 
 export default function middleware(request: NextRequest) {
-  // Excluir rutas de API explícitamente
+  // Log para verificar que el middleware se ejecuta
+  console.log(`Middleware ejecutado para: ${request.nextUrl.pathname}`);
+  
   if (request.nextUrl.pathname.startsWith('/api')) {
+    console.log('Ruta API, pasando sin i18n');
     return NextResponse.next();
   }
   
@@ -17,6 +20,3 @@ export default function middleware(request: NextRequest) {
   
   return handleI18n(request);
 }
-
-// No exportamos config.matcher para que el middleware se ejecute en todas las rutas
-// y la exclusión de /api se maneje internamente.
