@@ -81,49 +81,6 @@ export async function GET() {
     const availableEcosystems = ecosystemIngestionService.getAvailableEcosystems();
 
     for (const ecosystem of availableEcosystems) {
-      if (ecosystem === 'solana') {
-        try {
-          const { solanaClient } = await import('@/lib/clients/solana-client');
-          const solanaStatus = await solanaClient.getStatus();
-          telemetry.ecosystems[ecosystem] = {
-            builders: 0,
-            proposals: 0,
-            activeProposals: 0,
-            status: solanaStatus.status === 'ok' ? 'synced' : 'error',
-            source: 'solana_rpc',
-            slot: solanaStatus.slot,
-            balance: solanaStatus.balance_sol
-          };
-          telemetry.externalApis.solana = solanaStatus.status === 'ok' ? 'operational' : 'error';
-        } catch (e: any) {
-          telemetry.ecosystems[ecosystem] = {
-            builders: 0,
-            proposals: 0,
-            activeProposals: 0,
-            status: 'error',
-            error: e.message,
-            source: 'solana_rpc'
-          };
-          telemetry.externalApis.solana = 'error';
-        }
-        continue; // Salta el resto del bucle para este ecosistema
-      }
-
-      if (ecosystem === 'thegraph') {
-        const thegraphApiStatus = telemetry.externalApis?.thegraph || 'unknown';
-        let status = 'error';
-        if (thegraphApiStatus === 'operational') status = 'synced';
-        else if (thegraphApiStatus === 'partial_error') status = 'syncing';
-        telemetry.ecosystems[ecosystem] = {
-          builders: 0,
-          proposals: 0,
-          activeProposals: 0,
-          status,
-          source: 'thegraph_api',
-          details: telemetry.externalApis?.thegraphDetails
-        };
-        continue;
-      }
       try {
         // For Rootstock: get builders from The Graph with better error handling
         if (ecosystem === 'rootstock') {
@@ -259,7 +216,7 @@ export async function GET() {
         else {
           const dbProposals = telemetry.dataSources?.ecosystemBreakdown?.[ecosystem] || 0;
           const isSnapshotBased = ecosystem === 'arbitrum' || ecosystem === 'optimism';
-
+          
           telemetry.ecosystems[ecosystem] = {
             builders: 0,
             proposals: dbProposals,

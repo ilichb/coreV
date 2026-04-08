@@ -55,6 +55,27 @@ export default function IntelligencePage() {
       type: 'blockchain'
     },
     {
+      name: 'Solana',
+      status: telemetry.ecosystems.solana?.status === 'synced' ? 'connected' :
+        telemetry.ecosystems.solana?.status === 'error' ? 'error' : 'pending',
+      data: telemetry.ecosystems.solana || {},
+      icon: telemetry.ecosystems.solana?.status === 'synced' ? '🟣' :
+        telemetry.ecosystems.solana?.status === 'error' ? '🔴' : '🟡',
+      description: 'Anchor · RPC sync',
+      type: 'blockchain'
+    },
+    {
+      name: 'The Graph',
+      status: telemetry.ecosystems.thegraph?.status === 'synced' ? 'connected' :
+        telemetry.ecosystems.thegraph?.status === 'syncing' ? 'pending' :
+        telemetry.ecosystems.thegraph?.status === 'error' ? 'error' : 'pending',
+      data: telemetry.ecosystems.thegraph || {},
+      icon: telemetry.ecosystems.thegraph?.status === 'synced' ? '🔵' :
+        telemetry.ecosystems.thegraph?.status === 'error' ? '🔴' : '🟡',
+      description: 'Subgraph indexing',
+      type: 'indexer'
+    },
+    {
       name: 'Snapshot',
       status: 'connected',
       data: {},
@@ -74,6 +95,8 @@ export default function IntelligencePage() {
     { name: 'Rootstock', status: 'pending', data: {}, icon: '🟡', description: 'On-chain governance', type: 'blockchain' },
     { name: 'Arbitrum', status: 'pending', data: {}, icon: '🟡', description: 'DAO proposals', type: 'blockchain' },
     { name: 'Optimism', status: 'pending', data: {}, icon: '🟡', description: 'Collective decisions', type: 'blockchain' },
+    { name: 'Solana', status: 'pending', data: {}, icon: '🟣', description: 'Anchor · RPC sync', type: 'blockchain' },
+    { name: 'The Graph', status: 'pending', data: {}, icon: '🟡', description: 'Subgraph indexing', type: 'indexer' },
     { name: 'Snapshot', status: 'pending', data: {}, icon: '🔵', description: 'Off-chain voting', type: 'governance' },
     { name: 'Algorand', status: 'disconnected', data: {}, icon: '⚫', description: 'Governance (soon)', type: 'blockchain' },
   ];
@@ -267,15 +290,37 @@ export default function IntelligencePage() {
                       <div className="text-[10px] text-gray-400 mb-2">{eco.description}</div>
 
                       {/* Real Data when available */}
-                      {['Rootstock', 'Arbitrum', 'Optimism'].includes(eco.name) && eco.status === 'connected' && eco.data && (
+                      {['Rootstock', 'Arbitrum', 'Optimism', 'The Graph'].includes(eco.name) && eco.status === 'connected' && eco.data && (
                         <div className="space-y-1">
                           <div className="flex justify-between text-[9px]">
                             <span className="text-gray-500">Builders:</span>
-                            <span className="text-white">{eco.data.builders || '--'}</span>
+                            <span className="text-white">{eco.data.builders ?? '--'}</span>
                           </div>
                           <div className="flex justify-between text-[9px]">
                             <span className="text-gray-500">Proposals:</span>
-                            <span className="text-white">{eco.data.proposals || 0}</span>
+                            <span className="text-white">{eco.data.proposals ?? 0}</span>
+                          </div>
+                          <div className="flex justify-between text-[9px]">
+                            <span className="text-gray-500">Last sync:</span>
+                            <span className="text-reactor-cyan">
+                              {eco.data.lastSync
+                                ? new Date(eco.data.lastSync).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+                                : t('LiveStatus.api')}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Solana Specific Data */}
+                      {eco.name === 'Solana' && eco.status === 'connected' && eco.data && (
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[9px]">
+                            <span className="text-gray-500">Latest Slot:</span>
+                            <span className="text-white font-mono">{eco.data.slot ?? '--'}</span>
+                          </div>
+                          <div className="flex justify-between text-[9px]">
+                            <span className="text-gray-500">Balance:</span>
+                            <span className="text-white font-mono">{eco.data.balance !== undefined ? `${eco.data.balance.toFixed(4)} SOL` : '--'}</span>
                           </div>
                           <div className="flex justify-between text-[9px]">
                             <span className="text-gray-500">Last sync:</span>
@@ -289,7 +334,7 @@ export default function IntelligencePage() {
                       )}
 
                       {/* Placeholder for other ecosystems or disconnected states */}
-                      {(!['Rootstock', 'Arbitrum', 'Optimism'].includes(eco.name) || eco.status !== 'connected') && (
+                      {(!['Rootstock', 'Arbitrum', 'Optimism', 'The Graph', 'Solana'].includes(eco.name) || eco.status !== 'connected') && (
                         <div className="text-[9px] text-gray-600 text-center py-1">
                           {eco.status === 'connected' ? t('Ecosystems.monitoringActive') :
                             eco.status === 'pending' ? t('Ecosystems.connectionPending') :

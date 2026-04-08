@@ -20,11 +20,14 @@ export interface SolanaProjectMetadata {
     timestamp: number;
 }
 
+// Solana Memo Program v2 – official address
+// https://spl.solana.com/memo
+const MEMO_PROGRAM_ID = new PublicKey('MemoSq4gqABZAn9asGmeqb91N9kk973vCdz9G9n3pXr');
+
 export class SolanaClient {
     private connection: Connection;
     private payer: Keypair | null = null;
     private endpoint: string;
-    private _memoProgramId: PublicKey | null = null;
 
     constructor() {
         this.endpoint = process.env.SOLANA_RPC_URL || 'https://api.testnet.solana.com';
@@ -35,19 +38,6 @@ export class SolanaClient {
         this.initializePayer();
     }
 
-    private get MEMO_PROGRAM_ID(): PublicKey {
-        if (!this._memoProgramId) {
-            try {
-                // Hardcoded known memo program ID for Solana
-                this._memoProgramId = new PublicKey('MemoSq4gqABZAn9asGmeqb91N9kk973vCdz9G9n3pX');
-            } catch (e: any) {
-                logger.error(`❌ SolanaClient: Critical failure initializing Memo Program ID: ${e.message}`);
-                // Extreme fallback to System Program to avoid "undefined" in transaction
-                return SystemProgram.programId;
-            }
-        }
-        return this._memoProgramId;
-    }
 
     private initializePayer() {
         try {
@@ -88,7 +78,7 @@ export class SolanaClient {
             const transaction = new Transaction().add(
                 new TransactionInstruction({
                     keys: [{ pubkey: this.payer.publicKey, isSigner: true, isWritable: true }],
-                    programId: this.MEMO_PROGRAM_ID,
+                    programId: MEMO_PROGRAM_ID,
                     data: Buffer.from(memoData, 'utf-8'),
                 })
             );
@@ -118,7 +108,7 @@ export class SolanaClient {
                 endpoint: this.endpoint,
                 bot_address: this.payer?.publicKey.toBase58(),
                 balance_sol: balance / 1e9,
-                memo_program: this.MEMO_PROGRAM_ID.toBase58()
+                memo_program: MEMO_PROGRAM_ID.toBase58()
             };
         } catch (error: any) {
             return {

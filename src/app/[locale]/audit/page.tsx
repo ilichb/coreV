@@ -45,6 +45,8 @@ export default function AuditPage() {
     const [lastScan, setLastScan] = useState<number>(0);
     const [timeLeft, setTimeLeft] = useState<string>('');
     const [diagnosticData, setDiagnosticData] = useState<any>(null);
+    const [solanaStatus, setSolanaStatus] = useState<'synced' | 'pending' | 'error' | null>(null);
+    const [solanaSlot, setSolanaSlot] = useState<number | null>(null);
 
     // Calculate Dynamic Risk Score
     const calculateRisk = () => {
@@ -92,6 +94,18 @@ export default function AuditPage() {
             .then(res => res.json())
             .then(data => setDiagnosticData(data))
             .catch(err => console.error('Initial diagnostic failed', err));
+
+        // Solana sync status
+        fetch('/api/intelligence/telemetry')
+            .then(res => res.json())
+            .then(data => {
+                const sol = data?.telemetry?.ecosystems?.solana;
+                if (sol) {
+                    setSolanaStatus(sol.status === 'synced' ? 'synced' : sol.status === 'error' ? 'error' : 'pending');
+                    setSolanaSlot(sol.slot ?? null);
+                }
+            })
+            .catch(() => {});
     }, []);
 
     useEffect(() => {
@@ -153,9 +167,9 @@ export default function AuditPage() {
                                 <h1 className="title-orbitron text-4xl md:text-5xl font-bold mb-4 drop-shadow-[0_0_15px_rgba(239,68,68,0.1)] uppercase">
                                     <span className="inline-block">{t('Header.titlePart1') || 'SECURITY'}</span> <span className="text-red-500 font-bold">&</span> <span className="inline-block">{t('Header.titlePart2') || 'QUALITY'}</span> <span className="text-reactor-cyan font-semibold block sm:inline">{t('Header.titlePart3') || 'AUDIT'}</span>
                                 </h1>
-                                <p className="text-gray-500 font-sans text-sm max-w-2xl leading-relaxed italic opacity-80 border-l-2 border-red-500/30 pl-4 uppercase tracking-wider">
+                                <p className="text-gray-400 font-sans text-sm max-w-2xl leading-relaxed italic opacity-100 border-l-2 border-red-500/30 pl-4 uppercase tracking-wider">
                                     {t('Header.subtitle')}
-                                    <span className="text-red-500/60 ml-2 text-mono font-bold font-sans tracking-tight opacity-40">// {t('Header.tagline') || 'TRUST_BUT_VERIFY'}</span>
+                                    <span className="text-red-500/70 ml-2 text-mono font-bold font-sans tracking-tight opacity-60">// {t('Header.tagline') || 'TRUST_BUT_VERIFY'}</span>
                                 </p>
                             </div>
                         </div>
@@ -280,6 +294,40 @@ export default function AuditPage() {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {/* Solana Sync Indicator */}
+                <div className="panel p-4 bg-[#0d0f14] border-[#1e2430] flex items-center gap-4">
+                    <div className="panel-corner tl"></div>
+                    <div className="panel-corner tr"></div>
+                    <div className="panel-corner bl"></div>
+                    <div className="panel-corner br"></div>
+                    <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                        solanaStatus === 'synced' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse'
+                        : solanaStatus === 'error' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'
+                        : solanaStatus === 'pending' ? 'bg-amber-500 animate-pulse'
+                        : 'bg-gray-700'
+                    }`} />
+                    <div className="flex flex-col gap-0.5">
+                        <span className="text-[9px] text-gray-500 text-mono font-bold uppercase tracking-[0.2em]">SOLANA_RPC // SYNC_STATE</span>
+                        <span className={`text-[10px] font-bold text-mono uppercase tracking-widest ${
+                            solanaStatus === 'synced' ? 'text-green-400'
+                            : solanaStatus === 'error' ? 'text-red-400'
+                            : solanaStatus === 'pending' ? 'text-amber-400'
+                            : 'text-gray-600'
+                        }`}>
+                            {solanaStatus === 'synced' ? 'SYNCHRONIZED'
+                             : solanaStatus === 'error' ? 'RPC_ERROR'
+                             : solanaStatus === 'pending' ? 'SYNCING'
+                             : 'NOT_CONFIGURED'}
+                        </span>
+                    </div>
+                    {solanaSlot !== null && (
+                        <div className="ml-auto text-right">
+                            <div className="text-[9px] text-gray-500 text-mono uppercase tracking-[0.15em]">LATEST_SLOT</div>
+                            <div className="text-[10px] font-bold text-reactor-cyan font-mono">{solanaSlot.toLocaleString()}</div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Main Audit Analysis Content */}

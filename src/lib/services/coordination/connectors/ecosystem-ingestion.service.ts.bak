@@ -3,7 +3,7 @@ import { AlgorandConnector } from './algorand-connector';
 import { OptimismConnector } from './optimism-connector';
 import { ArbitrumConnector } from './arbitrum-connector';
 import { PolkadotConnector } from './polkadot-connector';
-import { EcosystemConnector, StandardGovernanceDecision, QuorumConfig, VerificationResult } from '@/lib/infrastructure/base-connector';
+import { EcosystemConnector, StandardGovernanceDecision } from '@/lib/infrastructure/base-connector';
 import { registryService } from '../registry';
 import { varaBatchAdapter } from '../vara-adapter';
 import { uploadScorecardToIPFS } from '../ipfs-adapter';
@@ -20,20 +20,6 @@ export interface SyncResult {
   error?: string;
 }
 
-/** Conector dummy que no hace nada — usado para ecosistemas manejados directamente en telemetry (Solana, TheGraph) */
-class NoOpConnector extends EcosystemConnector {
-  ecosystem = 'noop';
-  daoIdentifier = 'noop';
-  async fetchGovernanceDecisions() { return []; }
-  async normalizeDecision(d: any): Promise<StandardGovernanceDecision> { return d; }
-  async verifyOnChainState(_decision: StandardGovernanceDecision): Promise<VerificationResult> {
-    return { onchain_verified: true, signature_valid: true, timestamp_consistent: true, state_matches: true, proofs: [] };
-  }
-  async getLatestBlockNumber(): Promise<number> { return 0; }
-  async getVotingPower(_address: string, _block: number): Promise<bigint> { return 0n; }
-  async getQuorumRequirements(): Promise<QuorumConfig> { return { required: 0n, numerator: 0, denominator: 1 }; }
-}
-
 export class EcosystemIngestionService {
   private connectors: Map<string, EcosystemConnector>;
 
@@ -47,10 +33,6 @@ export class EcosystemIngestionService {
       ['arbitrum', new ArbitrumConnector()],
       ['polkadot', new PolkadotConnector()],
     ]);
-
-    // Conectores dummy para Solana y The Graph (procesados directamente en telemetry/route.ts)
-    this.connectors.set('solana', new NoOpConnector());
-    this.connectors.set('thegraph', new NoOpConnector());
   }
 
   async syncAll(): Promise<SyncResult[]> {
@@ -166,9 +148,9 @@ export class EcosystemIngestionService {
 
           // Bypass for mock data to test Solana anchoring
           if (isMock) {
-            logger.info(`🧪 Mock decision detected, bypassing IPFS/Supabase: ${decision.proposal_id}`);
-            decision.ipfs_cid = 'mock-cid-' + decision.proposal_id;
-            registered.push(decision);
+             logger.info(`🧪 Mock decision detected, bypassing IPFS/Supabase: ${decision.proposal_id}`);
+             decision.ipfs_cid = 'mock-cid-' + decision.proposal_id;
+             registered.push(decision);
           } else {
             // 2. Real upload to IPFS (Pinata)
             let cid = decision.ipfs_cid;
