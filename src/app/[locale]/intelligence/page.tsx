@@ -261,7 +261,7 @@ export default function IntelligencePage() {
               </div>
 
               {/* Scrollable Ecosystems Grid */}
-              <div className="overflow-x-auto pb-2">
+              <div className="overflow-x-auto pb-2 custom-scrollbar">
                 <div className="flex gap-3 min-w-max">
                   {realEcosystems.map((eco, idx) => (
                     <div
