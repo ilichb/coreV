@@ -38,10 +38,69 @@ function Loading() {
 export default function DesarrolloPage() {
     const t = useTranslations('DesarrolloPage');
     const [mounted, setMounted] = useState(false);
+    const [kernelLogs, setKernelLogs] = useState<Array<{ts: string; level: string; msg: string}>>([]);
+    const [generatingIpfs, setGeneratingIpfs] = useState(false);
+    const [mintingProof, setMintingProof] = useState(false);
 
     useEffect(() => {
         setMounted(true);
     }, []);
+
+    // Load Kernel Logs from Activity Endpoint
+    useEffect(() => {
+        const loadLogs = async () => {
+            try {
+                const res = await fetch('/api/intelligence/activity');
+                const data = await res.json();
+                if (data.success && Array.isArray(data.events)) {
+                    setKernelLogs(prev => {
+                        const merged = [...data.events, ...prev];
+                        const seen = new Set<string>();
+                        return merged.filter(e => {
+                            const key = `${e.ts}|${e.msg}`;
+                            if (seen.has(key)) return false;
+                            seen.add(key);
+                            return true;
+                        }).slice(0, 5); // Keep last 5 for UI fitting
+                    });
+                }
+            } catch {
+                // Fail silently
+            }
+        };
+
+        if (mounted) {
+            loadLogs();
+            const interval = setInterval(loadLogs, 15000);
+            return () => clearInterval(interval);
+        }
+    }, [mounted]);
+
+    const handleGenerateIpfs = async () => {
+        setGeneratingIpfs(true);
+        try {
+            await fetch('/api/dev/tools', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'generate_ipfs' })
+            });
+        } finally {
+            setTimeout(() => setGeneratingIpfs(false), 800);
+        }
+    };
+
+    const handleMintProof = async () => {
+        setMintingProof(true);
+        try {
+            await fetch('/api/dev/tools', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'mint_proof' })
+            });
+        } finally {
+            setTimeout(() => setMintingProof(false), 800);
+        }
+    };
 
     if (!mounted) return <Loading />;
 
@@ -147,17 +206,21 @@ export default function DesarrolloPage() {
                                 <h4 className="title-orbitron text-[9px] font-bold text-gray-400 uppercase tracking-widest">{t('Sections.toolkit')}</h4>
                             </div>
                             <div className="grid grid-cols-1 gap-2.5">
-                                <button className="flex items-center justify-between px-4 py-3 bg-white/[0.02] border border-[#1e2430] hover:border-reactor-cyan/30 hover:bg-reactor-cyan/5 transition-all group/item rounded-[1px]">
+                                <button 
+                                    onClick={handleGenerateIpfs}
+                                    disabled={generatingIpfs}
+                                    className="flex items-center justify-between px-4 py-3 bg-white/[0.02] border border-[#1e2430] hover:border-reactor-cyan/30 hover:bg-reactor-cyan/5 transition-all group/item rounded-[1px] disabled:opacity-50"
+                                >
                                     <span className="text-[10px] text-mono font-bold text-gray-500 group-hover/item:text-gray-300 uppercase tracking-wider">{t('Sections.generateIpfs')}</span>
-                                    <Zap className="w-3 h-3 text-gray-700 group-hover/item:text-reactor-cyan shadow-[0_0_5px_rgba(0,212,255,0)] group-hover/item:shadow-[0_0_8px_rgba(0,212,255,0.4)]" />
+                                    <Zap className={`w-3 h-3 text-gray-700 group-hover/item:text-reactor-cyan shadow-[0_0_5px_rgba(0,212,255,0)] group-hover/item:shadow-[0_0_8px_rgba(0,212,255,0.4)] ${generatingIpfs ? 'animate-pulse text-reactor-cyan' : ''}`} />
                                 </button>
-                                <button className="flex items-center justify-between px-4 py-3 bg-white/[0.02] border border-[#1e2430] hover:border-reactor-cyan/30 hover:bg-reactor-cyan/5 transition-all group/item rounded-[1px]">
+                                <button 
+                                    onClick={handleMintProof}
+                                    disabled={mintingProof}
+                                    className="flex items-center justify-between px-4 py-3 bg-white/[0.02] border border-[#1e2430] hover:border-reactor-cyan/30 hover:bg-reactor-cyan/5 transition-all group/item rounded-[1px] disabled:opacity-50"
+                                >
                                     <span className="text-[10px] text-mono font-bold text-gray-500 group-hover/item:text-gray-300 uppercase tracking-wider">{t('Sections.mintProof')}</span>
-                                    <Activity className="w-3 h-3 text-gray-700 group-hover/item:text-reactor-cyan" />
-                                </button>
-                                <button className="flex items-center justify-between px-4 py-3 bg-white/[0.02] border border-[#1e2430] hover:border-reactor-cyan/30 hover:bg-reactor-cyan/5 transition-all group/item rounded-[1px]">
-                                    <span className="text-[10px] text-mono font-bold text-gray-500 group-hover/item:text-gray-300 uppercase tracking-wider">{t('Sections.purgeCache')}</span>
-                                    <RefreshCw className="w-3 h-3 text-gray-700 group-hover/item:text-reactor-cyan" />
+                                    <Activity className={`w-3 h-3 text-gray-700 group-hover/item:text-reactor-cyan ${mintingProof ? 'animate-spin text-reactor-cyan' : ''}`} />
                                 </button>
                             </div>
                         </div>
@@ -172,9 +235,20 @@ export default function DesarrolloPage() {
                                 <span className="title-orbitron text-[9px] font-bold text-green-500 uppercase tracking-widest opacity-100">{t('Sections.kernelLogs')}</span>
                             </div>
                             <div className="space-y-2.5 text-mono text-[9px] text-green-500/50">
-                                <p className="flex justify-between items-center"><span className="opacity-40">[04:12:01]</span> <span className="text-green-500/80">INVARIANTS_PASSED: did:eth:0x412...</span></p>
-                                <p className="flex justify-between items-center"><span className="opacity-40">[04:12:45]</span> <span className="text-green-500/80">REGISTRY_SYNC: 14 New records</span></p>
-                                <p className="flex justify-between items-center"><span className="opacity-40">[04:13:22]</span> <span className="text-green-500/80">DIAGNOSTIC: Nominal (24ms)</span></p>
+                                {kernelLogs.length === 0 ? (
+                                    <p className="flex justify-between items-center opacity-40 italic">Awaiting telemetry...</p>
+                                ) : (
+                                    kernelLogs.map((log, i) => {
+                                        const cleanMsg = log.msg.replace(/\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\]\s/, '');
+                                        return (
+                                        <p key={i} className="flex justify-between items-center">
+                                            <span className="opacity-40">[{new Date(log.ts).toLocaleTimeString()}]</span> 
+                                            <span className={`text-right w-4/5 truncate ${log.level === 'warn' ? 'text-amber-500/80' : log.level === 'error' ? 'text-red-500/80' : 'text-green-500/80'}`}>
+                                                {cleanMsg}
+                                            </span>
+                                        </p>
+                                    )})
+                                )}
                                 <p className="animate-pulse text-green-500 font-bold mt-4 uppercase tracking-[0.2em]">{t('Sections.listening')}</p>
                             </div>
                         </div>

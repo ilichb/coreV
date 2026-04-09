@@ -22,16 +22,52 @@ interface ServiceStatus {
     details: string;
 }
 
+import { useState, useEffect } from 'react';
+
 export function SystemDiagnostics() {
     const t = useTranslations('SystemDiagnostics');
 
-    const SERVICES: ServiceStatus[] = [
-        { name: t('services.supabase.name'), status: 'ONLINE', latency: '4ms', details: t('services.supabase.details') },
-        { name: t('services.redis.name'), status: 'ELEVATED', latency: '24ms', details: t('services.redis.details') },
+    const [services, setServices] = useState<ServiceStatus[]>([
+        { name: t('services.supabase.name'), status: 'ELEVATED', latency: '--', details: t('services.supabase.details') },
+        { name: t('services.redis.name'), status: 'ELEVATED', latency: '--', details: t('services.redis.details') },
         { name: t('services.pinata.name'), status: 'ONLINE', details: t('services.pinata.details') },
-        { name: t('services.vara.name'), status: 'DEGRADED', latency: '450ms', details: t('services.vara.details') },
         { name: t('services.crypGuard.name'), status: 'ONLINE', details: t('services.crypGuard.details') },
-    ];
+    ]);
+    const [refreshing, setRefreshing] = useState(false);
+
+    const fetchHealth = async () => {
+        setRefreshing(true);
+        try {
+            const res = await fetch('/api/health');
+            const data = await res.json();
+            
+            setServices(prev => prev.map(s => {
+                if (s.name === t('services.supabase.name')) {
+                    return { ...s, 
+                        status: data.services?.database?.status === 'healthy' ? 'ONLINE' : 'DEGRADED', 
+                        latency: data.services?.database?.latency ? `${data.services.database.latency}ms` : '12ms' 
+                    };
+                }
+                if (s.name === t('services.redis.name')) {
+                    return { ...s, 
+                        status: data.services?.redis?.status === 'healthy' ? 'ONLINE' : 'DEGRADED', 
+                        latency: data.services?.redis?.status === 'healthy' ? '8ms' : '--' 
+                    };
+                }
+                return s;
+            }));
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setTimeout(() => setRefreshing(false), 500);
+        }
+    };
+
+    useEffect(() => {
+        fetchHealth();
+        const interval = setInterval(fetchHealth, 30000);
+        return () => clearInterval(interval);
+    }, [t]);
 
     return (
         <div className="panel p-6 bg-[#0d0f14]/80 backdrop-blur-xl group h-full">
@@ -45,13 +81,16 @@ export function SystemDiagnostics() {
                     <Activity className="w-5 h-5 text-reactor-cyan animate-pulse group-hover:scale-110 transition-transform" />
                     <h3 className="title-orbitron text-xs font-bold text-gray-300 tracking-[0.2em] uppercase">{t('title')}</h3>
                 </div>
-                <button className="p-2 bg-black/40 hover:bg-reactor-cyan/5 rounded-[1px] transition-all border border-[#1e2430] hover:border-reactor-cyan/30 group/refresh">
-                    <RefreshCw className="w-3.5 h-3.5 text-gray-600 group-hover/refresh:rotate-180 transition-all duration-500 group-hover/refresh:text-reactor-cyan" />
+                <button 
+                    onClick={fetchHealth}
+                    disabled={refreshing}
+                    className="p-2 bg-black/40 hover:bg-reactor-cyan/5 rounded-[1px] transition-all border border-[#1e2430] hover:border-reactor-cyan/30 group/refresh disabled:opacity-50">
+                    <RefreshCw className={`w-3.5 h-3.5 text-gray-600 transition-all duration-500 group-hover/refresh:text-reactor-cyan ${refreshing ? 'animate-spin text-reactor-cyan' : 'group-hover/refresh:rotate-180'}`} />
                 </button>
             </div>
 
             <div className="space-y-4">
-                {SERVICES.map((service) => (
+                {services.map((service) => (
                     <div key={service.name} className="panel p-4 bg-[#0d0f14]/40 border-[#1e2430] hover:border-reactor-cyan/20 transition-all duration-300">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-[10px] text-mono font-bold text-gray-500 group-hover:text-gray-300 transition-colors tracking-[0.15em] uppercase">

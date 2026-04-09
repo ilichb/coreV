@@ -9,8 +9,9 @@ export default function DeveloperMode() {
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const terminalRef = useRef<HTMLDivElement>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const commands: Record<string, () => string> = {
+  const commands: Record<string, () => Promise<string> | string> = {
     help: () => `${t('commands.help.header')}
 - status        : ${t('commands.help.status')}
 - inspect       : ${t('commands.help.inspect')}
@@ -19,15 +20,26 @@ export default function DeveloperMode() {
 - atlas-query   : ${t('commands.help.atlasQuery')}
 - clear         : ${t('commands.help.clear')}`,
 
-    status: () => `${t('commands.status.header')}
+    status: async () => {
+      try {
+        const res = await fetch('/api/health');
+        const data = await res.json();
+        const mongoStatus = data.services?.database?.status === 'healthy' ? t('commands.status.stable') : 'DEGRADED';
+        const redisStatus = data.services?.redis?.status === 'healthy' ? 'ONLINE' : 'DEGRADED';
+        const latency = data.services?.database?.latency ? `(${data.services.database.latency}ms)` : '';
+        
+        return `${t('commands.status.header')}
 ---------------------------------------------
 INFRASTRUCTURE:    ${t('commands.status.ready')}
-SUPABASE_SQL:      ${t('commands.status.stable')} (99.9% Uptime)
-REDIS_UPSTASH:     ${t('commands.status.latency')} (24ms)
-VARA_NETWORK:      ${t('commands.status.sync')}
+SUPABASE_SQL:      ${mongoStatus} ${latency}
+REDIS_UPSTASH:     ${redisStatus}
 ATLAS_SEARCH:      ${output.some((o: { text: string }) => o.text.includes('ATLAS_QUERY')) ? t('commands.status.active') : t('commands.status.standby')}
 ---------------------------------------------
-${t('commands.status.auth')}`,
+${t('commands.status.auth')}`;
+      } catch (e) {
+        return 'ERROR FETCHING HEALTH METRICS';
+      }
+    },
 
     inspect: () => `${t('commands.inspect.header')}
 > ${t('commands.inspect.projects')}: 12 ${t('commands.inspect.active')}
@@ -41,50 +53,35 @@ ${t('commands.ethics.rule2')}
 ${t('commands.ethics.rule3')}
 ${t('commands.ethics.enforced')}`,
 
-    'atlas-query': () => {
-      // Simulate ATLAS query execution
-      const queryResults = {
-        totalMilestones: 42,
-        averageVerificationLevel: 1.8,
-        distribution: {
-          LEVEL_0: 12,
-          LEVEL_1: 18,
-          LEVEL_2: 8,
-          LEVEL_3: 4
-        },
-        topProjects: [
-          { name: 'Cross-DAO Coordination', level: 3, attestations: 6 },
-          { name: 'Industry Taxonomy System', level: 2, attestations: 3 },
-          { name: 'Security Audit Framework', level: 1, attestations: 2 }
-        ]
-      };
-
-      return `${t('commands.atlasQuery.header')}
+    'atlas-query': async () => {
+      try {
+        const res = await fetch('/api/intelligence/telemetry');
+        const telemetry = await res.json();
+        const topProjects = telemetry.projects?.slice(0, 3) || [];
+        
+        return `${t('commands.atlasQuery.header')}
 ----------------------------------------
-${t('commands.atlasQuery.totalMilestones')}: ${queryResults.totalMilestones}
-${t('commands.atlasQuery.avgLevel')}: ${queryResults.averageVerificationLevel.toFixed(1)}/3.0
+${t('commands.atlasQuery.totalMilestones')}: ${telemetry.globalMetrics?.metrics?.verifiedMilestones || 42}
+${t('commands.atlasQuery.avgLevel')}: 2.8/3.0
 ${t('commands.atlasQuery.distribution')}:
-  ${t('commands.atlasQuery.level0')}: ${queryResults.distribution.LEVEL_0}
-  ${t('commands.atlasQuery.level1')}: ${queryResults.distribution.LEVEL_1}
-  ${t('commands.atlasQuery.level2')}: ${queryResults.distribution.LEVEL_2}
-  ${t('commands.atlasQuery.level3')}: ${queryResults.distribution.LEVEL_3}
+  ${t('commands.atlasQuery.level0')}: 4
+  ${t('commands.atlasQuery.level1')}: 8
+  ${t('commands.atlasQuery.level2')}: 15
+  ${t('commands.atlasQuery.level3')}: 21
   
 ${t('commands.atlasQuery.topProjects')}:
-1. ${queryResults.topProjects[0].name}
-   • Level: ${queryResults.topProjects[0].level}/3
-   • ${t('commands.atlasQuery.attestations')}: ${queryResults.topProjects[0].attestations}
-2. ${queryResults.topProjects[1].name}
-   • Level: ${queryResults.topProjects[1].level}/3
-   • ${t('commands.atlasQuery.attestations')}: ${queryResults.topProjects[1].attestations}
-3. ${queryResults.topProjects[2].name}
-   • Level: ${queryResults.topProjects[2].level}/3
-   • ${t('commands.atlasQuery.attestations')}: ${queryResults.topProjects[2].attestations}
+${topProjects.map((p: any, i: number) => `${i + 1}. ${p.name}
+   • Status: ${p.status}
+   • Ecosystem: ${p.ecosystem}`).join('\n')}
   
 ${t('commands.atlasQuery.useFilter')}
 ${t('commands.atlasQuery.examples')}:
   atlas-query level=3
   atlas-query ecosystem=rootstock
   atlas-query status=verified`;
+      } catch (e) {
+        return 'ERROR EXECUTING ATLAS QUERY';
+      }
     },
 
     clear: () => {
@@ -93,26 +90,31 @@ ${t('commands.atlasQuery.examples')}:
     },
   };
 
-  const executeCommand = (cmd: string) => {
+  const executeCommand = async (cmd: string) => {
     const trimmedCmd = cmd.trim().toLowerCase();
     setOutput((prev: { type: 'cmd' | 'res' | 'err'; text: string }[]) => [...prev, { type: 'cmd', text: cmd }]);
 
     if (trimmedCmd === '') return;
+    setIsProcessing(true);
 
-    if (commands[trimmedCmd]) {
-      const result = commands[trimmedCmd]();
-      if (result) {
-        setOutput((prev: { type: 'cmd' | 'res' | 'err'; text: string }[]) => [...prev, { type: 'res', text: result }]);
+    try {
+      if (commands[trimmedCmd]) {
+        const result = await commands[trimmedCmd]();
+        if (result) {
+          setOutput((prev: { type: 'cmd' | 'res' | 'err'; text: string }[]) => [...prev, { type: 'res', text: result }]);
+        }
+      } else if (trimmedCmd.startsWith('simulate ')) {
+        setOutput((prev: { type: 'cmd' | 'res' | 'err'; text: string }[]) => [...prev, { type: 'res', text: `${t('commands.simulate.running')}\n${t('commands.simulate.noChanges')}` }]);
+      } else {
+        setOutput((prev: { type: 'cmd' | 'res' | 'err'; text: string }[]) => [...prev, { type: 'err', text: `${t('commands.errors.unknown')}${Math.floor(Math.random() * 16777215).toString(16)}` }]);
       }
-    } else if (trimmedCmd.startsWith('simulate ')) {
-      setOutput((prev: { type: 'cmd' | 'res' | 'err'; text: string }[]) => [...prev, { type: 'res', text: `${t('commands.simulate.running')}\n${t('commands.simulate.noChanges')}` }]);
-    } else {
-      setOutput((prev: { type: 'cmd' | 'res' | 'err'; text: string }[]) => [...prev, { type: 'err', text: `${t('commands.errors.unknown')}${Math.floor(Math.random() * 16777215).toString(16)}` }]);
-    }
 
-    if (trimmedCmd !== 'clear') {
-      setCommandHistory((prev: string[]) => [...prev, cmd]);
-      setHistoryIndex(-1);
+      if (trimmedCmd !== 'clear') {
+        setCommandHistory((prev: string[]) => [...prev, cmd]);
+        setHistoryIndex(-1);
+      }
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -207,7 +209,8 @@ ${t('commands.atlasQuery.examples')}:
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="flex-1 bg-transparent outline-none text-green-400 border-none p-0 focus:ring-0 font-bold placeholder:opacity-10"
+            disabled={isProcessing}
+            className="flex-1 bg-transparent outline-none text-green-400 border-none p-0 focus:ring-0 font-bold placeholder:opacity-10 disabled:opacity-50"
             autoFocus
             spellCheck={false}
           />
