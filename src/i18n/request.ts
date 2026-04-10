@@ -1,18 +1,17 @@
-import {getRequestConfig} from 'next-intl/server';
-import {locales, defaultLocale} from './locales';
+import { getRequestConfig } from 'next-intl/server';
+import { locales, defaultLocale } from './locales';
 
-export default getRequestConfig(async ({locale}) => {
-  // Ensure that the incoming `locale` parameter is valid
-  const validatedLocale = locale || defaultLocale;
+export default getRequestConfig(async ({ requestLocale }) => {
+  let locale = await requestLocale;
   
-  if (!locales.includes(validatedLocale as any)) {
-    // This will trigger the not-found page
-    throw new Error(`Invalid locale: ${locale}`);
+  // Si el locale no es válido, usar el predeterminado en lugar de lanzar error
+  if (!locale || !locales.includes(locale as any)) {
+    locale = defaultLocale;
   }
 
   return {
-    messages: (await import(`../locales/${validatedLocale}.json`)).default,
-    timeZone: 'America/Caracas',
-    locale: validatedLocale
+    locale,
+    messages: (await import(`../locales/${locale}.json`)).default,
+    timeZone: 'America/Caracas'
   };
 });
