@@ -146,13 +146,21 @@ export default function LandingPage() {
           <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-reactor-cyan/20 bg-reactor-cyan/5 rounded-[2px] text-[10px] font-mono text-reactor-cyan uppercase tracking-[0.3em] mb-8">
               <span className="w-1.5 h-1.5 bg-reactor-cyan rounded-full animate-pulse" />
-              {t('hero.tagline')}
             </div>
-            <h1 className="text-5xl md:text-7xl font-mono font-bold leading-[1.05] mb-6 tracking-tighter">
+          <div className="flex flex-col items-center">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-reactor-cyan shadow-[0_0_8px_rgba(0,212,255,0.6)] animate-pulse" />
+              <span className="text-[10px] text-mono font-bold text-reactor-cyan bg-reactor-cyan/10 border border-reactor-cyan/20 px-3 py-1 rounded-[1px] tracking-[0.3em] uppercase">{t("hero.tagline")}</span>
+            </div>
+            <h1 className="text-5xl md:text-7xl title-orbitron font-bold leading-[1.2] mb-4 drop-shadow-[0_0_15px_rgba(0,212,255,0.15)] text-white">
+              <span className="text-white">{t("hero.title1")}</span><br />
+              <span className="text-reactor-cyan">{t("hero.title2")}</span><br />
+              <span className="text-gray-500">{t("hero.title3")}</span>
+            </h1>
+          </div>
               <span className="text-white">{t('hero.title1')}</span><br />
               <span className="text-reactor-cyan">{t('hero.title2')}</span><br />
               <span className="text-gray-500">{t('hero.title3')}</span>
-            </h1>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed mb-10">
               {t('hero.subtitle')}
             </p>
@@ -183,7 +191,10 @@ export default function LandingPage() {
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-16">
               <div className="text-[10px] font-mono text-reactor-cyan uppercase tracking-[0.4em] mb-4">{t('how.tagline')}</div>
-              <h2 className="text-3xl md:text-4xl font-mono font-bold text-white">{t('how.heading1')}<br /><span className="text-reactor-cyan">{t('how.heading2')}</span></h2>
+              <div className="flex items-center gap-3 mb-6">
+        <div className="w-1.5 h-1.5 rounded-full bg-reactor-cyan shadow-[0_0_8px_rgba(0,212,255,0.6)] animate-pulse"></div>
+        <h2 className="text-3xl md:text-4xl title-orbitron font-bold drop-shadow-[0_0_15px_rgba(0,212,255,0.1)] text-white">{t('how.heading1')}<br /><span className="text-reactor-cyan">{t('how.heading2')}</span></h2>
+      </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {steps.map((step, i) => (
@@ -216,7 +227,10 @@ export default function LandingPage() {
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-16">
               <div className="text-[10px] font-mono text-reactor-cyan uppercase tracking-[0.4em] mb-4">{t('audiences.tagline')}</div>
-              <h2 className="text-3xl md:text-4xl font-mono font-bold text-white">{t('audiences.heading1')}<br /><span className="text-reactor-cyan">{t('audiences.heading2')}</span></h2>
+              <div className="flex items-center gap-3 mb-6">
+        <div className="w-1.5 h-1.5 rounded-full bg-reactor-cyan shadow-[0_0_8px_rgba(0,212,255,0.6)] animate-pulse"></div>
+        <h2 className="text-3xl md:text-4xl title-orbitron font-bold drop-shadow-[0_0_15px_rgba(0,212,255,0.1)] text-white">{t('audiences.heading1')}<br /><span className="text-reactor-cyan">{t('audiences.heading2')}</span></h2>
+      </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {audiences.map((a) => (
@@ -244,7 +258,10 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
               <div>
                 <div className="text-[10px] font-mono text-reactor-cyan uppercase tracking-[0.4em] mb-4">{t('api.tagline')}</div>
-                <h2 className="text-3xl font-mono font-bold text-white mb-4">{t('api.heading1')}<br /><span className="text-reactor-cyan">{t('api.heading2')}</span></h2>
+                <div className="flex items-center gap-3 mb-6">
+        <div className="w-1.5 h-1.5 rounded-full bg-reactor-cyan shadow-[0_0_8px_rgba(0,212,255,0.6)] animate-pulse"></div>
+        <h2 className="text-3xl title-orbitron font-bold drop-shadow-[0_0_15px_rgba(0,212,255,0.1)] text-white mb-4">{t('api.heading1')}<br /><span className="text-reactor-cyan">{t('api.heading2')}</span></h2>
+      </div>
                 <p className="text-gray-500 text-sm leading-relaxed mb-6">{t('api.desc')}</p>
                 <div className="flex gap-3">
                   <Link href={`/${locale}/docs`} className="px-4 py-2 bg-reactor-cyan text-[11px] font-mono font-bold uppercase tracking-widest rounded-[2px] hover:bg-cyan-400 transition-colors" style={{ color: '#ffffff' }}>
@@ -285,9 +302,12 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-reactor-cyan/3 pointer-events-none" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-reactor-cyan/5 rounded-full blur-[100px] pointer-events-none" />
           <div className="relative max-w-2xl mx-auto text-center">
-            <h2 className="text-4xl md:text-5xl font-mono font-bold text-white mb-4">
+            <div className="flex items-center gap-3 mb-6">
+        <div className="w-1.5 h-1.5 rounded-full bg-reactor-cyan shadow-[0_0_8px_rgba(0,212,255,0.6)] animate-pulse"></div>
+        <h2 className="text-4xl md:text-5xl title-orbitron font-bold drop-shadow-[0_0_15px_rgba(0,212,255,0.1)] text-white mb-4">
               {t('cta.heading1')}<br /><span className="text-reactor-cyan">{t('cta.heading2')}</span>
             </h2>
+      </div>
             <p className="text-gray-500 text-lg mb-10">{t('cta.subtitle')}</p>
             <Link href={`/${locale}/intelligence`} className="inline-flex items-center gap-3 px-10 py-4 bg-reactor-cyan font-mono font-bold text-sm uppercase tracking-widest rounded-[2px] hover:bg-cyan-400 transition-all hover:shadow-[0_0_40px_rgba(0,240,255,0.3)]" style={{ color: '#ffffff' }}>
               {t('cta.button')} <ArrowRight className="w-4 h-4" />

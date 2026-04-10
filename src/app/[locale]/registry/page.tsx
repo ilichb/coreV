@@ -64,7 +64,7 @@ export default function RegistryPage() {
 
                             <div>
                                 <h1 className="title-orbitron text-4xl md:text-5xl font-bold mb-4 drop-shadow-[0_0_15px_rgba(0,212,255,0.1)]">
-                                    {t('Header.onChain')} <span className="text-reactor-cyan opacity-80">{t('Header.registry')}</span>
+                                    {t('Header.onChain')} <span className="text-reactor-cyan">{t('Header.registry')}</span>
                                 </h1>
                                 <p className="text-gray-500 font-sans text-sm max-w-2xl leading-relaxed italic opacity-80 border-l-2 border-reactor-cyan/30 pl-4">
                                     {t('Header.subtitle')}
