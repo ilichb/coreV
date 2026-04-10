@@ -64,7 +64,11 @@
     "ranking": "RANKING",
     "milestones": "MILESTONES",
     "projects": "PROJECTS",
-    "builders": "BUILDERS"
+    "builders": "BUILDERS",
+    "next": "[MISSING]",
+    "prev": "[MISSING]",
+    "processing": "[MISSING]",
+    "submit": "[MISSING]"
   },
   "validation": {
     "title": "VALIDATION_CORE",
@@ -339,6 +343,7 @@
       "title": "ECOSYSTEMS",
       "scrollHint": "SCROLL FOR MORE",
       "connectionPending": "CONNECTION PENDING",
+      "connectionError": "CONNECTION ERROR",
       "monitoringActive": "MONITORING ACTIVE",
       "notConfigured": "NOT CONFIGURED",
       "connected": "CONNECTED",
@@ -1180,5 +1185,759 @@
     "requestFreeKey": "Request Free API Key",
     "paymentConfirmed": "Payment confirmed on Algorand",
     "contactActivate": "Contact api@andromeda.computer with your TX ID to activate your key."
-  }
+  },
+  "LandingPage": {
+    "Nav": {
+      "docs": "Docs",
+      "pricing": "Pricing",
+      "registry": "Registry",
+      "launchApp": "Launch App"
+    },
+    "Hero": {
+      "tagline": "AVIP v2.0 — Andromeda Verifiable Immutable Proof",
+      "title1": "Reputation",
+      "title2": "you can verify.",
+      "title3": "On any chain.",
+      "subtitle": "Andromeda Core is the infrastructure layer for portable, cryptographically verified builder reputation across DAOs, marketplaces and Web3 ecosystems.",
+      "liveDemo": "See Live Demo",
+      "apiReference": "API Reference",
+      "scroll": "Scroll"
+    },
+    "Stats": {
+      "milestones": "Milestones Verified",
+      "builders": "Active Builders",
+      "chains": "Chains Integrated",
+      "verification": "Verification Rate"
+    },
+    "HowItWorks": {
+      "tagline": "How it works",
+      "title1": "From raw data to",
+      "title2": "immutable proof",
+      "step1": {
+        "title": "Ingest",
+        "desc": "Atlas Engine pulls governance data from Rootstock, Arbitrum, Optimism, Snapshot and more."
+      },
+      "step2": {
+        "title": "Verify",
+        "desc": "AVIP v2.0 applies Shannon entropy, asymmetric decay and multi-chain scoring to every milestone."
+      },
+      "step3": {
+        "title": "Anchor",
+        "desc": "Proofs are stored immutably on Vara Network and IPFS. Portable, verifiable, forever."
+      }
+    },
+    "Audiences": {
+      "tagline": "Built for everyone",
+      "title1": "One protocol.",
+      "title2": "Three entry points.",
+      "mostPopular": "Most Popular",
+      "aud1": {
+        "title": "DAOs & Web3 Orgs",
+        "desc": "Verify contributor reputation before committing resources. Know who builds, who delivers.",
+        "cta": "Explore Registry"
+      },
+      "aud2": {
+        "title": "Platforms & Marketplaces",
+        "desc": "Integrate AVIP scores into LinkedIn, Upwork, or your own platform via REST API.",
+        "cta": "Get API Access"
+      },
+      "aud3": {
+        "title": "Builders & Contributors",
+        "desc": "Publish your work on-chain. Build a portable reputation that follows you across ecosystems.",
+        "cta": "Publish Scorecard"
+      }
+    },
+    "ApiPreview": {
+      "tagline": "Enterprise API",
+      "title1": "Verify reputation",
+      "title2": "in one call.",
+      "desc": "Integrate AVIP scores into any platform. LinkedIn, Upwork, Fiverr — or your own DAO tooling. From $0/month.",
+      "viewDocs": "View Docs",
+      "pricing": "Pricing"
+    },
+    "FinalCTA": {
+      "title1": "Trust is the new",
+      "title2": "infrastructure.",
+      "desc": "Start verifying builder reputation across chains today.",
+      "launchApp": "Launch Andromeda Core"
+    },
+    "Footer": {
+      "copyright": "© 2026 ANDROMEDA_COMPUTER",
+      "app": "App"
+    },
+    "stats": {
+      "milestones": "Milestones Verified",
+      "builders": "Active Builders",
+      "chains": "Chains Integrated",
+      "verification": "Verification Rate"
+    },
+    "audiences": {
+      "dao": {
+        "title": "DAOs & Web3 Orgs",
+        "desc": "Verify contributor reputation before committing resources. Know who builds, who delivers.",
+        "cta": "Explore Registry"
+      },
+      "platform": {
+        "title": "Platforms & Marketplaces",
+        "desc": "Integrate AVIP scores into LinkedIn, Upwork, or your own platform via REST API.",
+        "cta": "Get API Access"
+      },
+      "builder": {
+        "title": "Builders & Contributors",
+        "desc": "Publish your work on-chain. Build a portable reputation that follows you across ecosystems.",
+        "cta": "Publish Scorecard"
+      },
+      "tagline": "Built for everyone",
+      "heading1": "One protocol.",
+      "heading2": "Three entry points.",
+      "popular": "Most Popular"
+    },
+    "steps": {
+      "ingest": {
+        "title": "Ingest",
+        "desc": "Atlas Engine pulls governance data from Rootstock, Arbitrum, Optimism, Snapshot and more."
+      },
+      "verify": {
+        "title": "Verify",
+        "desc": "AVIP v2.0 applies Shannon entropy, asymmetric decay and multi-chain scoring to every milestone."
+      },
+      "anchor": {
+        "title": "Anchor",
+        "desc": "Proofs are stored immutably on Vara Network and IPFS. Portable, verifiable, forever."
+      }
+    },
+    "hero": {
+      "tagline": "AVIP v2.0 — Andromeda Verifiable Immutable Proof",
+      "title1": "Reputation",
+      "title2": "you can verify.",
+      "title3": "On any chain.",
+      "subtitle": "Andromeda Core is the infrastructure layer for portable, cryptographically verified builder reputation across DAOs, marketplaces and Web3 ecosystems.",
+      "cta1": "See Live Demo",
+      "cta2": "API Reference"
+    },
+    "how": {
+      "tagline": "How it works",
+      "heading1": "From raw data to",
+      "heading2": "immutable proof"
+    },
+    "api": {
+      "tagline": "Enterprise API",
+      "heading1": "Verify reputation",
+      "heading2": "in one call.",
+      "desc": "Integrate AVIP scores into any platform. LinkedIn, Upwork, Fiverr — or your own DAO tooling. From $0/month.",
+      "cta1": "View Docs",
+      "cta2": "Pricing"
+    },
+    "cta": {
+      "heading1": "Trust is the new",
+      "heading2": "infrastructure.",
+      "subtitle": "Start verifying builder reputation across chains today.",
+      "button": "Launch Andromeda Core"
+    },
+    "nav": {
+      "docs": "Docs",
+      "pricing": "Pricing",
+      "registry": "Registry",
+      "launch": "Launch App"
+    }
+  },
+  ":": "[MISSING]",
+  "": "[MISSING]",
+  "About": {
+    "description": "[MISSING]",
+    "title": "[MISSING]"
+  },
+  "activeRecords": "[MISSING]",
+  "afterPayment": "[MISSING]",
+  "alerts": {
+    "publishError": "[MISSING]",
+    "requiredIdentity": "[MISSING]"
+  },
+  "algosdk": "[MISSING]",
+  "anomalies": "[MISSING]",
+  "anonymous": "[MISSING]",
+  "ApiPreview": {
+    "desc": "[MISSING]",
+    "pricing": "[MISSING]",
+    "tagline": "[MISSING]",
+    "title1": "[MISSING]",
+    "title2": "[MISSING]",
+    "viewDocs": "[MISSING]"
+  },
+  "Api": {
+    "title": "[MISSING]"
+  },
+  "approval": "[MISSING]",
+  "attestations": "[MISSING]",
+  "Audiences": {
+    "aud1": {
+      "cta": "[MISSING]",
+      "desc": "[MISSING]",
+      "title": "[MISSING]"
+    },
+    "aud2": {
+      "cta": "[MISSING]",
+      "desc": "[MISSING]",
+      "title": "[MISSING]"
+    },
+    "aud3": {
+      "cta": "[MISSING]",
+      "desc": "[MISSING]",
+      "title": "[MISSING]"
+    },
+    "mostPopular": "[MISSING]",
+    "tagline": "[MISSING]",
+    "title1": "[MISSING]",
+    "title2": "[MISSING]"
+  },
+  "avgClarity": "[MISSING]",
+  "avgImpact": "[MISSING]",
+  "avgReputation": "[MISSING]",
+  "avgVerification": "[MISSING]",
+  "back": "[MISSING]",
+  "buffSize": "[MISSING]",
+  "builder": "[MISSING]",
+  "buildersCount": "[MISSING]",
+  "chains": "[MISSING]",
+  "clarity": "[MISSING]",
+  "clarityDelta": "[MISSING]",
+  "clarityScore": "[MISSING]",
+  "commands": {
+    "atlasQuery": {
+      "avgLevel": "[MISSING]",
+      "distribution": "[MISSING]",
+      "examples": "[MISSING]",
+      "header": "[MISSING]",
+      "level0": "[MISSING]",
+      "level1": "[MISSING]",
+      "level2": "[MISSING]",
+      "level3": "[MISSING]",
+      "topProjects": "[MISSING]",
+      "totalMilestones": "[MISSING]",
+      "useFilter": "[MISSING]"
+    },
+    "errors": {
+      "unknown": "[MISSING]"
+    },
+    "ethics": {
+      "enforced": "[MISSING]",
+      "header": "[MISSING]",
+      "rule1": "[MISSING]",
+      "rule2": "[MISSING]",
+      "rule3": "[MISSING]"
+    },
+    "help": {
+      "atlasQuery": "[MISSING]",
+      "clear": "[MISSING]",
+      "ethics": "[MISSING]",
+      "header": "[MISSING]",
+      "inspect": "[MISSING]",
+      "simulate": "[MISSING]",
+      "status": "[MISSING]"
+    },
+    "inspect": {
+      "active": "[MISSING]",
+      "consistent": "[MISSING]",
+      "header": "[MISSING]",
+      "health": "[MISSING]",
+      "invariants": "[MISSING]",
+      "operational": "[MISSING]",
+      "projects": "[MISSING]",
+      "state": "[MISSING]",
+      "verified": "[MISSING]"
+    },
+    "simulate": {
+      "noChanges": "[MISSING]",
+      "running": "[MISSING]"
+    },
+    "status": {
+      "active": "[MISSING]",
+      "auth": "[MISSING]",
+      "header": "[MISSING]",
+      "ready": "[MISSING]",
+      "stable": "[MISSING]",
+      "standby": "[MISSING]"
+    }
+  },
+  "connected": "[MISSING]",
+  "connectingWallet": "[MISSING]",
+  "contactUs": "[MISSING]",
+  "content-type": "[MISSING]",
+  "Control": {
+    "category": "[MISSING]",
+    "ecosystem": "[MISSING]",
+    "refresh": "[MISSING]",
+    "search": "[MISSING]",
+    "searchPlaceholder": "[MISSING]",
+    "title": "[MISSING]",
+    "viewMode": "[MISSING]"
+  },
+  "Dashboard": {
+    "filter": "[MISSING]",
+    "source": "[MISSING]",
+    "title": "[MISSING]"
+  },
+  "DataSources": {
+    "activeBuilders": "[MISSING]",
+    "apiHealth": "[MISSING]",
+    "apisConnected": "[MISSING]",
+    "atlasNetwork": "[MISSING]",
+    "buildersNetwork": "[MISSING]",
+    "fetching": "[MISSING]",
+    "ipfsStorage": "[MISSING]",
+    "lastUpdate": "[MISSING]",
+    "liveData": "[MISSING]",
+    "milestonesStored": "[MISSING]",
+    "onChainProposals": "[MISSING]",
+    "pendingEcosystems": "[MISSING]",
+    "pinataConnected": "[MISSING]",
+    "rootstock": "[MISSING]",
+    "title": "[MISSING]",
+    "uptime": "[MISSING]"
+  },
+  "debugVerbosity": "[MISSING]",
+  "description": "[MISSING]",
+  "displayed": "[MISSING]",
+  "Distribution": {
+    "allLevels": "[MISSING]",
+    "filtered": "[MISSING]",
+    "milestones": "[MISSING]",
+    "title": "[MISSING]"
+  },
+  "Ecosystems": {
+    "connected": "[MISSING]",
+    "connectionError": "[MISSING]",
+    "connectionPending": "[MISSING]",
+    "monitoringActive": "[MISSING]",
+    "notConfigured": "[MISSING]",
+    "offline": "[MISSING]",
+    "pending": "[MISSING]",
+    "scrollHint": "[MISSING]",
+    "title": "[MISSING]"
+  },
+  "envLock": "[MISSING]",
+  "/es": "[MISSING]",
+  "evidence": "[MISSING]",
+  "Explorer": {
+    "atlasTitle": "[MISSING]",
+    "registryTitle": "[MISSING]"
+  },
+  "failed": "[MISSING]",
+  "files": "[MISSING]",
+  "filterAll": "[MISSING]",
+  "filterPending": "[MISSING]",
+  "filters": {
+    "all": "[MISSING]",
+    "immutable": "[MISSING]",
+    "pending": "[MISSING]",
+    "verified": "[MISSING]"
+  },
+  "filterValidated": "[MISSING]",
+  "FinalCTA": {
+    "desc": "[MISSING]",
+    "launchApp": "[MISSING]",
+    "title1": "[MISSING]",
+    "title2": "[MISSING]"
+  },
+  "Finding": {
+    "observationDetails": "[MISSING]",
+    "operationalRisk": "[MISSING]",
+    "remediationPending": "[MISSING]",
+    "remediationStrategy": "[MISSING]",
+    "verifyPatch": "[MISSING]"
+  },
+  "Flow": {
+    "step1": "[MISSING]",
+    "step1Desc": "[MISSING]",
+    "step2": "[MISSING]",
+    "step2Desc": "[MISSING]",
+    "step3": "[MISSING]",
+    "step3Desc": "[MISSING]",
+    "step4": "[MISSING]",
+    "step4Desc": "[MISSING]",
+    "supportedNetworks": "[MISSING]",
+    "title": "[MISSING]"
+  },
+  "Footer": "[MISSING]",
+  "FooterState": {
+    "buffer": "[MISSING]",
+    "bypass": "[MISSING]",
+    "compiler": "[MISSING]",
+    "debug": "[MISSING]",
+    "pooling": "[MISSING]"
+  },
+  "freeTitle": "[MISSING]",
+  "funding": "[MISSING]",
+  "header": "[MISSING]",
+  "Header": {
+    "avg": "[MISSING]",
+    "codeIsLaw": "[MISSING]",
+    "compilerHealth": "[MISSING]",
+    "cooldownActive": "[MISSING]",
+    "core": "[MISSING]",
+    "debugger": "[MISSING]",
+    "fatalErr": "[MISSING]",
+    "globalStatus": "[MISSING]",
+    "immutability": "[MISSING]",
+    "nominal": "[MISSING]",
+    "onChain": "[MISSING]",
+    "phase": "[MISSING]",
+    "protocolFee": "[MISSING]",
+    "registry": "[MISSING]",
+    "reimburse": "[MISSING]",
+    "restoringIn": "[MISSING]",
+    "riskLevel": "[MISSING]",
+    "runningScan": "[MISSING]",
+    "subtitle": "[MISSING]",
+    "syncing": "[MISSING]",
+    "system": "[MISSING]",
+    "systemOnline": "[MISSING]",
+    "tagline": "[MISSING]",
+    "terminal": "[MISSING]",
+    "title": "[MISSING]",
+    "titlePart1": "[MISSING]",
+    "titlePart2": "[MISSING]",
+    "titlePart3": "[MISSING]",
+    "total": "[MISSING]",
+    "triggerScan": "[MISSING]",
+    "uptime": "[MISSING]",
+    "version": "[MISSING]"
+  },
+  "Hero": {
+    "apiReference": "[MISSING]",
+    "liveDemo": "[MISSING]",
+    "subtitle": "[MISSING]",
+    "tagline": "[MISSING]",
+    "title1": "[MISSING]",
+    "title2": "[MISSING]",
+    "title3": "[MISSING]"
+  },
+  "HowItWorks": {
+    "step1": {
+      "desc": "[MISSING]",
+      "title": "[MISSING]"
+    },
+    "step2": {
+      "desc": "[MISSING]",
+      "title": "[MISSING]"
+    },
+    "step3": {
+      "desc": "[MISSING]",
+      "title": "[MISSING]"
+    },
+    "tagline": "[MISSING]",
+    "title1": "[MISSING]",
+    "title2": "[MISSING]"
+  },
+  "impact": "[MISSING]",
+  "init": "[MISSING]",
+  "jsonCore": "[MISSING]",
+  "layers": {
+    "application": "[MISSING]",
+    "data": "[MISSING]",
+    "infrastructure": "[MISSING]",
+    "perimeter": "[MISSING]"
+  },
+  "level3Ext": "[MISSING]",
+  "Levels": {
+    "0": {
+      "description": "[MISSING]",
+      "name": "[MISSING]"
+    },
+    "1": {
+      "description": "[MISSING]",
+      "name": "[MISSING]"
+    },
+    "2": {
+      "description": "[MISSING]",
+      "name": "[MISSING]"
+    },
+    "3": {
+      "description": "[MISSING]",
+      "name": "[MISSING]"
+    }
+  },
+  "LiveStatus": {
+    "activeConnections": "[MISSING]",
+    "api": "[MISSING]",
+    "data": "[MISSING]",
+    "idle": "[MISSING]",
+    "lastSync": "[MISSING]",
+    "sync": "[MISSING]",
+    "title": "[MISSING]"
+  },
+  "Loading": {
+    "booting": "[MISSING]",
+    "initializing": "[MISSING]"
+  },
+  "loadMore": "[MISSING]",
+  "loadTemplate": "[MISSING]",
+  "Manifest": {
+    "exportPdf": "[MISSING]",
+    "lastScan": "[MISSING]",
+    "title": "[MISSING]"
+  },
+  "Matrix": {
+    "activeExploits": "[MISSING]",
+    "codeInconsistencies": "[MISSING]",
+    "critical": "[MISSING]",
+    "low": "[MISSING]",
+    "medium": "[MISSING]",
+    "mitigated": "[MISSING]",
+    "remediatedIssues": "[MISSING]",
+    "systemLeaks": "[MISSING]"
+  },
+  "Metrics": {
+    "dataIntegrity": "[MISSING]",
+    "ipfsNodes": "[MISSING]",
+    "syncStrength": "[MISSING]",
+    "totalRecords": "[MISSING]",
+    "verified": "[MISSING]"
+  },
+  "milestones": "[MISSING]",
+  "milestonesCount": "[MISSING]",
+  "mode": "[MISSING]",
+  "Nav": {
+    "docs": "[MISSING]",
+    "documentation": "[MISSING]",
+    "inspect": "[MISSING]",
+    "launchApp": "[MISSING]",
+    "logs": "[MISSING]",
+    "overview": "[MISSING]",
+    "pricing": "[MISSING]",
+    "registry": "[MISSING]",
+    "scorecard": "[MISSING]",
+    "simulations": "[MISSING]",
+    "terminal": "[MISSING]",
+    "validate": "[MISSING]",
+    "vulnerabilities": "[MISSING]"
+  },
+  "Navigation": {
+    "audit": "[MISSING]",
+    "coordination": "[MISSING]",
+    "devtools": "[MISSING]",
+    "global": "[MISSING]",
+    "registry": "[MISSING]"
+  },
+  "noBuilders": "[MISSING]",
+  "noMilestones": "[MISSING]",
+  "noProjects": "[MISSING]",
+  "noResults": "[MISSING]",
+  "orderSummary": "[MISSING]",
+  "passed": "[MISSING]",
+  "paymentMethod": "[MISSING]",
+  "payWithAlgorand": "[MISSING]",
+  "payWithPaypal": "[MISSING]",
+  "@perawallet/connect": "[MISSING]",
+  "placeholder": "[MISSING]",
+  "processingPayment": "[MISSING]",
+  "prodSynced": "[MISSING]",
+  "projects": "[MISSING]",
+  "projectsCount": "[MISSING]",
+  "proof": {
+    "consensus": "[MISSING]",
+    "hash": "[MISSING]",
+    "locked": "[MISSING]",
+    "metadata": "[MISSING]",
+    "registrationId": "[MISSING]",
+    "settlement": "[MISSING]",
+    "signature": "[MISSING]",
+    "signatureValid": "[MISSING]",
+    "title": "[MISSING]",
+    "verifiedBy": "[MISSING]",
+    "viewIpfs": "[MISSING]"
+  },
+  "proofGenerated": "[MISSING]",
+  "proposer": "[MISSING]",
+  "protocol": "[MISSING]",
+  "QuickStats": {
+    "avgImpactToday": "[MISSING]",
+    "buildersOnline": "[MISSING]",
+    "projectsToday": "[MISSING]",
+    "verificationRate": "[MISSING]"
+  },
+  "rawCodeInjector": "[MISSING]",
+  "Readiness": {
+    "blockchainRealism": "[MISSING]",
+    "businessIntegrity": "[MISSING]",
+    "coordinationStability": "[MISSING]",
+    "logicalTitle": "[MISSING]",
+    "operationalTitle": "[MISSING]",
+    "secretManagement": "[MISSING]"
+  },
+  "RealTimeData": {
+    "active": "[MISSING]",
+    "connected": "[MISSING]",
+    "dataFreshness": "[MISSING]",
+    "externalApis": "[MISSING]",
+    "fetchingData": "[MISSING]",
+    "lastSyncLabel": "[MISSING]",
+    "live": "[MISSING]",
+    "minAgo": "[MISSING]",
+    "processingPipeline": "[MISSING]",
+    "rootstockData": "[MISSING]",
+    "title": "[MISSING]",
+    "unknown": "[MISSING]"
+  },
+  "recommended": "[MISSING]",
+  "report": {
+    "errors": "[MISSING]",
+    "failed": "[MISSING]",
+    "passed": "[MISSING]",
+    "score": "[MISSING]",
+    "title": "[MISSING]"
+  },
+  "reputation": "[MISSING]",
+  "requestFreeKey": "[MISSING]",
+  "retry": "[MISSING]",
+  "scrutinize": "[MISSING]",
+  "searchPlaceholder": "[MISSING]",
+  "sections": {
+    "boundariesLabel": "[MISSING]",
+    "boundariesPlaceholder": "[MISSING]",
+    "effortLabel": "[MISSING]",
+    "emailLabel": "[MISSING]",
+    "emailPlaceholder": "[MISSING]",
+    "industryDescription": "[MISSING]",
+    "industryLabel": "[MISSING]",
+    "maxDuration": "[MISSING]",
+    "minDuration": "[MISSING]",
+    "notifyDescription": "[MISSING]",
+    "notifyLabel": "[MISSING]",
+    "problemLabel": "[MISSING]",
+    "problemPlaceholder": "[MISSING]",
+    "systemUpdates": "[MISSING]",
+    "technicalLabel": "[MISSING]",
+    "technicalPlaceholder": "[MISSING]",
+    "telegramLabel": "[MISSING]",
+    "telegramRequired": "[MISSING]",
+    "update1": "[MISSING]",
+    "update2": "[MISSING]",
+    "update3": "[MISSING]",
+    "update4": "[MISSING]",
+    "usernamePlaceholder": "[MISSING]"
+  },
+  "Sections": {
+    "diagnosticSuite": "[MISSING]",
+    "generateIpfs": "[MISSING]",
+    "kernelLogs": "[MISSING]",
+    "listening": "[MISSING]",
+    "mintProof": "[MISSING]",
+    "quickStats": "[MISSING]",
+    "recentActivity": "[MISSING]",
+    "systemStatus": "[MISSING]",
+    "toolkit": "[MISSING]",
+    "topBuilders": "[MISSING]",
+    "topCategories": "[MISSING]",
+    "topProjects": "[MISSING]"
+  },
+  "selectPlan": "[MISSING]",
+  "services": {
+    "crypGuard": {
+      "details": "[MISSING]",
+      "name": "[MISSING]"
+    },
+    "pinata": {
+      "details": "[MISSING]",
+      "name": "[MISSING]"
+    },
+    "redis": {
+      "details": "[MISSING]",
+      "name": "[MISSING]"
+    },
+    "supabase": {
+      "details": "[MISSING]",
+      "name": "[MISSING]"
+    }
+  },
+  "Sidebar": {
+    "language": "[MISSING]"
+  },
+  "signers": "[MISSING]",
+  "stamp": "[MISSING]",
+  "Stats": {
+    "activeIdentities": "[MISSING]",
+    "averageLevel": "[MISSING]",
+    "avgImpact": "[MISSING]",
+    "builders": "[MISSING]",
+    "chains": "[MISSING]",
+    "immutableRecords": "[MISSING]",
+    "maxAttestations": "[MISSING]",
+    "milestones": "[MISSING]",
+    "score100": "[MISSING]",
+    "totalBuilders": "[MISSING]",
+    "totalMilestones": "[MISSING]",
+    "totalProjects": "[MISSING]",
+    "verification": "[MISSING]",
+    "verifiedInitiatives": "[MISSING]"
+  },
+  "status": "[MISSING]",
+  "Status": {
+    "active": "[MISSING]",
+    "offline": "[MISSING]",
+    "online": "[MISSING]",
+    "optimized": "[MISSING]",
+    "secureConnection": "[MISSING]",
+    "sessionId": "[MISSING]",
+    "syncing": "[MISSING]",
+    "uptime": "[MISSING]"
+  },
+  "steps": {
+    "boundaries": "[MISSING]",
+    "effort": "[MISSING]",
+    "industry": "[MISSING]",
+    "notify": "[MISSING]",
+    "problem": "[MISSING]",
+    "technical": "[MISSING]"
+  },
+  "subtitle": "[MISSING]",
+  "syncFailure": "[MISSING]",
+  "systemBlockers": "[MISSING]",
+  "T": "[MISSING]",
+  "table": {
+    "activity": "[MISSING]",
+    "builder": "[MISSING]",
+    "clarity": "[MISSING]",
+    "dao": "[MISSING]",
+    "ecosystem": "[MISSING]",
+    "funding": "[MISSING]",
+    "impact": "[MISSING]",
+    "project": "[MISSING]",
+    "projects": "[MISSING]",
+    "rank": "[MISSING]",
+    "reputation": "[MISSING]",
+    "status": "[MISSING]"
+  },
+  "Table": {
+    "attestations": "[MISSING]",
+    "levelMilestones": "[MISSING]",
+    "noResults": "[MISSING]",
+    "of": "[MISSING]",
+    "recentMilestones": "[MISSING]"
+  },
+  "Tabs": {
+    "atlas": "[MISSING]",
+    "builders": "[MISSING]",
+    "feed": "[MISSING]",
+    "projects": "[MISSING]",
+    "registry": "[MISSING]",
+    "scorecard": "[MISSING]",
+    "validate": "[MISSING]"
+  },
+  "timestamp": "[MISSING]",
+  "title": "[MISSING]",
+  "Titles": {
+    "bridge": "[MISSING]",
+    "monitor": "[MISSING]",
+    "scorecards": "[MISSING]",
+    "telemetry": "[MISSING]"
+  },
+  "totalFunding": "[MISSING]",
+  "txActive": "[MISSING]",
+  "typeHelp": "[MISSING]",
+  "unknown": "[MISSING]",
+  "validating": "[MISSING]",
+  "verification": "[MISSING]",
+  "viewDetails": "[MISSING]",
+  "viewFull": "[MISSING]"
 }
