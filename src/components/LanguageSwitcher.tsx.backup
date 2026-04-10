@@ -1,26 +1,20 @@
 'use client';
+import { usePathname, useRouter } from '@/i18n/routing';
 import { useLocale } from 'next-intl';
 import { useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
 import { Globe } from 'lucide-react';
 
 export default function LanguageSwitcher() {
-  const currentLocale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
+  const currentLocale = useLocale();
   const [isOpen, setIsOpen] = useState(false);
   const languages = { es: 'ES', en: 'EN', pt: 'PT' };
   const languageNames = { es: 'Español', en: 'English', pt: 'Português' };
-  
   const changeLanguage = (newLocale: string) => {
-    // Reemplazar el locale actual en la ruta
-    const segments = pathname.split('/');
-    segments[1] = newLocale;
-    const newPath = segments.join('/') || '/';
-    router.push(newPath);
+    router.replace(pathname, { locale: newLocale });
     setIsOpen(false);
   };
-  
   return (
     <div className="relative">
       <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-2 px-3 py-2 border border-reactor-cyan/30 bg-black/80 backdrop-blur-sm text-reactor-cyan font-mono text-xs tracking-wider hover:border-reactor-cyan transition-all">

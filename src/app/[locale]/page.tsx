@@ -1,65 +1,82 @@
 "use client";
+import { useEffect, useState, useRef } from 'react';
+import { Link } from '@/i18n/routing';
+import { Shield, Zap, Globe, ArrowRight, ChevronDown, Activity, Database, Lock, Code, BarChart3, Users, Server } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { Shield, Zap, Globe, ArrowRight, ChevronDown, Activity, Database, Lock, Code } from 'lucide-react';
+import Image from 'next/image';
 
 export default function LandingPage() {
-  const params = useParams();
-  const locale = params?.locale || 'es';
-  const t = useTranslations('LandingPage');
   const [mounted, setMounted] = useState(false);
-  const [showHologram, setShowHologram] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+  const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const stats = [
-    { value: '55+', label: t('stats.milestones') },
-    { value: '18', label: t('stats.builders') },
-    { value: '4', label: t('stats.chains') },
-    { value: '98%', label: t('stats.verification') },
+    { value: '55+', label: 'Milestones Verified' },
+    { value: '18', label: 'Active Builders' },
+    { value: '4', label: 'Chains Integrated' },
+    { value: '98%', label: 'Verification Rate' },
   ];
 
   const audiences = [
     {
       icon: Globe,
-      title: t('audiences.dao.title'),
-      description: t('audiences.dao.desc'),
-      cta: t('audiences.dao.cta'),
-      href: `/${locale}/registry`,
+      title: 'DAOs & Web3 Orgs',
+      description: 'Verify contributor reputation before committing resources. Know who builds, who delivers.',
+      cta: 'Explore Registry',
+      href: '/registry',
       color: 'border-reactor-cyan/30 hover:border-reactor-cyan',
       accent: 'text-reactor-cyan',
     },
     {
       icon: Code,
-      title: t('audiences.platform.title'),
-      description: t('audiences.platform.desc'),
-      cta: t('audiences.platform.cta'),
-      href: `/${locale}/pricing`,
+      title: 'Platforms & Marketplaces',
+      description: 'Integrate AVIP scores into LinkedIn, Upwork, or your own platform via REST API.',
+      cta: 'Get API Access',
+      href: '/pricing',
       color: 'border-green-500/30 hover:border-green-500',
       accent: 'text-green-400',
       highlight: true,
     },
     {
       icon: Activity,
-      title: t('audiences.builder.title'),
-      description: t('audiences.builder.desc'),
-      cta: t('audiences.builder.cta'),
-      href: `/${locale}/coordination`,
+      title: 'Builders & Contributors',
+      description: 'Publish your work on-chain. Build a portable reputation that follows you across ecosystems.',
+      cta: 'Publish Scorecard',
+      href: '/coordination',
       color: 'border-purple-500/30 hover:border-purple-500',
       accent: 'text-purple-400',
     },
   ];
 
   const steps = [
-    { num: '01', title: t('steps.ingest.title'), description: t('steps.ingest.desc'), icon: Database },
-    { num: '02', title: t('steps.verify.title'), description: t('steps.verify.desc'), icon: Shield },
-    { num: '03', title: t('steps.anchor.title'), description: t('steps.anchor.desc'), icon: Lock },
+    {
+      num: '01',
+      title: 'Ingest',
+      description: 'Atlas Engine pulls governance data from Rootstock, Arbitrum, Optimism, Snapshot and more.',
+      icon: Database,
+    },
+    {
+      num: '02',
+      title: 'Verify',
+      description: 'AVIP v2.0 applies Shannon entropy, asymmetric decay and multi-chain scoring to every milestone.',
+      icon: Shield,
+    },
+    {
+      num: '03',
+      title: 'Anchor',
+      description: 'Proofs are stored immutably on Vara Network and IPFS. Portable, verifiable, forever.',
+      icon: Lock,
+    },
   ];
+
+  const chains = ['Rootstock', 'Arbitrum', 'Optimism', 'Algorand', 'Vara', 'Snapshot', 'Polkadot', 'Ethereum'];
 
   if (!mounted) return (
     <div className="min-h-screen bg-[#050608] flex items-center justify-center">
@@ -68,87 +85,67 @@ export default function LandingPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#050608] text-gray-100 overflow-x-hidden selection:bg-reactor-cyan/30">
-      
-      {/* MODAL HOLOGRAMA - EFECTO SCI-FI AVANZADO */}
-      {showHologram && (
-        <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md animate-[fadeIn_0.3s_ease-out]" 
-          onClick={() => setShowHologram(false)}
-        >
-          <div className="relative p-10" onClick={(e) => e.stopPropagation()}>
-            <div className="absolute inset-0 bg-reactor-cyan/10 rounded-full blur-[120px] animate-pulse"></div>
-            
-            {/* Contenedor del Logo con Glitch y Scanlines */}
-            <div className="relative animate-[hologramAppear_0.5s_ease-out_forwards]">
-              <img 
-                src="/images/logo.jpg" 
-                alt="Hologram" 
-                className="w-80 h-80 object-contain mix-blend-screen opacity-90 shadow-[0_0_50px_rgba(0,240,255,0.3)]" 
-              />
-              {/* Scanlines Overlay */}
-              <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent,transparent_50%,rgba(0,0,0,0.5)_50%,rgba(0,0,0,0.5))] bg-[length:100%_4px] opacity-30 pointer-events-none"></div>
-              {/* Flicker Overlay */}
-              <div className="absolute inset-0 bg-reactor-cyan/5 animate-[flicker_2s_infinite] pointer-events-none"></div>
-            </div>
-
-            {/* Esquinas de Interfaz */}
-            <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-reactor-cyan/40 rounded-tl-lg"></div>
-            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-reactor-cyan/40 rounded-br-lg"></div>
-          </div>
-        </div>
-      )}
+    <div className="min-h-screen bg-[#050608] text-gray-100 overflow-x-hidden">
 
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#050608]/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setShowHologram(true)} 
-              className="flex items-center justify-center w-10 h-10 bg-transparent overflow-hidden hover:scale-110 transition-transform"
-            >
-              <img src="/images/logo.jpg" alt="Logo" className="w-full h-full object-contain block" />
-            </button>
-            <span className="font-mono font-bold text-sm tracking-widest text-white uppercase">
-              Andromeda <span className="text-reactor-cyan">Core</span>
-            </span>
+            <Image 
+              src="/images/logo.jpg" 
+              alt="Andromeda Core Logo" 
+              width={28} 
+              height={28} 
+              className="rounded-[2px]"
+            />
+            <span className="font-mono font-bold text-sm tracking-widest text-white">Andromeda <span className="text-reactor-cyan">Core</span></span>
           </div>
           <div className="hidden md:flex items-center gap-8">
-            <Link href={`/${locale}/docs`} className="text-[11px] font-mono text-gray-500 hover:text-reactor-cyan transition-colors uppercase tracking-widest">{t('nav.docs')}</Link>
-            <Link href={`/${locale}/pricing`} className="text-[11px] font-mono text-gray-500 hover:text-reactor-cyan transition-colors uppercase tracking-widest">{t('nav.pricing')}</Link>
-            <Link href={`/${locale}/registry`} className="text-[11px] font-mono text-gray-500 hover:text-reactor-cyan transition-colors uppercase tracking-widest">{t('nav.registry')}</Link>
+            {[['Docs', '/docs'], ['Pricing', '/pricing'], ['Registry', '/registry']].map(([label, href]) => (
+              <Link key={label} href={href as any} className="text-[11px] font-mono text-gray-500 hover:text-reactor-cyan transition-colors tracking-widest uppercase">
+                {label}
+              </Link>
+            ))}
+          </div>
+          <div className="flex items-center gap-4">
+            <Link href="/intelligence" className="flex items-center gap-2 px-4 py-2 bg-reactor-cyan text-white text-[11px] font-mono font-bold uppercase tracking-widest rounded-[2px] hover:bg-cyan-400 transition-colors">
+              Launch App <ArrowRight className="w-3 h-3" />
+            </Link>
             <LanguageSwitcher />
           </div>
-          <Link href={`/${locale}/intelligence`} className="flex items-center gap-2 px-4 py-2 bg-reactor-cyan text-white text-[11px] font-mono font-bold uppercase tracking-widest rounded-[2px] hover:bg-cyan-400 transition-colors shadow-[0_0_15px_rgba(0,240,255,0.2)]">
-            {t('nav.launch')} <ArrowRight className="w-3 h-3" />
-          </Link>
         </div>
       </nav>
 
       {/* HERO */}
-      <section className="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage: 'linear-gradient(rgba(0,240,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,240,255,1) 1px, transparent 1px)', backgroundSize: '60px 60px'}} />
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.03]"
+          style={{backgroundImage: 'linear-gradient(rgba(0,240,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,240,255,1) 1px, transparent 1px)', backgroundSize: '60px 60px'}} />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-reactor-cyan/5 rounded-full blur-[120px] pointer-events-none" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-reactor-cyan/20 bg-reactor-cyan/5 rounded-[2px] text-[10px] font-mono text-reactor-cyan uppercase tracking-[0.3em] mb-8">
             <span className="w-1.5 h-1.5 bg-reactor-cyan rounded-full animate-pulse" />
-            {t('hero.tagline')}
+            AVIP v2.0 — Andromeda Verifiable Immutable Proof
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-mono font-bold leading-[1.05] mb-6 tracking-tighter uppercase">
-            <span className="text-white">{t('how.heading1')}</span><br />
-            <span className="text-reactor-cyan">{t('how.heading2')}</span>
+          <h1 className="text-5xl md:text-7xl font-mono font-bold leading-[1.05] mb-6 tracking-tighter">
+            <span className="text-white">Reputation</span>
+            <br />
+            <span className="text-reactor-cyan">you can verify.</span>
+            <br />
+            <span className="text-gray-500">On any chain.</span>
           </h1>
 
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed mb-10">{t('hero.subtitle')}</p>
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed mb-10">
+            Andromeda Core is the infrastructure layer for portable, cryptographically verified builder reputation across DAOs, marketplaces and Web3 ecosystems.
+          </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-            <Link href={`/${locale}/intelligence`} className="flex items-center gap-2 px-8 py-3.5 bg-reactor-cyan text-white font-mono font-bold text-sm uppercase tracking-widest rounded-[2px] hover:bg-cyan-400 transition-all shadow-[0_0_30px_rgba(0,240,255,0.3)]">
-              {t('hero.cta1')} <ArrowRight className="w-4 h-4" />
+            <Link href="/intelligence" className="flex items-center gap-2 px-8 py-3.5 bg-reactor-cyan text-white font-mono font-bold text-sm uppercase tracking-widest rounded-[2px] hover:bg-cyan-400 transition-all hover:shadow-[0_0_30px_rgba(0,240,255,0.3)]">
+              See Live Demo <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link href={`/${locale}/docs`} className="flex items-center gap-2 px-8 py-3.5 border border-white/10 text-gray-300 font-mono text-sm uppercase tracking-widest rounded-[2px] hover:border-reactor-cyan/40 hover:text-reactor-cyan transition-all">
-              {t('hero.cta2')}
+            <Link href="/docs" className="flex items-center gap-2 px-8 py-3.5 border border-white/10 text-gray-300 font-mono text-sm uppercase tracking-widest rounded-[2px] hover:border-reactor-cyan/40 hover:text-reactor-cyan transition-all">
+              API Reference
             </Link>
           </div>
 
@@ -161,31 +158,189 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
+
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+          <ChevronDown className="w-5 h-5 text-gray-700" />
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="py-32 px-6 relative">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="text-[10px] font-mono text-reactor-cyan uppercase tracking-[0.4em] mb-4">How it works</div>
+            <h2 className="text-3xl md:text-4xl font-mono font-bold text-white">From raw data to<br /><span className="text-reactor-cyan">immutable proof</span></h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {steps.map((step, i) => (
+              <div key={step.num} className="relative p-8 border border-white/5 bg-white/[0.02] rounded-[2px] group hover:border-reactor-cyan/20 transition-all">
+                <div className="text-[10px] font-mono text-reactor-cyan/30 mb-6 tracking-[0.3em]">{step.num}</div>
+                <step.icon className="w-8 h-8 text-reactor-cyan mb-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.6)] transition-all" />
+                <h3 className="text-lg font-mono font-bold text-white mb-3">{step.title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">{step.description}</p>
+                {i < 2 && <div className="hidden md:block absolute top-1/2 -right-3 w-6 h-[1px] bg-reactor-cyan/20" />}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CHAIN TICKER */}
+      <div className="border-y border-white/5 py-4 overflow-hidden bg-white/[0.01]">
+        <div className="flex gap-12 animate-[scroll_20s_linear_infinite]" style={{width: 'max-content'}}>
+          {[...chains, ...chains].map((chain, i) => (
+            <span key={i} className="text-[11px] font-mono text-gray-700 uppercase tracking-[0.3em] whitespace-nowrap flex items-center gap-3">
+              <span className="w-1 h-1 bg-reactor-cyan/40 rounded-full" />
+              {chain}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* AUDIENCES */}
+      <section className="py-32 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="text-[10px] font-mono text-reactor-cyan uppercase tracking-[0.4em] mb-4">Built for everyone</div>
+            <h2 className="text-3xl md:text-4xl font-mono font-bold text-white">One protocol.<br /><span className="text-reactor-cyan">Three entry points.</span></h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {audiences.map((a) => (
+              <div key={a.title} className={`relative p-8 border rounded-[2px] transition-all duration-300 group ${a.color} ${a.highlight ? 'bg-reactor-cyan/5' : 'bg-white/[0.02]'}`}>
+                {a.highlight && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-reactor-cyan text-white text-[9px] font-mono font-bold uppercase tracking-widest rounded-[1px]">
+                    Most Popular
+                  </div>
+                )}
+                <a.icon className={`w-7 h-7 mb-4 ${a.accent}`} />
+                <h3 className="text-base font-mono font-bold text-white mb-3">{a.title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed mb-6">{a.description}</p>
+                <Link href={a.href as any} className={`flex items-center gap-2 text-[11px] font-mono font-bold uppercase tracking-widest ${a.accent} hover:gap-3 transition-all`}>
+                  {a.cta} <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* API PREVIEW & BUSINESS MODEL */}
+      <section className="py-32 px-6 bg-white/[0.01] border-y border-white/5">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+            <div>
+              <div className="text-[10px] font-mono text-reactor-cyan uppercase tracking-[0.4em] mb-4">Enterprise API</div>
+              <h2 className="text-3xl font-mono font-bold text-white mb-4">Verify reputation<br /><span className="text-reactor-cyan">in one call.</span></h2>
+              <p className="text-gray-500 text-sm leading-relaxed mb-6">
+                Integrate AVIP scores into any platform. LinkedIn, Upwork, Fiverr — or your own DAO tooling. From $0/month.
+              </p>
+              <div className="flex gap-3">
+                <Link href="/docs" className="px-4 py-2 bg-reactor-cyan text-white text-[11px] font-mono font-bold uppercase tracking-widest rounded-[2px] hover:bg-cyan-400 transition-colors">
+                  View Docs
+                </Link>
+                <Link href="/pricing" className="px-4 py-2 border border-white/10 text-gray-400 text-[11px] font-mono uppercase tracking-widest rounded-[2px] hover:border-reactor-cyan/30 transition-colors">
+                  Pricing
+                </Link>
+              </div>
+            </div>
+            <div className="bg-black border border-white/5 rounded-[2px] overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-white/[0.02]">
+                <div className="w-2 h-2 rounded-full bg-red-500/50" />
+                <div className="w-2 h-2 rounded-full bg-yellow-500/50" />
+                <div className="w-2 h-2 rounded-full bg-green-500/50" />
+                <span className="text-[10px] font-mono text-gray-600 ml-2">bash</span>
+              </div>
+              <pre className="p-6 text-[11px] font-mono text-gray-400 leading-relaxed overflow-x-auto">{`curl -X GET \\
+  "https://core.andromedacomputer.net/api/reputation/verify/{did}" \\
+  -H "x-api-key: ac_your_key"
+
+# Response
+{
+  "avipScore": 78,
+  "trustLevel": "GOLD",
+  "verificationRate": 100,
+  "ecosystems": ["optimism"],
+  "poweredBy": "AVIP v2.0"
+}`}</pre>
+            </div>
+          </div>
+
+          {/* Business model highlight */}
+          <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+            <div className="p-6 border border-white/5 bg-white/[0.02] rounded-[2px]">
+              <Server className="w-6 h-6 text-reactor-cyan mx-auto mb-3" />
+              <h3 className="text-sm font-mono font-bold text-white mb-2">Freemium API</h3>
+              <p className="text-xs text-gray-500">10k free queries/month. Pay-as-you-grow for enterprises.</p>
+            </div>
+            <div className="p-6 border border-white/5 bg-white/[0.02] rounded-[2px]">
+              <BarChart3 className="w-6 h-6 text-reactor-cyan mx-auto mb-3" />
+              <h3 className="text-sm font-mono font-bold text-white mb-2">Value-added services</h3>
+              <p className="text-xs text-gray-500">Custom analytics, alerts, advanced verification.</p>
+            </div>
+            <div className="p-6 border border-white/5 bg-white/[0.02] rounded-[2px]">
+              <Users className="w-6 h-6 text-reactor-cyan mx-auto mb-3" />
+              <h3 className="text-sm font-mono font-bold text-white mb-2">No token, no speculation</h3>
+              <p className="text-xs text-gray-500">Public good infrastructure. Funded by usage, grants, and sustainability trust.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section className="py-32 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-reactor-cyan/3 pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-reactor-cyan/5 rounded-full blur-[100px] pointer-events-none" />
+        <div className="relative max-w-2xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-mono font-bold text-white mb-4">
+            Trust is the new<br /><span className="text-reactor-cyan">infrastructure.</span>
+          </h2>
+          <p className="text-gray-500 text-lg mb-10">
+            Start verifying builder reputation across chains today.
+          </p>
+          <Link href="/intelligence" className="inline-flex items-center gap-3 px-10 py-4 bg-reactor-cyan text-white font-mono font-bold text-sm uppercase tracking-widest rounded-[2px] hover:bg-cyan-400 transition-all hover:shadow-[0_0_40px_rgba(0,240,255,0.3)]">
+            Launch Andromeda Core <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-white/5 py-12 px-6 bg-black">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-gray-500 font-mono">
+      <footer className="border-t border-white/5 py-12 px-6">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-             <img src="/images/logo.jpg" alt="Logo" className="w-5 h-5 object-contain opacity-50" />
-             <span className="text-sm uppercase tracking-widest">Andromeda <span className="text-reactor-cyan/60">Core</span></span>
+            <Image 
+              src="/images/logo.jpg" 
+              alt="Andromeda Core Logo" 
+              width={20} 
+              height={20} 
+              className="rounded-[2px]"
+            />
+            <span className="font-mono text-sm text-gray-500">Andromeda <span className="text-reactor-cyan">Core</span></span>
           </div>
-          <div className="flex gap-8 text-[11px] uppercase tracking-widest">
-            <Link href={`/${locale}/docs`} className="hover:text-white transition-colors">{t('nav.docs')}</Link>
-            <Link href={`/${locale}/pricing`} className="hover:text-white transition-colors">{t('nav.pricing')}</Link>
-            <Link href={`/${locale}/registry`} className="hover:text-white transition-colors">{t('nav.registry')}</Link>
+          <div className="flex items-center gap-8">
+            {[['Docs', '/docs'], ['Pricing', '/pricing'], ['Registry', '/registry'], ['App', '/intelligence']].map(([label, href]) => (
+              <Link key={label} href={href as any} className="text-[11px] font-mono text-gray-600 hover:text-reactor-cyan transition-colors uppercase tracking-widest">
+                {label}
+              </Link>
+            ))}
           </div>
-          <span className="text-[10px] tracking-widest">© 2026 ANDROMEDA_COMPUTER</span>
+          <span className="text-[10px] font-mono text-gray-700 tracking-widest">© 2026 ANDROMEDA_COMPUTER</span>
         </div>
       </footer>
 
       <style>{`
-        @keyframes flicker { 0%, 100% { opacity: 0.1; } 50% { opacity: 0.3; } }
-        @keyframes hologramAppear {
-          0% { opacity: 0; transform: scale(1.1) translateY(20px); filter: brightness(3) blur(5px); }
-          100% { opacity: 0.9; transform: scale(1) translateY(0); filter: brightness(1) blur(0px); }
+        @keyframes scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
         }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-bounce {
+          animation: bounce 1s infinite;
+        }
+        @keyframes bounce {
+          0%, 100% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0.8,0,1,1); }
+          50% { transform: translateY(0); animation-timing-function: cubic-bezier(0,0,0.2,1); }
+        }
       `}</style>
     </div>
   );

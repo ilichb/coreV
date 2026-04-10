@@ -3,7 +3,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import HardTechContainer from '@/components/layout/HardTechContainer';
 import { AuditSafetySwitch } from '@/components/ui/AuditSafetySwitch';
-import { LayoutDashboard, Activity, Terminal, Shield, Settings, Database, Cpu, Menu, X, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, Activity, Terminal, Shield, Settings, Database, Cpu, Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { locales } from '@/i18n/locales';
@@ -122,10 +122,6 @@ export default function DashboardUnified({ children }: DashboardUnifiedProps) {
                                 <Menu className="w-6 h-6" />
                             </button>
                             <h1 className="title-orbitron text-sm md:text-lg font-bold">
-                      <Link href="/" className="flex items-center gap-2 px-3 py-1.5 mr-3 border border-reactor-cyan/30 bg-black/40 hover:bg-reactor-cyan/10 hover:border-reactor-cyan transition-all group">
-                        <ArrowLeft className="w-4 h-4 text-reactor-cyan group-hover:scale-110 transition-transform" />
-                        <span className="text-[10px] font-mono-display text-reactor-cyan uppercase tracking-wider hidden md:inline">VOLVER</span>
-                      </Link>
                                 {t('Header.title')}<span className="text-reactor-cyan opacity-80">{t('Header.core')}</span>
                                 <span className="hidden md:inline text-[10px] text-mono text-gray-600 ml-3 font-normal tracking-wider border border-[#1e2430] px-2 py-0.5 rounded-[1px]">{t('Header.version')}</span>
                             </h1>
