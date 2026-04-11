@@ -49,7 +49,7 @@ export default function CoordinationPage() {
                     {t('Header.phase')}
                   </span>
                 </div>
-                <h2 className="title-orbitron text-4xl font-bold mb-4 drop-shadow-[0_0_15px_rgba(0,212,255,0.1)]">
+                <h2 className="title-orbitron text-2xl md:text-4xl font-bold mb-4 break-words text-wrap-balance drop-shadow-[0_0_15px_rgba(0,212,255,0.1)]">
                   {t('Header.title')}
                 </h2>
                 <p className="text-gray-500 font-sans text-sm max-w-2xl leading-relaxed italic opacity-80">

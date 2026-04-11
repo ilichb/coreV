@@ -169,7 +169,7 @@ export default function IntelligencePage() {
 
   return (
     <DashboardUnified>
-      <div className="space-y-6 pb-20 p-6">
+      <div className="space-y-6 pb-20 px-4 md:px-6">
 
         {/* TOP ROW: System Status & Ecosystems */}
         <div className="grid grid-cols-12 gap-4">
@@ -181,7 +181,7 @@ export default function IntelligencePage() {
               <div className="panel-corner bl"></div>
               <div className="panel-corner br"></div>
 
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
                 <span className="text-[10px] text-mono font-bold text-gray-500 tracking-wider uppercase">{t('LiveStatus.title')}</span>
                 <div className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -203,7 +203,7 @@ export default function IntelligencePage() {
                 {/* Last Data Sync */}
                 <div className="pt-2 border-t border-gray-800">
                   <div className="text-[9px] text-mono text-gray-500 uppercase tracking-wider mb-1">{t('LiveStatus.lastSync')}</div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                     <span className="text-xs text-gray-300 font-mono">
                       {telemetry?.lastSync
                         ? new Date(telemetry.lastSync).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
@@ -250,7 +250,7 @@ export default function IntelligencePage() {
               <div className="panel-corner bl"></div>
               <div className="panel-corner br"></div>
 
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                 <span className="text-[10px] text-mono font-bold text-gray-500 tracking-wider uppercase">{t('Ecosystems.title')}</span>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] text-mono text-gray-500">{t('Ecosystems.scrollHint')}</span>
@@ -275,7 +275,7 @@ export default function IntelligencePage() {
                             : 'border-gray-800 bg-gray-900/50'
                         }`}
                     >
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">{eco.icon}</span>
                           <span className="text-sm font-bold text-white">{eco.name}</span>
@@ -349,7 +349,7 @@ export default function IntelligencePage() {
 
               {/* Connection Summary */}
               <div className="mt-4 pt-3 border-t border-gray-800">
-                <div className="flex items-center justify-between text-[10px] text-mono">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between text-[10px] text-mono">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -441,14 +441,14 @@ export default function IntelligencePage() {
 
           {/* Right Column: SYSTEM STATUS alineado horizontalmente */}
           <div className="col-span-12 lg:col-span-8">
-            <div className="grid grid-cols-2 gap-6 h-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
               {/* REAL-TIME DATA STATUS */}
               <div className="col-span-2 lg:col-span-1">
                 <EmbeddedDisplay title={t('RealTimeData.title')} status="active" className="h-full">
                   <div className="p-4 space-y-3">
                     {/* Rootstock Data Status */}
                     <div className="space-y-1">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                         <span className="text-xs text-gray-500 font-mono-display">{t('RealTimeData.rootstockData')}</span>
                         <span className="text-xs text-green-400 font-mono-display font-bold flex items-center gap-1">
                           <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
@@ -464,7 +464,7 @@ export default function IntelligencePage() {
 
                     {/* Data Processing Pipeline */}
                     <div className="space-y-1">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                         <span className="text-xs text-gray-500 font-mono-display">{t('RealTimeData.processingPipeline')}</span>
                         <span className={`text-xs font-mono-display font-bold flex items-center gap-1 ${
                           telemetry?.systemStatus?.dataFlow === 'active' ? 'text-reactor-cyan' : 'text-yellow-400'
@@ -482,7 +482,7 @@ export default function IntelligencePage() {
 
                     {/* API Connectivity */}
                     <div className="space-y-1">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                         <span className="text-xs text-gray-500 font-mono-display">{t('RealTimeData.externalApis')}</span>
                         <span className={`text-xs font-mono-display font-bold flex items-center gap-1 ${
                           telemetry?.externalApis?.thegraph === 'operational' ? 'text-green-400' : 'text-yellow-400'
@@ -500,7 +500,7 @@ export default function IntelligencePage() {
 
                     {/* Data Freshness */}
                     <div className="space-y-1">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                         <span className="text-xs text-gray-500 font-mono-display">{t('RealTimeData.dataFreshness')}</span>
                         <span className={`text-xs font-mono-display font-bold flex items-center gap-1 ${telemetry?.lastSync && (Date.now() - new Date(telemetry.lastSync).getTime()) < 300000
                           ? 'text-green-400'
@@ -540,7 +540,7 @@ export default function IntelligencePage() {
           <div className="col-span-12">
             <EmbeddedDisplay title={t('DataSources.title')} status="active">
               <div className="p-4">
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {/* Rootstock Data */}
                   <div className="text-center p-3 bg-black/20 rounded-[2px] border border-green-500/20">
                     <div className="text-xs text-gray-500 font-mono-display mb-1">{t('DataSources.rootstock')}</div>
@@ -598,7 +598,7 @@ export default function IntelligencePage() {
 
                 {/* Connection Status Summary */}
                 <div className="mt-6 pt-4 border-t border-gray-800">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                     <div className="space-y-2">
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1">
