@@ -41,7 +41,7 @@ export default function RegistryView() {
         <div className="space-y-6">
             {/* Control Bar */}
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-black/40 border border-reactor-cyan/10 p-4 rounded-[2px] backdrop-blur-md">
-                <div className="flex items-center gap-4 w-full md:w-auto">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full">
                     <div className="relative flex-1 md:flex-none">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-reactor-cyan/50" />
                         <input
@@ -53,12 +53,12 @@ export default function RegistryView() {
                         />
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-between sm:justify-start">
                         {['ALL', 'VALIDATED', 'PENDING'].map(f => (
                             <button
                                 key={f}
                                 onClick={() => setFilter(f)}
-                                className={`px-3 py-2 text-[9px] font-mono-display font-bold rounded-[2px] transition-all border ${filter === f
+                                className={`px-2 py-1.5 md:px-3 md:py-2 text-[9px] font-mono-display font-bold rounded-[2px] transition-all border ${filter === f
                                     ? 'bg-reactor-cyan/10 border-reactor-cyan text-reactor-cyan shadow-[0_0_10px_rgba(0,240,255,0.2)]'
                                     : 'bg-black/20 border-white/5 text-gray-500 hover:border-white/20'
                                     }`}
@@ -69,7 +69,7 @@ export default function RegistryView() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between gap-3 w-full md:w-auto">
                     <button
                         onClick={() => refetch()}
                         className="p-2 border border-reactor-cyan/20 rounded-[2px] text-reactor-cyan/60 hover:text-reactor-cyan hover:bg-reactor-cyan/5 transition-all"

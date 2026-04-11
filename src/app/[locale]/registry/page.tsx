@@ -50,7 +50,7 @@ export default function RegistryPage() {
 
     return (
         <DashboardUnified>
-            <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-500">
+            <div className="max-w-[1600px] mx-auto space-y-8 px-4 md:px-0 animate-in fade-in duration-500">
                 {/* Industrial Header */}
                 <header className="relative border-b border-[#1e2430] pb-10 mb-10">
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
@@ -124,7 +124,7 @@ export default function RegistryPage() {
                 </header>
 
                 {/* Top Operational Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
                         { label: t('Metrics.totalRecords'), value: '1,429', icon: Database, color: 'text-reactor-cyan' },
                         { label: t('Metrics.syncStrength'), value: '99.8%', icon: Zap, color: 'text-amber-500' },
@@ -149,7 +149,7 @@ export default function RegistryPage() {
                 <div className="flex border-b border-[#1e2430] mb-8">
                     <button
                         onClick={() => setActiveView('registry')}
-                        className={`flex items-center gap-3 px-8 py-4 text-[11px] text-mono font-bold tracking-[0.2em] uppercase transition-all duration-300 ${activeView === 'registry'
+                        className={`flex items-center gap-3 px-4 py-2 md:px-8 md:py-4 text-[9px] md:text-[11px] text-mono font-bold tracking-[0.2em] uppercase transition-all duration-300 ${activeView === 'registry'
                             ? 'text-reactor-cyan border-b-2 border-reactor-cyan bg-reactor-cyan/5 shadow-[inset_0_-8px_12px_rgba(0,212,255,0.05)]'
                             : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
                             }`}
@@ -159,7 +159,7 @@ export default function RegistryPage() {
                     </button>
                     <button
                         onClick={() => setActiveView('atlas')}
-                        className={`flex items-center gap-3 px-8 py-4 text-[11px] text-mono font-bold tracking-[0.2em] uppercase transition-all duration-300 ${activeView === 'atlas'
+                        className={`flex items-center gap-3 px-4 py-2 md:px-8 md:py-4 text-[9px] md:text-[11px] text-mono font-bold tracking-[0.2em] uppercase transition-all duration-300 ${activeView === 'atlas'
                             ? 'text-reactor-cyan border-b-2 border-reactor-cyan bg-reactor-cyan/5 shadow-[inset_0_-8px_12px_rgba(0,212,255,0.05)]'
                             : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
                             }`}
@@ -170,7 +170,7 @@ export default function RegistryPage() {
                 </div>
 
                 {/* Main Registry/Atlas View */}
-                <div className="panel p-8 bg-[#0d0f14]/80 backdrop-blur-xl min-h-[600px]">
+                <div className="panel p-4 md:p-8 bg-[#0d0f14]/80 backdrop-blur-xl min-h-[600px]">
                     <div className="panel-corner tl"></div>
                     <div className="panel-corner tr"></div>
                     <div className="panel-corner bl"></div>
