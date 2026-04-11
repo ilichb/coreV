@@ -1922,4 +1922,84 @@
   "verification": "[MISSING]",
   "viewDetails": "[MISSING]",
   "viewFull": "[MISSING]"
+,
+  "LandingPage": {
+    "Nav": {
+      "docs": "Docs",
+      "pricing": "Preços",
+      "registry": "Registro",
+      "launchApp": "Abrir App"
+    },
+    "Hero": {
+      "tagline": "AVIP v2.0 — Prova Imutável Verificável da Andromeda",
+      "title1": "Reputação",
+      "title2": "que você pode verificar.",
+      "title3": "Em qualquer cadeia.",
+      "subtitle": "Andromeda Core é a camada de infraestrutura para reputação de construtores portátil e criptograficamente verificada em DAOs, marketplaces e ecossistemas Web3.",
+      "liveDemo": "Ver Demonstração",
+      "apiReference": "Referência da API"
+    },
+    "Stats": {
+      "milestones": "Marcos Verificados",
+      "builders": "Construtores Ativos",
+      "chains": "Redes Integradas",
+      "verification": "Taxa de Verificação"
+    },
+    "HowItWorks": {
+      "tagline": "Como funciona",
+      "title1": "De dados brutos à",
+      "title2": "prova imutável",
+      "step1": {
+        "title": "Ingestão",
+        "desc": "O motor Atlas extrai dados de governança da Rootstock, Arbitrum, Optimism, Snapshot e mais."
+      },
+      "step2": {
+        "title": "Verificar",
+        "desc": "AVIP v2.0 aplica entropia de Shannon, decaimento assimétrico e pontuação multicadeia a cada marco."
+      },
+      "step3": {
+        "title": "Ancorar",
+        "desc": "As provas são armazenadas imutavelmente na Vara Network e IPFS. Portáteis, verificáveis, para sempre."
+      }
+    },
+    "Audiences": {
+      "tagline": "Feito para todos",
+      "title1": "Um protocolo.",
+      "title2": "Três pontos de entrada.",
+      "mostPopular": "Mais Popular",
+      "aud1": {
+        "title": "DAOs e Organizações Web3",
+        "desc": "Verifique a reputação dos contribuidores antes de comprometer recursos. Saiba quem constrói, quem entrega.",
+        "cta": "Explorar Registro"
+      },
+      "aud2": {
+        "title": "Plataformas e Marketplaces",
+        "desc": "Integre as pontuações AVIP no LinkedIn, Upwork ou na sua própria plataforma via API REST.",
+        "cta": "Obter Acesso à API"
+      },
+      "aud3": {
+        "title": "Construtores e Contribuidores",
+        "desc": "Publique seu trabalho on-chain. Construa uma reputação portátil que o acompanha entre ecossistemas.",
+        "cta": "Publicar Scorecard"
+      }
+    },
+    "ApiPreview": {
+      "tagline": "API Empresarial",
+      "title1": "Verifique a reputação",
+      "title2": "em uma chamada.",
+      "desc": "Integre as pontuações AVIP em qualquer plataforma. LinkedIn, Upwork, Fiverr — ou nas suas próprias ferramentas DAO. A partir de $0/mês.",
+      "viewDocs": "Ver Documentação",
+      "pricing": "Preços"
+    },
+    "FinalCTA": {
+      "title1": "A confiança é a nova",
+      "title2": "infraestrutura.",
+      "desc": "Comece a verificar a reputação dos construtores entre cadeias hoje mesmo.",
+      "launchApp": "Iniciar Andromeda Core"
+    },
+    "Footer": {
+      "copyright": "© 2026 ANDROMEDA_COMPUTER",
+      "app": "App"
+    }
+  }
 }

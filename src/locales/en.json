@@ -1940,4 +1940,84 @@
   "verification": "[MISSING]",
   "viewDetails": "[MISSING]",
   "viewFull": "[MISSING]"
+,
+  "LandingPage": {
+    "Nav": {
+      "docs": "Docs",
+      "pricing": "Pricing",
+      "registry": "Registry",
+      "launchApp": "Launch App"
+    },
+    "Hero": {
+      "tagline": "AVIP v2.0 — Andromeda Verifiable Immutable Proof",
+      "title1": "Reputation",
+      "title2": "you can verify.",
+      "title3": "On any chain.",
+      "subtitle": "Andromeda Core is the infrastructure layer for portable, cryptographically verified builder reputation across DAOs, marketplaces and Web3 ecosystems.",
+      "liveDemo": "See Live Demo",
+      "apiReference": "API Reference"
+    },
+    "Stats": {
+      "milestones": "Milestones Verified",
+      "builders": "Active Builders",
+      "chains": "Chains Integrated",
+      "verification": "Verification Rate"
+    },
+    "HowItWorks": {
+      "tagline": "How it works",
+      "title1": "From raw data to",
+      "title2": "immutable proof",
+      "step1": {
+        "title": "Ingest",
+        "desc": "Atlas Engine pulls governance data from Rootstock, Arbitrum, Optimism, Snapshot and more."
+      },
+      "step2": {
+        "title": "Verify",
+        "desc": "AVIP v2.0 applies Shannon entropy, asymmetric decay and multi-chain scoring to every milestone."
+      },
+      "step3": {
+        "title": "Anchor",
+        "desc": "Proofs are stored immutably on Vara Network and IPFS. Portable, verifiable, forever."
+      }
+    },
+    "Audiences": {
+      "tagline": "Built for everyone",
+      "title1": "One protocol.",
+      "title2": "Three entry points.",
+      "mostPopular": "Most Popular",
+      "aud1": {
+        "title": "DAOs & Web3 Orgs",
+        "desc": "Verify contributor reputation before committing resources. Know who builds, who delivers.",
+        "cta": "Explore Registry"
+      },
+      "aud2": {
+        "title": "Platforms & Marketplaces",
+        "desc": "Integrate AVIP scores into LinkedIn, Upwork, or your own platform via REST API.",
+        "cta": "Get API Access"
+      },
+      "aud3": {
+        "title": "Builders & Contributors",
+        "desc": "Publish your work on-chain. Build a portable reputation that follows you across ecosystems.",
+        "cta": "Publish Scorecard"
+      }
+    },
+    "ApiPreview": {
+      "tagline": "Enterprise API",
+      "title1": "Verify reputation",
+      "title2": "in one call.",
+      "desc": "Integrate AVIP scores into any platform. LinkedIn, Upwork, Fiverr — or your own DAO tooling. From $0/month.",
+      "viewDocs": "View Docs",
+      "pricing": "Pricing"
+    },
+    "FinalCTA": {
+      "title1": "Trust is the new",
+      "title2": "infrastructure.",
+      "desc": "Start verifying builder reputation across chains today.",
+      "launchApp": "Launch Andromeda Core"
+    },
+    "Footer": {
+      "copyright": "© 2026 ANDROMEDA_COMPUTER",
+      "app": "App"
+    }
+  }
 }

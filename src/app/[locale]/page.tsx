@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState, useRef } from 'react';
 import { Link } from '@/i18n/routing';
-import { Shield, Zap, Globe, ArrowRight, ChevronDown, Activity, Database, Lock, Code, BarChart3, Users, Server } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { Shield, Globe, ArrowRight, ChevronDown, Activity, Database, Lock, Code, BarChart3, Users, Server } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import Image from 'next/image';
 
@@ -9,6 +10,7 @@ export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const heroRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations('LandingPage');
 
   useEffect(() => {
     setMounted(true);
@@ -18,27 +20,27 @@ export default function LandingPage() {
   }, []);
 
   const stats = [
-    { value: '55+', label: 'Milestones Verified' },
-    { value: '18', label: 'Active Builders' },
-    { value: '4', label: 'Chains Integrated' },
-    { value: '98%', label: 'Verification Rate' },
+    { value: '55+', label: t('Stats.milestones') },
+    { value: '18', label: t('Stats.builders') },
+    { value: '4', label: t('Stats.chains') },
+    { value: '98%', label: t('Stats.verification') },
   ];
 
   const audiences = [
     {
       icon: Globe,
-      title: 'DAOs & Web3 Orgs',
-      description: 'Verify contributor reputation before committing resources. Know who builds, who delivers.',
-      cta: 'Explore Registry',
+      title: t('Audiences.aud1.title'),
+      description: t('Audiences.aud1.desc'),
+      cta: t('Audiences.aud1.cta'),
       href: '/registry',
       color: 'border-reactor-cyan/30 hover:border-reactor-cyan',
       accent: 'text-reactor-cyan',
     },
     {
       icon: Code,
-      title: 'Platforms & Marketplaces',
-      description: 'Integrate AVIP scores into LinkedIn, Upwork, or your own platform via REST API.',
-      cta: 'Get API Access',
+      title: t('Audiences.aud2.title'),
+      description: t('Audiences.aud2.desc'),
+      cta: t('Audiences.aud2.cta'),
       href: '/pricing',
       color: 'border-green-500/30 hover:border-green-500',
       accent: 'text-green-400',
@@ -46,9 +48,9 @@ export default function LandingPage() {
     },
     {
       icon: Activity,
-      title: 'Builders & Contributors',
-      description: 'Publish your work on-chain. Build a portable reputation that follows you across ecosystems.',
-      cta: 'Publish Scorecard',
+      title: t('Audiences.aud3.title'),
+      description: t('Audiences.aud3.desc'),
+      cta: t('Audiences.aud3.cta'),
       href: '/coordination',
       color: 'border-purple-500/30 hover:border-purple-500',
       accent: 'text-purple-400',
@@ -58,20 +60,20 @@ export default function LandingPage() {
   const steps = [
     {
       num: '01',
-      title: 'Ingest',
-      description: 'Atlas Engine pulls governance data from Rootstock, Arbitrum, Optimism, Snapshot and more.',
+      title: t('HowItWorks.step1.title'),
+      description: t('HowItWorks.step1.desc'),
       icon: Database,
     },
     {
       num: '02',
-      title: 'Verify',
-      description: 'AVIP v2.0 applies Shannon entropy, asymmetric decay and multi-chain scoring to every milestone.',
+      title: t('HowItWorks.step2.title'),
+      description: t('HowItWorks.step2.desc'),
       icon: Shield,
     },
     {
       num: '03',
-      title: 'Anchor',
-      description: 'Proofs are stored immutably on Vara Network and IPFS. Portable, verifiable, forever.',
+      title: t('HowItWorks.step3.title'),
+      description: t('HowItWorks.step3.desc'),
       icon: Lock,
     },
   ];
@@ -98,18 +100,22 @@ export default function LandingPage() {
               height={28} 
               className="rounded-[2px]"
             />
-            <span className="font-mono font-bold text-sm tracking-widest text-white">Andromeda <span className="text-reactor-cyan">Core</span></span>
+            <span className="font-mono font-bold text-sm tracking-widest text-white">Andromeda<span className="text-reactor-cyan"> Core</span></span>
           </div>
           <div className="hidden md:flex items-center gap-8">
-            {[['Docs', '/docs'], ['Pricing', '/pricing'], ['Registry', '/registry']].map(([label, href]) => (
-              <Link key={label} href={href as any} className="text-[11px] font-mono text-gray-500 hover:text-reactor-cyan transition-colors tracking-widest uppercase">
-                {label}
-              </Link>
-            ))}
+            <Link href="/docs" className="text-[11px] font-mono text-gray-500 hover:text-reactor-cyan transition-colors tracking-widest uppercase">
+              {t('Nav.docs')}
+            </Link>
+            <Link href="/pricing" className="text-[11px] font-mono text-gray-500 hover:text-reactor-cyan transition-colors tracking-widest uppercase">
+              {t('Nav.pricing')}
+            </Link>
+            <Link href="/registry" className="text-[11px] font-mono text-gray-500 hover:text-reactor-cyan transition-colors tracking-widest uppercase">
+              {t('Nav.registry')}
+            </Link>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/intelligence" className="flex items-center gap-2 px-4 py-2 bg-reactor-cyan text-white text-[11px] font-mono font-bold uppercase tracking-widest rounded-[2px] hover:bg-cyan-400 transition-colors">
-              Launch App <ArrowRight className="w-3 h-3" />
+              {t('Nav.launchApp')} <ArrowRight className="w-3 h-3" />
             </Link>
             <LanguageSwitcher />
           </div>
@@ -125,27 +131,27 @@ export default function LandingPage() {
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-reactor-cyan/20 bg-reactor-cyan/5 rounded-[2px] text-[10px] font-mono text-reactor-cyan uppercase tracking-[0.3em] mb-8">
             <span className="w-1.5 h-1.5 bg-reactor-cyan rounded-full animate-pulse" />
-            AVIP v2.0 — Andromeda Verifiable Immutable Proof
+            {t('Hero.tagline')}
           </div>
 
           <h1 className="text-5xl md:text-7xl font-mono font-bold leading-[1.05] mb-6 tracking-tighter">
-            <span className="text-white">Reputation</span>
+            <span className="text-white">{t('Hero.title1')}</span>
             <br />
-            <span className="text-reactor-cyan">you can verify.</span>
+            <span className="text-reactor-cyan">{t('Hero.title2')}</span>
             <br />
-            <span className="text-gray-500">On any chain.</span>
+            <span className="text-gray-500">{t('Hero.title3')}</span>
           </h1>
 
           <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed mb-10">
-            Andromeda Core is the infrastructure layer for portable, cryptographically verified builder reputation across DAOs, marketplaces and Web3 ecosystems.
+            {t('Hero.subtitle')}
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
             <Link href="/intelligence" className="flex items-center gap-2 px-8 py-3.5 bg-reactor-cyan text-white font-mono font-bold text-sm uppercase tracking-widest rounded-[2px] hover:bg-cyan-400 transition-all hover:shadow-[0_0_30px_rgba(0,240,255,0.3)]">
-              See Live Demo <ArrowRight className="w-4 h-4" />
+              {t('Hero.liveDemo')} <ArrowRight className="w-4 h-4" />
             </Link>
             <Link href="/docs" className="flex items-center gap-2 px-8 py-3.5 border border-white/10 text-gray-300 font-mono text-sm uppercase tracking-widest rounded-[2px] hover:border-reactor-cyan/40 hover:text-reactor-cyan transition-all">
-              API Reference
+              {t('Hero.apiReference')}
             </Link>
           </div>
 
@@ -168,8 +174,8 @@ export default function LandingPage() {
       <section className="py-32 px-6 relative">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <div className="text-[10px] font-mono text-reactor-cyan uppercase tracking-[0.4em] mb-4">How it works</div>
-            <h2 className="text-3xl md:text-4xl font-mono font-bold text-white">From raw data to<br /><span className="text-reactor-cyan">immutable proof</span></h2>
+            <div className="text-[10px] font-mono text-reactor-cyan uppercase tracking-[0.4em] mb-4">{t('HowItWorks.tagline')}</div>
+            <h2 className="text-3xl md:text-4xl font-mono font-bold text-white">{t('HowItWorks.title1')}<br /><span className="text-reactor-cyan">{t('HowItWorks.title2')}</span></h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -202,8 +208,8 @@ export default function LandingPage() {
       <section className="py-32 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <div className="text-[10px] font-mono text-reactor-cyan uppercase tracking-[0.4em] mb-4">Built for everyone</div>
-            <h2 className="text-3xl md:text-4xl font-mono font-bold text-white">One protocol.<br /><span className="text-reactor-cyan">Three entry points.</span></h2>
+            <div className="text-[10px] font-mono text-reactor-cyan uppercase tracking-[0.4em] mb-4">{t('Audiences.tagline')}</div>
+            <h2 className="text-3xl md:text-4xl font-mono font-bold text-white">{t('Audiences.title1')}<br /><span className="text-reactor-cyan">{t('Audiences.title2')}</span></h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -211,7 +217,7 @@ export default function LandingPage() {
               <div key={a.title} className={`relative p-8 border rounded-[2px] transition-all duration-300 group ${a.color} ${a.highlight ? 'bg-reactor-cyan/5' : 'bg-white/[0.02]'}`}>
                 {a.highlight && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-reactor-cyan text-white text-[9px] font-mono font-bold uppercase tracking-widest rounded-[1px]">
-                    Most Popular
+                    {t('Audiences.mostPopular')}
                   </div>
                 )}
                 <a.icon className={`w-7 h-7 mb-4 ${a.accent}`} />
@@ -231,17 +237,17 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
             <div>
-              <div className="text-[10px] font-mono text-reactor-cyan uppercase tracking-[0.4em] mb-4">Enterprise API</div>
-              <h2 className="text-3xl font-mono font-bold text-white mb-4">Verify reputation<br /><span className="text-reactor-cyan">in one call.</span></h2>
+              <div className="text-[10px] font-mono text-reactor-cyan uppercase tracking-[0.4em] mb-4">{t('ApiPreview.tagline')}</div>
+              <h2 className="text-3xl font-mono font-bold text-white mb-4">{t('ApiPreview.title1')}<br /><span className="text-reactor-cyan">{t('ApiPreview.title2')}</span></h2>
               <p className="text-gray-500 text-sm leading-relaxed mb-6">
-                Integrate AVIP scores into any platform. LinkedIn, Upwork, Fiverr — or your own DAO tooling. From $0/month.
+                {t('ApiPreview.desc')}
               </p>
               <div className="flex gap-3">
                 <Link href="/docs" className="px-4 py-2 bg-reactor-cyan text-white text-[11px] font-mono font-bold uppercase tracking-widest rounded-[2px] hover:bg-cyan-400 transition-colors">
-                  View Docs
+                  {t('ApiPreview.viewDocs')}
                 </Link>
                 <Link href="/pricing" className="px-4 py-2 border border-white/10 text-gray-400 text-[11px] font-mono uppercase tracking-widest rounded-[2px] hover:border-reactor-cyan/30 transition-colors">
-                  Pricing
+                  {t('ApiPreview.pricing')}
                 </Link>
               </div>
             </div>
@@ -267,7 +273,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Business model highlight */}
+          {/* Business model highlight (hardcoded English - you can add these keys to your JSON files later) */}
           <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
             <div className="p-6 border border-white/5 bg-white/[0.02] rounded-[2px]">
               <Server className="w-6 h-6 text-reactor-cyan mx-auto mb-3" />
@@ -294,13 +300,13 @@ export default function LandingPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-reactor-cyan/5 rounded-full blur-[100px] pointer-events-none" />
         <div className="relative max-w-2xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-mono font-bold text-white mb-4">
-            Trust is the new<br /><span className="text-reactor-cyan">infrastructure.</span>
+            {t('FinalCTA.title1')}<br /><span className="text-reactor-cyan">{t('FinalCTA.title2')}</span>
           </h2>
           <p className="text-gray-500 text-lg mb-10">
-            Start verifying builder reputation across chains today.
+            {t('FinalCTA.desc')}
           </p>
           <Link href="/intelligence" className="inline-flex items-center gap-3 px-10 py-4 bg-reactor-cyan text-white font-mono font-bold text-sm uppercase tracking-widest rounded-[2px] hover:bg-cyan-400 transition-all hover:shadow-[0_0_40px_rgba(0,240,255,0.3)]">
-            Launch Andromeda Core <ArrowRight className="w-4 h-4" />
+            {t('FinalCTA.launchApp')} <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </section>
@@ -316,16 +322,23 @@ export default function LandingPage() {
               height={20} 
               className="rounded-[2px]"
             />
-            <span className="font-mono text-sm text-gray-500">Andromeda <span className="text-reactor-cyan">Core</span></span>
+            <span className="font-mono text-sm text-gray-500">Andromeda<span className="text-reactor-cyan"> Core</span></span>
           </div>
           <div className="flex items-center gap-8">
-            {[['Docs', '/docs'], ['Pricing', '/pricing'], ['Registry', '/registry'], ['App', '/intelligence']].map(([label, href]) => (
-              <Link key={label} href={href as any} className="text-[11px] font-mono text-gray-600 hover:text-reactor-cyan transition-colors uppercase tracking-widest">
-                {label}
-              </Link>
-            ))}
+            <Link href="/docs" className="text-[11px] font-mono text-gray-600 hover:text-reactor-cyan transition-colors uppercase tracking-widest">
+              {t('Nav.docs')}
+            </Link>
+            <Link href="/pricing" className="text-[11px] font-mono text-gray-600 hover:text-reactor-cyan transition-colors uppercase tracking-widest">
+              {t('Nav.pricing')}
+            </Link>
+            <Link href="/registry" className="text-[11px] font-mono text-gray-600 hover:text-reactor-cyan transition-colors uppercase tracking-widest">
+              {t('Nav.registry')}
+            </Link>
+            <Link href="/intelligence" className="text-[11px] font-mono text-gray-600 hover:text-reactor-cyan transition-colors uppercase tracking-widest">
+              {t('Footer.app')}
+            </Link>
           </div>
-          <span className="text-[10px] font-mono text-gray-700 tracking-widest">© 2026 ANDROMEDA_COMPUTER</span>
+          <span className="text-[10px] font-mono text-gray-700 tracking-widest">{t('Footer.copyright')}</span>
         </div>
       </footer>
 
