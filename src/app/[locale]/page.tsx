@@ -278,7 +278,7 @@ export default function LandingPage() {
             <div className="p-6 border border-white/5 bg-white/[0.02] rounded-[2px]">
               <Server className="w-6 h-6 text-reactor-cyan mx-auto mb-3" />
               <h3 className="text-sm font-mono font-bold text-white mb-2">Freemium API</h3>
-              <p className="text-xs text-gray-500">10k free queries/month. Pay-as-you-grow for enterprises.</p>
+              <p className="text-xs text-gray-500">1k free queries/month. Pay-as-you-grow for enterprises.</p>
             </div>
             <div className="p-6 border border-white/5 bg-white/[0.02] rounded-[2px]">
               <BarChart3 className="w-6 h-6 text-reactor-cyan mx-auto mb-3" />
