@@ -5,6 +5,7 @@ import { routing } from '@/i18n/routing';
 import { ModeProvider } from '@/components/andromeda/modes/ModeContext';
 import WalletProvider from '@/components/providers/WalletProvider';
 import FaroProvider from '@/components/providers/FaroProvider';
+import BackToHome from '@/components/BackToHome';
 import "../globals.css";
 import "../andromeda-core.css";
 
@@ -36,6 +37,7 @@ export default async function LocaleLayout({
         <WalletProvider>
           <ModeProvider>
             {children}
+            <BackToHome />
           </ModeProvider>
         </WalletProvider>
       </FaroProvider>
