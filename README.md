@@ -1,199 +1,397 @@
-\# Andromeda Core · Verifiable Reputation Infrastructure for Web3
+<!--
+  ANDROMEDA CORE – Verifiable Reputation Infrastructure for Web3
+  © 2026 Andromeda Computer
+-->
 
-\[\!\[License: MIT\](https://img.shields.io/badge/License-MIT-blue.svg)\](LICENSE)  
-\[\!\[Next.js\](https://img.shields.io/badge/Next.js-16.1-black)\](https://nextjs.org/)  
-\[\!\[TypeScript\](https://img.shields.io/badge/TypeScript-5.9-blue)\](https://www.typescriptlang.org/)  
-\[\!\[Algorand\](https://img.shields.io/badge/Algorand-X402-00A8B0)\](https://developer.algorand.org/)
+<p align="center">
+  <img src="https://dev.andromedacomputer.net/logo-andromeda.png" alt="Andromeda Core" width="120"/>
+  <h1 align="center">Andromeda Core</h1>
+  <p align="center"><strong>Verifiable Reputation Infrastructure for Web3</strong><br/>
+  AVIP · Scorecard · Atlas · X402</p>
+</p>
 
-\*\*Andromeda Core\*\* is a decentralized infrastructure layer that transforms the ambiguity of human coordination into \*\*executable specifications\*\*, \*\*verifiable reputation\*\*, and \*\*immutable proofs\*\*. Built for DAOs, protocols, and Web3 marketplaces, it enables trust assessment of builders and projects based on cryptographic evidence — not narratives.
+<p align="center">
+  <a href="#"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/Next.js-16.1-black?logo=next.js" alt="Next.js 16"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript" alt="TypeScript"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/Algorand-X402-00A8B0?logo=algorand" alt="Algorand X402"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/Vara-Network-6a1b9a?logo=polkadot" alt="Vara Network"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome"/></a>
+</p>
 
-\>  \_AVIP v2.0 – Andromeda Verifiable Immutable Proof: portable reputation across chains, with asymmetric decay and anomaly detection.\_
+<details>
+<summary><b>📖 Table of Contents</b> (click to expand)</summary>
 
-\---
+- [What is Andromeda Core?](#-what-is-andromeda-core)
+- [Why Verifiable Reputation?](#-why-verifiable-reputation)
+- [Key Technologies](#-key-technologies)
+  - [AVIP v2.0 – Andromeda Verifiable Immutable Proof](#avip-v20--andromeda-verifiable-immutable-proof)
+  - [Scorecard – The Canonical Specification Format](#scorecard--the-canonical-specification-format)
+  - [Atlas Engine – Real‑time Data Ingestion](#atlas-engine--real‑time-data-ingestion)
+  - [Sincerity API – Portable Credentials](#sincerity-api--portable-credentials)
+- [Algorand Integration: X402 & Validator Rewards](#-algorand-integration-x402--validator-rewards)
+- [System Architecture](#-system-architecture)
+- [Comparison with Existing Solutions](#-comparison-with-existing-solutions)
+- [Project Structure](#-project-structure)
+- [Installation & Setup](#-installation--setup)
+- [API Endpoints](#-api-endpoints)
+- [Roadmap & Governance](#-roadmap--governance)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-\#\#  Key Features
+</details>
 
-\- \*\*Canonical Scorecard\*\* – Formalizes problems, boundaries, technical specs, and effort. Invariant engine that enforces structural clarity.  
-\- \*\*AVIP (Verifiable Reputation)\*\* – Multidimensional scoring (technical, governance, reliability, community) with asymmetric decay (negative events decay 3× faster).  
-\- \*\*Atlas Engine\*\* – Continuous ingestion of on‑chain data (Rootstock, Arbitrum, Optimism, Snapshot, The Graph) and off‑chain data (GitHub, EAS).  
-\- \*\*Sincerity API\*\* – Verifiable credentials for LinkedIn, Upwork, or any platform. Merkle proofs anchored on Vara Network and IPFS.  
-\- \*\*Intelligence Dashboard\*\* – Real‑time monitoring of activity, collaboration graphs, data sources, and system telemetry.  
-\- \*\*Anomaly Detection\*\* – Temporal, semantic, network, and quality analysis to mitigate reputation farms and Sybil attacks.
+---
 
-\---
+## 🔷 What is Andromeda Core?
 
-\#\#  Algorand Integration: X402 & Validator Rewards
+**Andromeda Core** is a decentralized infrastructure layer that transforms the ambiguity of human coordination into **executable specifications**, **verifiable reputation**, and **immutable proofs**. It serves as the trust backbone for DAOs, protocols, and Web3 marketplaces, enabling objective assessment of builders and projects based on cryptographic evidence — not narratives or social capital.
 
-Andromeda Core deeply integrates with the Algorand ecosystem through:
+> 🧠 _AVIP v2.0 – Andromeda Verifiable Immutable Proof: portable reputation across chains, with asymmetric decay and anomaly detection._
 
-\- \*\*X402 Protocol\*\* – An off‑chain payment and micropayment channel that rewards validators for each reputation verification, creating a decentralized trust marketplace.  
-\- \*\*Reward Processor\*\* – An automated mechanism that distributes ALGO incentives to validators who participate in milestone attestation and AVIP consensus.  
-\- \*\*Bridges\*\* – State synchronization between Algorand and Vara Network, ensuring immutability and portability of reputation scores.
+---
 
-\>  Payment & reward flow diagram: \[andromeda-payment-flow.html\](https://dev.andromedacomputer.net/andromeda-payment-flow.html)    
-\>  Slashing flow: \[andromeda-slashing-flow.html\](https://dev.andromedacomputer.net/andromeda-slashing-flow.html)    
-\>  AVIP reward flow for validators: \[andromeda-avip-reward-flow.html\](https://dev.andromedacomputer.net/andromeda-avip-reward-flow.html)
+## ❓ Why Verifiable Reputation?
 
-\---
+Current Web3 coordination suffers from **structural opacity**:
 
-\#\#  System Architecture
+- **Ambiguous proposals** → funds allocated based on rhetoric, not verifiable specs.
+- **Fragmented reputation** → each DAO rebuilds trust from scratch.
+- **Sybil & farm attacks** → low-cost manipulation of voting and grants.
 
-\!\[Andromeda System Architecture\](https://dev.andromedacomputer.net/andromeda-system-architecture.html)
+Andromeda Core solves these with a **trilemma‑breaking architecture**:
+
+<table>
+<tr>
+<th>Problem</th>
+<th>Andromeda Solution</th>
+</tr>
+<tr>
+<td>Ambiguity</td>
+<td><b>Scorecard</b> – coercive format forcing complete specification.</td>
+</tr>
+<tr>
+<td>Fragmentation</td>
+<td><b>AVIP</b> – portable, immutable reputation graph across chains.</td>
+</tr>
+<tr>
+<td>Manipulation</td>
+<td><b>Anomaly detection</b> + <b>asymmetric decay</b> + <b>reputation staking</b>.</td>
+</tr>
+</table>
+
+---
+
+## ⚙️ Key Technologies
+
+### AVIP v2.0 – Andromeda Verifiable Immutable Proof
+
+AVIP is the core reputation protocol that synthesizes multidimensional scores from on‑chain and off‑chain activity.
+
+**Mathematical foundation:**
+- **Asymmetric decay** – positive events decay at `λ_pos = 0.001` per day, negative events at `λ_neg = 0.003` (3× faster).
+- **Shannon entropy analysis** – detects bot‑like activity patterns.
+- **Merkle proofs** – each score is anchored on Vara Network and verifiable independently.
+
+**Dimensions:**
+- Technical (code, audits)
+- Governance (voting quality, proposals)
+- Reliability (delivery on commitments)
+- Community (mentorship, conflict resolution)
+
+**Anomaly detection:** temporal, semantic, network, and quality analysis → `behavioral confidence` factor (0–1) that modulates contribution weight.
+
+---
+
+### Scorecard – The Canonical Specification Format
+
+A **JSON schema** that forces the explicit definition of:
+
+1. **Problem** – current state, desired state, evidence, prior attempts.
+2. **Boundaries** – scope, dependencies, constraints, exclusions.
+3. **Technical specification** – architecture, requirements, success criteria.
+4. **Effort** – time, human resources, financial costs, identified risks.
+
+The **Invariant Engine** validates each Scorecard against 7 categories of rules (existence, scope, time, feasibility, proof, consistency, duplication). Output: `VALID / INVALID` with specific error codes (IFC).
+
+---
+
+### Atlas Engine – Real‑time Data Ingestion
+
+Atlas continuously ingests data from:
+
+| Source | Type | Data extracted |
+|--------|------|----------------|
+| Snapshot / Tally | Governance | Proposals, votes, outcomes |
+| GitHub | Code | Commits, PRs, issues, reviews |
+| Rootstock / Arbitrum / Optimism | L2 chains | Transactions, contract deployments |
+| The Graph | Indexing | Subgraph queries for DAO metrics |
+| EAS / Gitcoin Passport | Attestations | Credentials, stamps |
+
+All raw data is normalized into a unified **knowledge graph** (Neo4j) with disambiguated identities.
+
+---
+
+### Sincerity API – Portable Credentials
+
+Generate **verifiable credentials** (W3C VC format) that can be embedded into LinkedIn, Upwork, or any professional platform.
+
+- Each credential includes a **Merkle proof** linking to the immutable AVIP score.
+- Verification requires only the root hash (anchored on Vara/Ethereum) – no live API call needed.
+- Supports selective disclosure (e.g., prove only technical score without revealing entire history).
+
+---
+
+## 🔗 Algorand Integration: X402 & Validator Rewards
+
+Andromeda Core deeply integrates with the **Algorand ecosystem** through:
+
+- **X402 Protocol** – A lightweight off‑chain payment channel that enables micropayments for reputation verifications. Validators earn **ALGO** each time they attest a milestone or resolve a dispute.
+- **Reward Processor** – An automated smart contract on Algorand that distributes rewards proportionally to validator stake and participation. The distribution uses a **verifiable random function (VRF)** to select attestation committees.
+- **State Bridge** – Bi‑directional synchronization between Algorand (for reward accounting) and Vara Network (for immutable proof storage). AVIP scores are hashed and periodically checkpointed on Algorand to enable light‑client verification.
+
+> 📄 **Flows & Diagrams**  
+> - [Payment & Reward Flow](https://dev.andromedacomputer.net/andromeda-payment-flow.html)  
+> - [Slashing Flow](https://dev.andromedacomputer.net/andromeda-slashing-flow.html)  
+> - [AVIP Reward Flow for Validators](https://dev.andromedacomputer.net/andromeda-avip-reward-flow.html)
+
+---
+
+## 🧱 System Architecture
+
+<p align="center">
+  <img src="https://dev.andromedacomputer.net/andromeda-system-architecture.html" alt="System Architecture" width="90%"/>
+</p>
 
 The platform is organized into four layers:
 
-1\. \*\*Ingestion\*\* – Connectors for Snapshot, GitHub, Rootstock, Arbitrum, Optimism, The Graph, etc.  
-2\. \*\*Processing\*\* – Normalization, identity disambiguation, contribution classification, and knowledge graph construction.  
-3\. \*\*Storage\*\* – Immutable data on IPFS \+ anchoring on Vara Network and Ethereum; metadata in PostgreSQL; graph in Neo4j.  
-4\. \*\*Exposure\*\* – GraphQL API, web dashboard, oracles for smart contracts, and verifiable credentials.
+| Layer | Components | Technologies |
+|-------|------------|--------------|
+| **Ingestion** | Connectors for Snapshot, GitHub, L2s, The Graph, EAS | BullMQ, Redis, GraphQL clients |
+| **Processing** | Normalization, identity resolution, classification, anomaly detection | TypeScript, TensorFlow.js, custom ML models |
+| **Storage** | Immutable proofs, knowledge graph, event logs | IPFS (Pinata), Neo4j, PostgreSQL (Supabase), MongoDB |
+| **Exposure** | GraphQL API, web dashboard, oracles, VCs | Next.js API routes, GraphQL Yoga, NextAuth |
 
-All components are open‑source and auditable. The roadmap includes progressive decentralization toward a community‑run pinning network, RPC, and database.
+**Immutability guarantees:**
+- Every Scorecard, attestation, and slashing event is hashed and stored in a **Merkle Mountain Range (MMR)**.
+- Roots are periodically anchored on **Vara Network** (for fast finality) and **Ethereum** (for long‑term settlement).
 
-\---
+---
 
-\#\#  Technologies Used
+## 📊 Comparison with Existing Solutions
 
-| Area               | Technologies                                                                 |  
-|--------------------|-----------------------------------------------------------------------------|  
-| \*\*Frontend\*\*       | Next.js 16, React 19, Tailwind CSS, Framer Motion, Lucide icons             |  
-| \*\*Backend/API\*\*    | Next.js API routes, BullMQ, Redis (Upstash), Pinata (IPFS)                  |  
-| \*\*Blockchain\*\*     | ethers v6, viem, @gear-js/api (Vara), algosdk (Algorand), @solana/web3.js   |  
-| \*\*Databases\*\*      | PostgreSQL (via Supabase), Neo4j (graph), MongoDB (events)                  |  
-| \*\*Auth / Wallet\*\*  | RainbowKit, Wagmi, @perawallet/connect, @blockshake/defly-connect           |  
-| \*\*Testing\*\*        | Jest, Hardhat, solidity-coverage                                            |
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Andromeda Core (AVIP)</th>
+<th>Gitcoin Passport</th>
+<th>EAS (Ethereum Attestation)</th>
+<th>Proof of Humanity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Immutability</strong></td>
+<td>✅ Immutable (MMR + Vara)</td>
+<td>❌ Revocable stamps</td>
+<td>❌ Revocable attestations</td>
+<td>❌ Challenge period</td>
+</tr>
+<tr>
+<td><strong>Portability</strong></td>
+<td>✅ Cross‑chain (Vara, Ethereum, Algorand)</td>
+<td>❌ Limited to Gitcoin</td>
+<td>✅ On‑chain but not portable</td>
+<td>❌ Single registry</td>
+</tr>
+<tr>
+<td><strong>Sybil resistance</strong></td>
+<td>✅ Entropy + behavioral analysis</td>
+<td>❌ Basic stamp aggregation</td>
+<td>❌ None</td>
+<td>✅ Video + deposit</td>
+</tr>
+<tr>
+<td><strong>Quality scoring</strong></td>
+<td>✅ Multidimensional (tech, gov, reliability)</td>
+<td>❌ Only humanhood</td>
+<td>❌ Arbitrary strings</td>
+<td>❌ Only humanhood</td>
+</tr>
+<tr>
+<td><strong>Incentives</strong></td>
+<td>✅ X402 micropayments for validators</td>
+<td>❌ None</td>
+<td>❌ None</td>
+<td>❌ None</td>
+</tr>
+<tr>
+<td><strong>Anomaly detection</strong></td>
+<td>✅ ML + graph analysis</td>
+<td>❌ No</td>
+<td>❌ No</td>
+<td>❌ No</td>
+</tr>
+</tbody>
+</table>
 
-\---
+---
 
-\#\#  Getting Started (Run Locally)
+## 📁 Project Structure
 
-\#\#\# Prerequisites
+andromeda-core-platform/
+├── src/
+│ ├── app/
+│ │ ├── [locale]/ # i18n pages (es, en, pt)
+│ │ ├── api/ # Next.js API routes
+│ │ │ ├── coordination/ # Scorecard validation/publishing
+│ │ │ ├── intelligence/ # Telemetry, sync, activity logs
+│ │ │ ├── reputation/ # AVIP scores, attestations
+│ │ │ └── rootstock/ # Governance data proxy
+│ │ └── layout.tsx
+│ ├── components/
+│ │ ├── coordination/ # ScorecardForm, RegistryView, AtlasExplore
+│ │ ├── intelligence/ # SyncManager, SystemMetrics, NetworkGraph
+│ │ ├── layout/ # DashboardUnified, Sidebar
+│ │ └── ui/ # Panel, LED, button components
+│ ├── lib/
+│ │ ├── services/reputation/ # ReputationEngine (AVIP)
+│ │ ├── invariants/ # Scorecard invariant validator
+│ │ ├── anomaly/ # Temporal, semantic, network detectors
+│ │ └── utils/ # Logger, Merkle proof helpers
+│ ├── hooks/ # useAndromedaWallet, useScorecards, etc.
+│ ├── i18n/ # next-intl config
+│ └── locales/ # JSON translation files
+├── public/ # Static assets (logo, favicon)
+├── scripts/ # Sync workers, test scripts
+├── tests/ # Unit, stress, chaos tests
+├── package.json
+└── README.md
 
-\- Node.js 20+  
-\- npm or pnpm  
-\- Pinata account (IPFS) and Upstash (Redis)
 
-\#\#\# Installation
 
-\`\`\`bash  
-git clone https://github.com/AndromedaCore/AlgorandX402.git  
-cd AlgorandX402  
+---
+
+## 🚀 Installation & Setup
+
+### Prerequisites
+
+- Node.js 20+ (LTS recommended)
+- npm or pnpm
+- Pinata account (IPFS) – [https://pinata.cloud](https://pinata.cloud)
+- Upstash Redis account – [https://upstash.com](https://upstash.com)
+- Supabase account (PostgreSQL) – [https://supabase.com](https://supabase.com)
+- Algorand node or indexer (optional, for X402)
+
+### Clone & Install
+
+```bash
+git clone https://github.com/AndromedaCore/AlgorandX402.git
+cd AlgorandX402
 npm install
 
----
 
-### Environment Variables
+Environment Variables
+Create a .env.local file in the root with the following keys:
 
-Create a .env.local file in the root with the following keys (obtain values from your services):  
-\# Supabase  
-NEXT\_PUBLIC\_SUPABASE\_URL=  
-NEXT\_PUBLIC\_SUPABASE\_ANON\_KEY=  
-SUPABASE\_SERVICE\_ROLE\_KEY=
+# Supabase (PostgreSQL)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-key
 
-\# Pinata (IPFS)  
-PINATA\_JWT=  
-NEXT\_PUBLIC\_PINATA\_GATEWAY=
+# Pinata (IPFS)
+PINATA_JWT=your-jwt
+NEXT_PUBLIC_PINATA_GATEWAY=https://gateway.pinata.cloud
 
-\# Upstash Redis  
-UPSTASH\_REDIS\_REST\_URL=  
-UPSTASH\_REDIS\_REST\_TOKEN=
+# Upstash Redis
+UPSTASH_REDIS_REST_URL=https://your-region.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your-token
 
-\# Algorand (X402)  
-ALGORAND\_INDEXER\_TOKEN=  
-ALGORAND\_INDEXER\_URL=
+# Algorand (X402)
+ALGORAND_INDEXER_TOKEN=your-token
+ALGORAND_INDEXER_URL=https://mainnet-idx.algonode.cloud
 
-\# Vara Network / Gear  
-NEXT\_PUBLIC\_VARA\_RPC=
+# Vara Network (Gear)
+NEXT_PUBLIC_VARA_RPC=wss://rpc.vara.network
 
----
+# Optional: Ethereum RPC for anchoring
+NEXT_PUBLIC_ETH_RPC=https://mainnet.infura.io/v3/your-key
 
-**Run Development Server**  
+Run Development Server
 npm run dev
 
----
 
-Open http://localhost:3000 – the landing page will show the system. You can navigate to:
+Open http://localhost:3000 – you will see the industrial‑style landing page.
 
-/intelligence – real‑time telemetry and data sources
+Build for Production
 
-/coordination – Scorecard form to publish technical challenges
-
-/registry – immutable scorecard explorer
-
-/audit – security and vulnerability dashboard
-
----
-
-npm run build  
+npm run build
 npm start
 
----
+📡 API Endpoints
+All endpoints return JSON. Most require an API key (free tier available).
 
-### Build for Production
-
-npm run build  
-npm start
-
----
-
-##  Main API Endpoints
-
-The API is documented at /api/docs when the server is running. Notable endpoints:
-
-* POST /api/coordination/validate – Validate a Scorecard (invariant engine)  
-* POST /api/coordination/publish – Publish a signed Scorecard, store on IPFS, anchor on Vara  
-* GET /api/intelligence/telemetry – Fetch system metrics and data source status  
-* GET /api/reputation/verify/:did – Get AVIP score for a builder (requires API key)  
-* POST /api/reputation/attest – Peer attestation (with reputation stake)
-
----
-
-##  Project Structure (simplified)
-
-text  
-src/  
-├── app/  
-│   ├── \[locale\]/             \# Internationalized pages (es, en, pt)  
-│   ├── api/                  \# API routes (coordination, intelligence, reputation, rootstock)  
-│   └── layout.tsx  
-├── components/  
-│   ├── coordination/         \# ScorecardForm, RegistryView, AtlasExplore  
-│   ├── intelligence/         \# SyncManager, SystemMetrics, NetworkGraph  
-│   ├── layout/               \# DashboardUnified, Sidebar  
-│   └── ui/                   \# Reusable components (panels, modals)  
-├── lib/  
-│   ├── services/reputation/  \# AVIP engine (reputation-engine.service.ts)  
-│   ├── invariants/           \# Scorecard invariant validator  
-│   └── utils/                \# Logger, cryptographic helpers  
-├── hooks/                    \# useAndromedaWallet, useScorecards, etc.  
-├── i18n/                     \# next-intl configuration  
-└── locales/                  \# JSON translation files (es, en, pt)  
----
-
-## 🤝 Contributing
-
-Contributions are welcome. Please open an issue or pull request following the contribution template. All code is audited by the community Invariants Parliament.
-
-* Full documentation: [core.andromedacomputer.net/docs](https://core.andromedacomputer.net/docs)  
-* Governance forum: [community.andromedacomputer.net](https://community.andromedacomputer.net/)
-
----
-
-## 📄 License
-
-MIT © 2026 Andromeda Computer.  
-Public good project – no native token, funded by usage and grants.  
----
-
-## 🔗 Useful Links
-
-* [System Architecture](https://dev.andromedacomputer.net/andromeda-system-architecture.html)  
-* [X402 Payment & Reward Flow](https://dev.andromedacomputer.net/andromeda-payment-flow.html)  
-* [Slashing Flow](https://dev.andromedacomputer.net/andromeda-slashing-flow.html)  
-* [AVIP Reward Flow for Validators](https://dev.andromedacomputer.net/andromeda-avip-reward-flow.html)
+Method	Endpoint	Description
+POST	/api/coordination/validate	Validate a Scorecard (invariant engine)
+POST	/api/coordination/publish	Publish Scorecard → IPFS → Vara anchor
+GET	/api/intelligence/telemetry	Real‑time system metrics & data source status
+GET	/api/intelligence/activity	Recent activity log (events, syncs)
+GET	/api/reputation/verify/:did	AVIP score for a builder (requires API key)
+POST	/api/reputation/attest	Peer attestation (reputation staking)
+GET	/api/rootstock/proposals	Recent on‑chain proposals (Rootstock)
+GET	/api/docs	Swagger UI for full API reference
 
 
----
+Example request (AVIP score):
 
-Made with clarity, immutability, and hard industrial design.
+curl -X GET "https://core.andromedacomputer.net/api/reputation/verify/did:example:0x123" \
+  -H "x-api-key: ac_your_key"
 
-\---  
+🗺️ Roadmap & Governance
+Andromeda Core is a public good – no native token, governed by the community through two bodies:
+
+Assembly of Builders – weighted by reputation (not tokens). Decides funding, strategy.
+
+Invariants Parliament – elected technical committee. Approves algorithm changes.
+
+<details> <summary><b>Progressive decentralization roadmap</b> (click to expand)</summary>
+Phase	Target	Status
+Phase 1 (Foundation)	Centralized infra, team‑led	✅ Complete
+Phase 2 (Co‑governance)	Assembly of Builders operational	🟡 Q2 2026
+Phase 3 (Distributed pinning)	Community IPFS nodes	🟡 Q3 2026
+Phase 4 (Full DAO)	No special team privileges	🔲 Q4 2026
+</details>
+🤝 Contributing
+We welcome contributions! Please read the Contribution Guidelines (to be added). Areas where help is needed:
+
+New data source connectors (Cosmos, Solana, etc.)
+
+Machine learning models for anomaly detection
+
+Security audits and invariants formalization
+
+Documentation translations (zh, ja, ko)
+
+Bug bounty: Security vulnerabilities can be reported to security@andromedacomputer.net – rewards up to $5,000 in stablecoins.
+
+📄 License
+MIT © 2026 Andromeda Computer.
+This project is public good infrastructure – freely usable, forkable, and auditable.
+
+🔗 References & External Links
+Andromeda Core Paper v3.1 (PDF)
+
+System Architecture Diagram
+
+X402 Payment & Reward Flow
+
+Slashing Flow
+
+AVIP Reward Flow
+
+Live Dashboard (demo)
+
+<p align="center"> Made with <strong>clarity</strong>, <strong>immutability</strong>, and <strong>hard industrial design</strong>. </p> ```
+
+
