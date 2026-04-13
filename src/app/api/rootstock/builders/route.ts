@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const scorecard = await rootstockConnector.getBuilderScorecard(address);
+        const scorecard = await rootstockConnector.getBuilderScorecard(address.trim());
         if (!scorecard) {
             return NextResponse.json(
                 { error: 'Builder not found or error fetching data' },

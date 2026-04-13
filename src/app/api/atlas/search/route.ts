@@ -34,14 +34,14 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     
     // Parsear parámetros de búsqueda
-    const builderDid = searchParams.get('builderDid');
+    const builderDid = searchParams.get('builderDid')?.trim();
     const category = searchParams.get('category');
     const ecosystem = searchParams.get('ecosystem');
     const minImpact = searchParams.get('minImpact');
     const maxImpact = searchParams.get('maxImpact');
     const status = searchParams.get('status');
     const actionType = searchParams.get('actionType');
-    const searchText = searchParams.get('search');
+    const searchText = searchParams.get('search')?.trim();
     const sortBy = searchParams.get('sortBy') || 'metadata.trustScore';
     const sortOrder = searchParams.get('sortOrder') === 'asc' ? 1 : -1;
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (searchText) {
-      const isAddress = /^0x[a-fA-F0-9]{40}$/.test(searchText);
+      const isAddress = /^0x[a-fA-F0-9]{40}$/i.test(searchText);
       if (isAddress) {
         const addr = searchText.toLowerCase();
         // Si es una dirección, buscamos coincidencia exacta o por múltiples formatos de DID

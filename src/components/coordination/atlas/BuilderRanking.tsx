@@ -54,7 +54,8 @@ export default function BuilderRanking({
       const params = new URLSearchParams();
       if (category && category !== 'all') params.append('category', category);
       if (ecosystem && ecosystem !== 'all') params.append('ecosystem', ecosystem);
-      if (searchQuery) params.append('search', searchQuery);
+      const trimmedSearch = (searchQuery || '').trim();
+      if (trimmedSearch) params.append('search', trimmedSearch);
       params.append('sortBy', sortBy === 'impact' ? 'metadata.trustScore' : 'metadata.trustScore');
       params.append('sortOrder', sortOrder);
       params.append('limit', limit.toString());
@@ -66,13 +67,13 @@ export default function BuilderRanking({
       let finalResults = [...dbResults];
 
       // Detectar si la búsqueda es una dirección EVM
-      const isAddressSearch = searchQuery && /^0x[a-fA-F0-9]{40}$/.test(searchQuery);
+      const isAddressSearch = trimmedSearch && /^0x[a-fA-F0-9]{40}$/.test(trimmedSearch);
 
       if (isAddressSearch) {
         // P0 FIX: búsqueda on-demand real — consultar directamente el scorecard del builder
-        logger.info(`🔍 Address search detected: ${searchQuery}. Fetching real scorecard...`);
+        logger.info(`🔍 Address search detected: ${trimmedSearch}. Fetching real scorecard...`);
         try {
-          const scorecardRes = await fetch(`/api/rootstock/builders?address=${searchQuery}`);
+          const scorecardRes = await fetch(`/api/rootstock/builders?address=${trimmedSearch}`);
           if (scorecardRes.ok) {
             const scorecard = await scorecardRes.json();
             // El endpoint devuelve datos reales: address, name, reputation, stats, proposals

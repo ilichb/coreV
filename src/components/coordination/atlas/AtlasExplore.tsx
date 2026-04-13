@@ -283,7 +283,7 @@ export default function AtlasExplore() {
                   <BuilderRanking
                     category={categoryFilter === 'all' ? undefined : categoryFilter}
                     ecosystem={ecosystemFilter === 'all' ? undefined : ecosystemFilter}
-                    searchQuery={searchQuery}
+                    searchQuery={searchQuery?.trim()}
                     onBuilderClick={(did) => {
                       // Extract address from DID (e.g. did:andromeda:rootstock:0x... or just raw 0x...)
                       const parts = did.split(':');
@@ -310,7 +310,7 @@ export default function AtlasExplore() {
               <ProjectRanking
                 category={categoryFilter === 'all' ? undefined : categoryFilter}
                 ecosystem={ecosystemFilter === 'all' ? undefined : ecosystemFilter}
-                searchQuery={searchQuery}
+                searchQuery={searchQuery?.trim()}
               />
             </EmbeddedDisplay>
           )}
@@ -320,7 +320,7 @@ export default function AtlasExplore() {
               <MilestoneFeed
                 category={categoryFilter === 'all' ? undefined : categoryFilter}
                 ecosystem={ecosystemFilter === 'all' ? undefined : ecosystemFilter}
-                searchQuery={searchQuery}
+                searchQuery={searchQuery?.trim()}
               />
             </EmbeddedDisplay>
           )}
