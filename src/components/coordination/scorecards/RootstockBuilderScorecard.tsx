@@ -125,7 +125,9 @@ export default function RootstockBuilderScorecard({ address }: { address: string
     );
   }
 
-  const allocationNum = parseFloat(scorecard.staking.allocation) || 0;
+  // Ultra-defensive mapping
+  const stakingInfo = scorecard?.staking || { allocation: '0', gauges: [] };
+  const allocationNum = parseFloat(stakingInfo?.allocation || '0') || 0;
   const allocationDisplay = allocationNum > 1e15
     ? `${(allocationNum / 1e18).toPrecision(4)} rBTC`
     : `${allocationNum.toFixed(2)} wei`;
@@ -136,7 +138,7 @@ export default function RootstockBuilderScorecard({ address }: { address: string
     scorecard.reputation >= 600 ? { label: 'ACTIVE', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/30' } :
                                    { label: 'EMERGING', color: 'text-gray-400', bg: 'bg-gray-500/10 border-gray-500/30' };
 
-  const projectName = scorecard.name || `Builder ${scorecard.address.substring(0, 8)}...`;
+  const projectName = scorecard?.name || `Builder ${scorecard?.address?.substring(0, 8) || 'Unknown'}...`;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -202,7 +204,7 @@ export default function RootstockBuilderScorecard({ address }: { address: string
         />
         <StatCard
           label="Days in Ecosystem"
-          value={scorecard.stats.timeInEcosystem > 0 ? `${scorecard.stats.timeInEcosystem}D` : 'N/A'}
+          value={scorecard.stats?.timeInEcosystem > 0 ? `${scorecard.stats.timeInEcosystem}D` : 'N/A'}
           sub="Calculated from staking history"
           icon={Clock}
           color="text-green-500"
@@ -286,9 +288,9 @@ export default function RootstockBuilderScorecard({ address }: { address: string
 
             <div className="space-y-3">
               <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">Active Gauge Addresses</p>
-              {scorecard.staking.gauges.length > 0 ? (
+              {stakingInfo.gauges && stakingInfo.gauges.length > 0 ? (
                 <div className="grid grid-cols-1 gap-2">
-                  {scorecard.staking.gauges.map((g, i) => (
+                  {stakingInfo.gauges.map((g, i) => (
                     <div key={i} className="p-2 bg-black/40 border border-white/5 flex items-center gap-3">
                       <Zap className="w-3 h-3 text-purple-500 flex-shrink-0" />
                       <span className="text-[9px] text-gray-400 font-mono-display truncate">{g}</span>
@@ -309,15 +311,15 @@ export default function RootstockBuilderScorecard({ address }: { address: string
                 </div>
                 <div className="flex justify-between">
                   <span>Governance Bonus</span>
-                  <span className="text-reactor-cyan">+{Math.min(scorecard.stats.proposals * 25, 150)}</span>
+                  <span className="text-reactor-cyan">+{Math.min((scorecard.stats?.proposals || 0) * 25, 150)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Staking Bonus</span>
-                  <span className="text-orange-400">+{Math.min(Math.round(scorecard.stats.totalStaked * 0.1), 150)}</span>
+                  <span className="text-orange-400">+{Math.min(Math.round((scorecard.stats?.totalStaked || 0) * 0.1), 150)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Gauge Bonus</span>
-                  <span className="text-purple-400">+{Math.min(scorecard.stats.activeGauges * 10, 100)}</span>
+                  <span className="text-purple-400">+{Math.min((scorecard.stats?.activeGauges || 0) * 10, 100)}</span>
                 </div>
                 <div className="flex justify-between border-t border-white/10 pt-1.5 mt-1.5">
                   <span className="text-white font-bold">Final Score</span>
