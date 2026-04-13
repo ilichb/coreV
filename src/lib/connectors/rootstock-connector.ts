@@ -417,14 +417,29 @@ export class RootstockConnector {
         ]);
 
         if (govProposalsRes.status === 'fulfilled') {
-          govProposalData = await govProposalsRes.value.json();
+          const res = govProposalsRes.value;
+          if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+            try {
+              govProposalData = await res.json();
+            } catch (e) {
+              logger.warn('Failed to parse governance proposals JSON, using default');
+            }
+          }
         }
         if (govVotesRes.status === 'fulfilled') {
-          govVotesData = await govVotesRes.value.json();
+          const res = govVotesRes.value;
+          if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+            try {
+              govVotesData = await res.json();
+            } catch (e) {
+              logger.warn('Failed to parse governance votes JSON, using default');
+            }
+          }
         }
       } else {
         logger.warn('⚠️ No governance subgraph URL configured (THEGRAPH_API_KEY missing)');
       }
+
 
       const [collectiveProposals] = await Promise.allSettled([
         fetchCollectiveProposals()
