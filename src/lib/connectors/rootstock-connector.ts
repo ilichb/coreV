@@ -186,6 +186,8 @@ export class RootstockConnector {
 
   async fetchAllBuilders(limit: number = 20): Promise<any[]> {
     const cacheKey = `rootstock:builders:all:${limit}`;
+    
+
     // Pinned fallbacks for "Always-On" reliability
     const pinnedBuilders = [
       { id: '0xd9fcae4315920387f00725c78285d6d41c30b967', name: 'WoodSwap', category: 'DeFi', backerTotalAllocation: '0', accumulatedTime: '0' },
