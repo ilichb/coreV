@@ -1,4 +1,3 @@
-cat > README.md << 'EOF'
 # Andromeda Core – Solana Integration
 
 [![Hackathon](https://img.shields.io/badge/Hackathon-Solana-14F195?style=for-the-badge&logo=solana)](https://solana.com/hackathon)
@@ -80,7 +79,7 @@ Our goal is to turn Solana from a “signature‑only” identity layer into a *
 ```
 
 ## 📁 Project Structure (Solana‑relevant)
-
+```
 src/
 ├── lib/
 │ ├── infrastructure/clients/
@@ -96,7 +95,7 @@ src/
 │ └── coordination/scorecard.ts (DID parsing includes 'sol')
 └── app/api/coordination/publish/route.ts (signature verification works)
 ```
-
+```
 ## 🧪 How to Test (Current Functionality)
 
 1. Clone this repo and run `npm install`.
@@ -106,7 +105,7 @@ src/
 5. Sign the nonce – the backend will accept the signature and publish the Scorecard.
 
 > ⚠️ The published Scorecard will **not** yet reflect Solana on‑chain activity (governance data) because the connector is missing. That’s exactly what we will build during the hackathon.
-
+```
 ---
 
 ## 📈 Hackathon Goals – Success Metrics
@@ -129,10 +128,11 @@ We are actively looking for:
 - **Validators and DAOs** to test our dashboard and provide feedback.  
 - **Meta Pool** (or other liquid staking protocols) to integrate the risk dashboard.
 
-If you are interested, please open an issue or reach out via [Discord](https://discord.gg/andromedacore).
+If you are interested, please open an issue or reach out via seguridad@andromedacomputer.net.
 
 ---
-
+```
+```
 ## 📄 License
 
 MIT – see [LICENSE](LICENSE) file.
@@ -140,7 +140,9 @@ MIT – see [LICENSE](LICENSE) file.
 ---
 
 **Built with 🔧 by Andromeda Core Team**  
-[Website](https://andromedacore.io) · [Twitter](https://twitter.com/AndromedaCore) · [GitHub](https://github.com/AndromedaCore)
-EOF
+[Website](https://core.andromedacomputer.net/en) · [Twitter](https://x.com/Andromeda_Core) · [GitHub](https://github.com/AndromedaCore/Core-Solana)
+
+
+
 
 
