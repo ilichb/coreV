@@ -1,150 +1,146 @@
-<p align="center">
-<img src="https://iili.io/BXnz5Au.jpg" alt="logo" border="0"></p>
+cat > README.md << 'EOF'
+# Andromeda Core – Solana Integration
 
-<h1 align="center">Andromeda Core</h1>
+[![Hackathon](https://img.shields.io/badge/Hackathon-Solana-14F195?style=for-the-badge&logo=solana)](https://solana.com/hackathon)
+[![Status](https://img.shields.io/badge/Status-Partial%20Integration-yellow)]()
 
-<p align="center">
-  <strong>Verifiable Reputation Infrastructure for Web3</strong><br/>
-  AVIP · Scorecard · Atlas · X402
-</p>
+Andromeda Core is a **verifiable reputation protocol** for Web3 builders, DAOs, and validators. This repository contains the **Solana integration module** – the bridge that allows Solana-native identities to participate in the cross‑chain reputation network.
 
-<p align="center">
-  <a href="#"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License"/></a>
-  <a href="#"><img src="https://img.shields.io/badge/Next.js-16.1-black?logo=next.js" alt="Next.js 16"/></a>
-  <a href="#"><img src="https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript" alt="TypeScript"/></a>
-  <a href="#"><img src="https://img.shields.io/badge/Algorand-X402-00A8B0?logo=algorand" alt="Algorand X402"/></a>
-  <a href="#"><img src="https://img.shields.io/badge/Vara-Network-6a1b9a?logo=polkadot" alt="Vara Network"/></a>
-  <a href="#"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome"/></a>
-</p>
-
-<details>
-<summary><b>📖 Table of Contents (click to expand)</b></summary>
-
-- [What is Andromeda Core?](#-what-is-andromeda-core)
-- [Why Verifiable Reputation?](#-why-verifiable-reputation)
-- [Key Technologies](#-key-technologies)
-- [Algorand Integration: X402](#-algorand-integration-x402--validator-rewards)
-- [System Architecture](#-system-architecture)
-- [Comparison with Existing Solutions](#-comparison-with-existing-solutions)
-- [Project Structure](#-project-structure)
-- [Installation & Setup](#-installation--setup)
-- [API Endpoints](#-api-endpoints)
-- [Roadmap & Governance](#-roadmap--governance)
-- [Contributing](#-contributing)
-- [License](#-license)
-
-</details>
+> 🚀 **This is our submission for the Solana Hackathon.** We are seeking feedback and support to complete the missing pieces (see below).
 
 ---
 
-## 🔷 What is Andromeda Core?
+## ✅ What’s Already Built (Working)
 
-**Andromeda Core** is a decentralized infrastructure layer that transforms the ambiguity of human coordination into **executable specifications**, **verifiable reputation**, and **immutable proofs**. It acts as the trust backbone for DAOs, protocols, and Web3 marketplaces, enabling the evaluation of builders and projects based on cryptographic evidence.
+| Component | Status | Description |
+|-----------|--------|-------------|
+| **Ed25519 signature verification** | ✅ Complete | The `/api/coordination/publish` endpoint accepts and verifies Ed25519 signatures from Solana wallets. |
+| **DID support for Solana** | ✅ Complete | DIDs like `did:andromeda:sol:<pubkey>` are parsed and recognized across the system. |
+| **Identity linking** | ✅ Complete | A Solana address can be linked to an Andromeda profile (no reputation yet, but identity is verified). |
+| **Test environment** | ✅ Complete | Full LocalNet setup for development (using Algorand LocalNet as sandbox; Solana testnet pending). |
 
-> 🧠 _AVIP v2.0 – Andromeda Verifiable Immutable Proof: cross-chain portable reputation, featuring asymmetric decay and anomaly detection._
-
----
-
-## ❓ Why Verifiable Reputation?
-
-Current Web3 coordination suffers from **structural opacity**:
-
-| Problem | Andromeda Solution |
-| :--- | :--- |
-| **Ambiguity** | **Scorecard** – A coercive format that forces complete specification. |
-| **Fragmentation** | **AVIP** – A portable and immutable reputation graph across chains. |
-| **Manipulation** | Anomaly detection + Asymmetric decay + Reputation staking. |
+**Code references:**  
+- Signature verification: `src/lib/services/coordination/crypto-guard.ts` (Ed25519 path)  
+- DID parsing: `src/types/coordination/scorecard.ts`  
+- API endpoint: `src/app/api/coordination/publish/route.ts`
 
 ---
 
-## ⚙️ Key Technologies
+## 🧱 What We Will Build During the Hackathon (Missing Pieces)
 
-### AVIP v2.0 – Andromeda Verifiable Immutable Proof
-A protocol that synthesizes multidimensional scores from on-chain and off-chain activity.
+Our goal is to turn Solana from a “signature‑only” identity layer into a **full reputation source** – the same way we already ingest data from Rootstock, Optimism, and Arbitrum.
 
-* **Mathematical Foundation**:
-    * **Asymmetric Decay**: Positive events decay at $λ_{pos} = 0.001$ per day, while negative events decay at $λ_{neg} = 0.003$ (3x faster).
-    * **Shannon Entropy Analysis**: Detects bot-like activity patterns.
-    * **Merkle Proofs**: Each score is anchored on the Vara Network.
+### 🔹 1. Governance Data Ingestor (Realms / Squads)
 
-### Scorecard – The Canonical Specification Format
-A JSON schema that defines: **Problem**, **Boundaries (Scope)**, **Technical Specification**, and **Effort**. The Invariant Engine validates this against 7 categories of rules.
+**Problem:** Solana DAOs use Realms or Squads. Their proposals, votes, and delegate activity are not indexed by Andromeda.
 
-### Atlas Engine – Real‑time Data Ingestion
-Ingests data from: GitHub (Commits/PRs), Snapshot (Votes), L2s (Transactions), and EAS (Attestations).
+**Plan:**  
+- Build a connector similar to `rootstock-connector.ts` using **The Graph** (or direct RPC to Realms program).  
+- Fetch proposals, votes, and participation history.  
+- Normalize into `StandardGovernanceDecision` format.
 
----
+### 🔹 2. TrustScore for Solana Builders & Validators
 
-## 🔗 Algorand Integration: X402 & Validator Rewards
+**Problem:** Currently, a Solana builder can prove *who they are* (signature) but not *what they have done* (reputation).
 
-* **X402 Protocol**: Off-chain micropayment channel for reputation verifications.
-* **Reward Processor**: A smart contract on Algorand that distributes rewards using **VRF** (Verifiable Random Function) to select attestation committees.
-* **State Bridge**: Bi-directional synchronization between Algorand (accounting) and Vara Network (proof storage).
+**Plan:**  
+- Feed the ingested governance data into the **AVIP reputation engine** (already supports Shannon entropy and asymmetric decay).  
+- Calculate a TrustScore based on:
+  - Number of proposals created/voted.
+  - Quality of participation (consistency, alignment with community outcomes).
+  - Cross‑chain activity (if the same DID also works on Ethereum, Algorand, etc.).
 
----
+### 🔹 3. Solana Native Micropayments (x402‑like)
 
-## 🧱 System Architecture
+**Problem:** Algorand has x402 for cheap micropayments. Solana lacks an equivalent standard, but we can use **native SOL transfers** (extremely cheap).
 
-| Layer | Components | Technologies |
-| :--- | :--- | :--- |
-| **Ingestion** | Connectors (GitHub, L2, Graph) | BullMQ, Redis, GraphQL |
-| **Processing** | Identity, ML, Anomalies | TypeScript, TensorFlow.js |
-| **Storage** | Immutable Proofs, Knowledge Graph | IPFS, Neo4j, PostgreSQL |
-| **Exposure** | API, Dashboard, Oracles, VCs | Next.js, GraphQL, NextAuth |
+**Plan:**  
+- Implement a `sendPaymentSolana` method using `@solana/web3.js`.  
+- Allow validators to receive micro‑rewards in SOL (similar to the Algorand CU‑02).  
+- Integrate with the Atlas verification flow.
 
----
+### 🔹 4. Dashboard for Solana Stakers (Meta Pool synergy)
 
-## 📊 Comparison with Existing Solutions
+**Problem:** Stakers on Solana (e.g., through Meta Pool’s `mpSOL`) have no visibility into validator reliability.
 
-| Feature | Andromeda Core (AVIP) | Gitcoin Passport | EAS |
-| :--- | :--- | :--- | :--- |
-| **Immutability** | ✅ Immutable (MMR + Vara) | ❌ Revocable stamps | ❌ Revocable |
-| **Portability** | ✅ Vara, Eth, Algorand | ❌ Gitcoin only | ❌ On-chain fixed |
-| **Sybil Resistance** | ✅ ML + Graph | ❌ Basic aggregation | ❌ None |
-| **Quality Scoring** | ✅ Multidimensional | ❌ Humanhood only | ❌ Plain text |
-
----
-
-## 📁 Project Structure
+**Plan:**  
+- Extend the **Risk Dashboard** to show TrustScores of Solana validators.  
+- Combine on‑chain validator performance (uptime, commission) with governance history.
 
 ```
-andromeda-core-platform/
-├── src/
-│   ├── app/            # i18n pages (es, en, pt)
-│   ├── api/            # Next.js API Routes (Reputation, Coordination)
-│   ├── components/     # Industrial UI Components
-│   ├── lib/            # AVIP Engine, Invariants, Anomaly Detectors
-│   └── hooks/          # useAndromedaWallet, useScorecards
-├── scripts/            # Sync workers
-└── tests/              # Unit, stress & chaos tests
+
+## 🛠️ Technologies Used
+
+- **Backend:** Next.js 16, TypeScript, BullMQ, Redis (Upstash)  
+- **Blockchain:** `@solana/web3.js`, `@solana/spl-token`, `ed25519`  
+- **Data Indexing:** The Graph (planned), Helius RPCs  
+- **Reputation Engine:** Shannon entropy, asymmetric decay (already implemented in AVIP v2.0)  
+- **Storage:** Supabase (PostgreSQL), MongoDB Atlas, IPFS (Pinata)
 
 ```
-🚀 Installation & Setup
-git clone [https://github.com/AndromedaCore/AlgorandX402.git](https://github.com/AndromedaCore/AlgorandX402.git)
-cd AlgorandX402
-npm install
-npm run dev
 
+## 📁 Project Structure (Solana‑relevant)
+
+src/
+├── lib/
+│ ├── infrastructure/clients/
+│ │ └── algorand-client.ts (Algorand payments – reference for Solana)
+│ ├── services/
+│ │ ├── coordination/
+│ │ │ ├── crypto-guard.ts (Ed25519 verification – works)
+│ │ │ └── connectors/
+│ │ │ └── solana-connector.ts (TO BE BUILT)
+│ │ └── reputation/
+│ │ └── reputation-engine.service.ts (AVIP – ready to consume Solana data)
+│ └── types/
+│ └── coordination/scorecard.ts (DID parsing includes 'sol')
+└── app/api/coordination/publish/route.ts (signature verification works)
 ```
-📡 API EndpointsMethodEndpointDescriptionPOST/api/coordination/validateValidates a ScorecardGET/api/reputation/verify/:didRetrieves a builder's AVIP scorePOST/api/reputation/attestPeer-to-peer attestation (staking)
-```
-🗺️ Roadmap & Governance
-Andromeda Core is a public good governed by the Assembly of Builders (reputation-weighted) and the Invariants Parliament.
 
-Phase 1: Foundation (Complete) ✅
+## 🧪 How to Test (Current Functionality)
 
-Phase 2: Co-governance (Q2 2026) 🟡
+1. Clone this repo and run `npm install`.
+2. Start the development server: `npm run dev`.
+3. Go to `http://localhost:4000/es/coordination`.
+4. Fill a Scorecard and connect a **Solana wallet** (Phantom) using the Ed25519 challenge.
+5. Sign the nonce – the backend will accept the signature and publish the Scorecard.
 
-Phase 3: Distributed pinning (Q3 2026) 🟡
+> ⚠️ The published Scorecard will **not** yet reflect Solana on‑chain activity (governance data) because the connector is missing. That’s exactly what we will build during the hackathon.
 
-Phase 4: Full DAO (Q4 2026) 🔲
-```
-🤝 Contributing
-```
-Contributions are welcome! Help us with new connectors, ML models, or translations. Report vulnerabilities to security@andromedacomputer.net.
+---
 
-📄 License
-MIT © 2026 Andromeda Computer. Public good infrastructure.
+## 📈 Hackathon Goals – Success Metrics
 
-<p align="center"> Made with <strong>clarity</strong>, <strong>immutability</strong>, and <strong>hard industrial design</strong>. </p>
-.
+By the end of the hackathon, we will have:
+
+1. A **working Solana connector** that ingests governance data from Realms (minimum 2 DAOs).  
+2. **TrustScores** for at least 50 Solana builders/validators, computed by AVIP.  
+3. A **dashboard prototype** showing Solana validator reputation (combining governance + technical metrics).  
+4. **Documentation** and a demo video showcasing the end‑to‑end flow: identity → governance data → TrustScore → reward (in SOL).
+
+---
+
+## 🤝 Call for Collaboration
+
+We are actively looking for:
+
+- **Solana developers** to help with the Realms/Squads indexer.  
+- **The Graph indexers** to deploy subgraphs for Solana governance data.  
+- **Validators and DAOs** to test our dashboard and provide feedback.  
+- **Meta Pool** (or other liquid staking protocols) to integrate the risk dashboard.
+
+If you are interested, please open an issue or reach out via [Discord](https://discord.gg/andromedacore).
+
+---
+
+## 📄 License
+
+MIT – see [LICENSE](LICENSE) file.
+
+---
+
+**Built with 🔧 by Andromeda Core Team**  
+[Website](https://andromedacore.io) · [Twitter](https://twitter.com/AndromedaCore) · [GitHub](https://github.com/AndromedaCore)
+EOF
+
+
