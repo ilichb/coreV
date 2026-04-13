@@ -26,6 +26,10 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const address = searchParams.get('address');
 
+    if (address && !process.env.THEGRAPH_API_KEY) {
+        logger.warn('⚠️ THEGRAPH_API_KEY is missing in current environment. Results might be limited or fail.');
+    }
+
     if (!address) {
         try {
             const builders = await rootstockConnector.fetchAllBuilders();

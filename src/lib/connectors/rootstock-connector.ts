@@ -3,6 +3,7 @@ import { cryptoGuard } from '../services/coordination/crypto-guard';
 import { varaAdapter } from '../services/coordination/vara-adapter';
 import { ProjectMetadata } from '../clients/vara-client';
 import { logger } from '../utils/logger';
+import { redisService } from '../services/coordination/redis';
 
 export interface GovernanceDecision {
   proposalId: string;
@@ -49,6 +50,46 @@ export class RootstockConnector {
   private governanceSubgraph = this.apiKey ? `https://gateway.thegraph.com/api/${this.apiKey}/subgraphs/id/C9muK2hesS2V8ZpcR755wVfo9UUhfWSXaDhDKMkCNejP` : '';
   private rewardsSubgraph = this.apiKey ? `https://gateway.thegraph.com/api/${this.apiKey}/subgraphs/id/7kSWmHvWixeZBpzVfgkGS2sYNYoXZz614TcqnPTgkWwA` : '';
 
+  /**
+   * Helper to perform fetches with a specific timeout
+   */
+  private async fetchWithTimeout(url: string, options: any = {}, timeoutMs: number = 8000): Promise<Response> {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+      clearTimeout(id);
+      return response;
+    } catch (error) {
+      clearTimeout(id);
+      throw error;
+    }
+  }
+
+  /**
+   * Safe JSON parser that checks for ok status and correct content-type
+   */
+  private async safeJson(response: Response, fallback: any = null): Promise<any> {
+    if (!response.ok) {
+      logger.warn(`Fetch failed with status ${response.status}: ${response.url}`);
+      return fallback;
+    }
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      logger.warn(`Response is not JSON (${contentType}): ${response.url}`);
+      return fallback;
+    }
+    try {
+      return await response.json();
+    } catch (e) {
+      logger.error(`Error parsing JSON from ${response.url}:`, e);
+      return fallback;
+    }
+  }
+
   async fetchSubgraphProposals(limit: number = 20): Promise<any[]> {
     try {
       if (!this.governanceSubgraph) {
@@ -89,22 +130,32 @@ export class RootstockConnector {
   }
 
   async fetchBuilderActivity(builderAddress: string): Promise<any> {
+    const lower = builderAddress.toLowerCase();
+    const cacheKey = `rootstock:activity:${lower}`;
+
     try {
+      // 1. Try cache first
+      const cached = await redisService.get(cacheKey);
+      if (cached) {
+        logger.info(`🚀 Cache HIT for builder activity: ${lower}`);
+        return JSON.parse(cached);
+      }
+
       if (!this.rewardsSubgraph) {
-        logger.warn('⚠️ No rewards subgraph URL configured (THEGRAPH_API_KEY missing)');
+        logger.warn('⚠️ No rewards subgraph URL configured');
         return { backerStakingHistories: [], gaugeStakingHistories: [] };
       }
 
-      logger.info(`📡 Fetching activity for builder ${builderAddress} from Rewards Subgraph...`);
+      logger.info(`📡 Fetching activity for builder ${lower} from Rewards Subgraph...`);
       const query = `
         {
-          backerStakingHistories(where: { id: "${builderAddress.toLowerCase()}" }) {
+          backerStakingHistories(where: { id: "${lower}" }) {
             id
             backerTotalAllocation
             accumulatedTime
             lastBlockNumber
           }
-          gaugeStakingHistories(where: { backer: "${builderAddress.toLowerCase()}" }) {
+          gaugeStakingHistories(where: { backer: "${lower}" }) {
             id
             gauge
             allocation
@@ -112,30 +163,41 @@ export class RootstockConnector {
         }
       `;
 
-      const response = await fetch(this.rewardsSubgraph, {
+      const response = await this.fetchWithTimeout(this.rewardsSubgraph, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
-      });
+      }, 10000);
 
-      const { data } = await response.json();
-      return data || { backerStakingHistories: [], gaugeStakingHistories: [] };
+      const json = await this.safeJson(response);
+      const data = json?.data || { backerStakingHistories: [], gaugeStakingHistories: [] };
+
+      // 2. Cache successful result (5 mins)
+      if (json?.data) {
+        await redisService.set(cacheKey, JSON.stringify(data), 300);
+      }
+
+      return data;
     } catch (error) {
-      logger.error(`❌ Error fetching builder activity for ${builderAddress}:`, error);
+      logger.error(`❌ Error fetching builder activity for ${lower}:`, error);
       return { backerStakingHistories: [], gaugeStakingHistories: [] };
     }
   }
 
   async fetchAllBuilders(limit: number = 20): Promise<any[]> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 segundos timeout
-
+    const cacheKey = `rootstock:builders:all:${limit}`;
     try {
-      logger.info('📡 Fetching ALL Rootstock Collective builders with robust headers and timeout...');
+      // 1. Try cache first
+      const cached = await redisService.get(cacheKey);
+      if (cached) {
+        logger.info(`🚀 Cache HIT for all builders (limit ${limit})`);
+        return JSON.parse(cached);
+      }
 
+      logger.info('📡 Fetching ALL Rootstock Collective builders with robust headers and timeout...');
       const builders: any[] = [];
 
-      // 1. Try Rewards Subgraph (only if configured)
+      // A. Try Rewards Subgraph
       if (this.rewardsSubgraph) {
         const query = `
           {
@@ -148,84 +210,77 @@ export class RootstockConnector {
         `;
 
         try {
-          const subgraphResponse = await fetch(this.rewardsSubgraph, {
+          const subRes = await this.fetchWithTimeout(this.rewardsSubgraph, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ query }),
-            signal: controller.signal
-          });
+          }, 8000);
 
-          const { data } = await subgraphResponse.json();
-          const subgraphBuilders = (data?.backerStakingHistories || []).map((b: any) => ({
-            id: b.id.toLowerCase(),
-            backerTotalAllocation: b.backerTotalAllocation,
-            accumulatedTime: b.accumulatedTime,
-            builderDid: `did:andromeda:rootstock:${b.id.toLowerCase()}`
-          }));
-          builders.push(...subgraphBuilders);
+          const json = await this.safeJson(subRes);
+          const data = json?.data;
+
+          if (data?.backerStakingHistories) {
+            const subgraphBuilders = data.backerStakingHistories.map((b: any) => ({
+              id: b.id.toLowerCase(),
+              backerTotalAllocation: b.backerTotalAllocation,
+              accumulatedTime: b.accumulatedTime,
+              builderDid: `did:andromeda:rootstock:${b.id.toLowerCase()}`
+            }));
+            builders.push(...subgraphBuilders);
+          }
         } catch (e) {
           logger.warn('Could not fetch from Rewards Subgraph:', e);
         }
-      } else {
-        logger.warn('⚠️ No rewards subgraph URL configured (THEGRAPH_API_KEY missing)');
       }
 
-      // 2. Augment with Collective Public API — captures names and any extra builders
+      // B. Augment with Collective Public API
       try {
-        const collectiveRes = await fetch('https://app.rootstockcollective.xyz/api/builders', {
+        const collRes = await this.fetchWithTimeout('https://app.rootstockcollective.xyz/api/builders', {
           headers: {
             'User-Agent': 'Mozilla/5.0 (AndromedaCore/1.0; +https://andromeda.computer)',
             'Accept': 'application/json'
-          },
-          signal: controller.signal
-        });
-
-        if (collectiveRes.ok) {
-          const collectiveData = await collectiveRes.json();
-          const list = Array.isArray(collectiveData) ? collectiveData : (collectiveData.builders || []);
-
-          if (Array.isArray(list)) {
-            list.forEach((cb: any) => {
-              const addr = (cb.address || cb.id || '').toLowerCase();
-              if (!addr) return;
-
-              // Extract name from whatever the Collective API provides
-              const resolvedName = cb.name || cb.projectName || cb.title || cb.builderName || null;
-              const resolvedCategory = cb.category || cb.type || null;
-
-              const existing = builders.find((b: any) => b.id === addr);
-              if (existing) {
-                // Augment existing entry with name if not already set
-                if (resolvedName && !existing.name) existing.name = resolvedName;
-                if (resolvedCategory && !existing.category) existing.category = resolvedCategory;
-              } else {
-                // New builder only found in Collective API
-                builders.push({
-                  id: addr,
-                  backerTotalAllocation: cb.totalAllocation || '0',
-                  accumulatedTime: '0',
-                  builderDid: `did:andromeda:rootstock:${addr}`,
-                  name: resolvedName,
-                  category: resolvedCategory,
-                });
-              }
-            });
           }
+        }, 8000);
+
+        const list = await this.safeJson(collRes, []);
+
+        if (Array.isArray(list)) {
+          list.forEach((cb: any) => {
+            const addr = (cb.address || cb.id || '').toLowerCase();
+            if (!addr) return;
+
+            const resolvedName = cb.name || cb.projectName || cb.title || cb.builderName || null;
+            const resolvedCategory = cb.category || cb.type || null;
+
+            const existing = builders.find((b: any) => b.id === addr);
+            if (existing) {
+              if (resolvedName && !existing.name) existing.name = resolvedName;
+              if (resolvedCategory && !existing.category) existing.category = resolvedCategory;
+            } else {
+              builders.push({
+                id: addr,
+                backerTotalAllocation: cb.totalAllocation || '0',
+                accumulatedTime: '0',
+                builderDid: `did:andromeda:rootstock:${addr}`,
+                name: resolvedName,
+                category: resolvedCategory,
+              });
+            }
+          });
         }
       } catch (e) {
-        logger.warn('Could not fetch from Collective API or timeout reached:', e);
+        logger.warn('Could not fetch from Collective API:', e);
+      }
+
+      // 2. Cache successful result (10 mins)
+      if (builders.length > 0) {
+        await redisService.set(cacheKey, JSON.stringify(builders), 600);
       }
 
       return builders;
     } catch (error: any) {
-      if (error.name === 'AbortError') {
-        logger.error('❌ Rootstock builder fetch timed out');
-      } else {
-        logger.error('❌ Error fetching all builders:', error);
-      }
+      logger.error('❌ Error in fetchAllBuilders:', error);
       return [];
-    } finally {
-      clearTimeout(timeoutId);
     }
   }
 
@@ -239,93 +294,84 @@ export class RootstockConnector {
 
   async getMetadata(address: string): Promise<{ name: string, category: string }> {
     const lower = address.toLowerCase();
+    const cacheKey = `rootstock:metadata:${lower}`;
 
-    // 1. Check fast-path static override (instant, no network)
+    // 1. Static override fast-path
     if (this.knownMetadata[lower]) return this.knownMetadata[lower];
 
-    // 2. Query Rootstock Collective individual builder profile
-    // This is the canonical source of truth for project names
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5000);
+      // 2. Try Redis Cache
+      const cached = await redisService.get(cacheKey);
+      if (cached) return JSON.parse(cached);
 
-      // The Collective API may have an individual builder endpoint
-      const res = await fetch(`https://app.rootstockcollective.xyz/api/builders/${lower}`, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (AndromedaCore/1.0; +https://andromeda.computer)',
-          'Accept': 'application/json'
-        },
-        signal: controller.signal
-      });
-      clearTimeout(timeout);
+      // 3. Query Rootstock Collective API
+      try {
+        const res = await this.fetchWithTimeout(`https://app.rootstockcollective.xyz/api/builders/${lower}`, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (AndromedaCore/1.0; +https://andromeda.computer)',
+            'Accept': 'application/json'
+          }
+        }, 5000);
 
-      if (res.ok) {
-        const builderData = await res.json();
-        // The Collective API may return fields like: name, title, description, projectName
-        const name = builderData.name ||
-          builderData.projectName ||
-          builderData.title ||
-          builderData.builderName;
+        const builderData = await this.safeJson(res);
 
-        const content = JSON.stringify(builderData).toLowerCase();
-        const category = content.includes('defi') || content.includes('lending') || content.includes('dex') ? 'DeFi' :
-          content.includes('bridge') ? 'Bridge' :
-            content.includes('social') || content.includes('community') ? 'Social' :
-              content.includes('nft') || content.includes('gaming') ? 'NFT/Gaming' : 'Infrastructure';
+        if (builderData) {
+          const name = builderData.name || builderData.projectName || builderData.title || builderData.builderName;
+          const content = JSON.stringify(builderData).toLowerCase();
+          const category = content.includes('defi') || content.includes('dex') ? 'DeFi' :
+            content.includes('bridge') ? 'Bridge' :
+              content.includes('social') ? 'Social' :
+                content.includes('nft') ? 'NFT/Gaming' : 'Infrastructure';
 
-        if (name && name.length > 1) {
-          this.knownMetadata[lower] = { name, category }; // Cache it
-          return { name, category };
-        }
-      }
-    } catch (e) {
-      // Collective API not available for this address — continue to Snapshot
-    }
-
-    // 3. Try to infer name from Snapshot proposals authored by this address
-    try {
-      const query = `
-        query {
-          proposals(
-            first: 1,
-            where: { space_in: ["${this.snapshotSpace}"], author: "${address}" },
-            orderBy: "created",
-            orderDirection: desc
-          ) {
-            title
-            body
+          if (name && name.length > 1) {
+            const meta = { name, category };
+            await redisService.set(cacheKey, JSON.stringify(meta), 3600); // 1 hour cache
+            return meta;
           }
         }
-      `;
-      const res = await fetch(this.snapshotGraphQL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
-      });
-      const { data } = await res.json();
-      const proposal = data?.proposals?.[0];
-
-      if (proposal?.title) {
-        // Extract name from common pattern: "[ProjectName] Request..." or "ProjectName: Proposal..."
-        const bracketMatch = proposal.title.match(/^\[([^\]]+)\]/);
-        const colonMatch = proposal.title.match(/^([^:|\-]+?)(?:\s*[:|\-]|\s+Request|\s+Proposal|\s+Grant)/);
-        const extractedName = bracketMatch?.[1]?.trim() || colonMatch?.[1]?.trim();
-
-        const content = (proposal.title + ' ' + (proposal.body || '')).toLowerCase();
-        const category = content.includes('defi') || content.includes('lending') ? 'DeFi' :
-          content.includes('bridge') ? 'Bridge' :
-            content.includes('social') ? 'Social' : 'Infrastructure';
-
-        if (extractedName && extractedName.length > 1 && extractedName.length < 40) {
-          this.knownMetadata[lower] = { name: extractedName, category };
-          return { name: extractedName, category };
-        }
+      } catch (e) {
+        logger.warn(`Could not fetch metadata from Collective API for ${lower}`);
       }
-    } catch (e) {
-      // Snapshot not available — fall through
+
+      // 4. Try Snapshot Inference
+      try {
+        const query = `
+          query {
+            proposals(first: 1, where: { space_in: ["${this.snapshotSpace}"], author: "${address}" }, orderBy: "created", orderDirection: desc) {
+              title
+              body
+            }
+          }
+        `;
+        const res = await this.fetchWithTimeout(this.snapshotGraphQL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query }),
+        }, 5000);
+
+        const json = await this.safeJson(res);
+        const proposal = json?.data?.proposals?.[0];
+
+        if (proposal?.title) {
+          const bracketMatch = proposal.title.match(/^\[([^\]]+)\]/);
+          const colonMatch = proposal.title.match(/^([^:|\-]+?)(?:\s*[:|\-]|\s+Request|\s+Proposal|\s+Grant)/);
+          const extractedName = bracketMatch?.[1]?.trim() || colonMatch?.[1]?.trim();
+
+          if (extractedName && extractedName.length > 1 && extractedName.length < 40) {
+            const meta = { name: extractedName, category: 'Infrastructure' };
+            await redisService.set(cacheKey, JSON.stringify(meta), 3600);
+            return meta;
+          }
+        }
+      } catch (e) {
+        logger.warn(`Could not infer metadata from Snapshot for ${lower}`);
+      }
+
+    } catch (err) {
+      logger.error(`Metadata resolution error for ${lower}:`, err);
     }
 
-    // 4. Unresolvable: show shortened address
+    // fallback
     return {
       name: `${address.substring(0, 6)}...${address.substring(38)}`,
       category: 'Infrastructure'
@@ -333,131 +379,76 @@ export class RootstockConnector {
   }
 
   async getBuilderScorecard(address: string): Promise<any> {
+    const lower = address.toLowerCase();
+    const cacheKey = `rootstock:scorecard:${lower}`;
+
     try {
-      logger.info(`📡 Generating Rootstock scorecard for builder ${address}...`);
-
-      const lowerAddress = address.toLowerCase();
-
-      // 1. Fetch staking/rewards activity from Rewards Subgraph
-      const activity = await this.fetchBuilderActivity(address);
-
-      // 2. Fetch on-chain governance proposals where this address is the PROPOSER
-      const onChainProposalQuery = `{
-        proposals(
-          first: 20,
-          where: { proposer: "${lowerAddress}" },
-          orderBy: startBlock,
-          orderDirection: desc
-        ) {
-          id
-          description
-          status
-          forVotes
-          againstVotes
-          startBlock
-          endBlock
-        }
-      }`;
-
-      // 3. Fetch proposals where this address VOTED (on-chain participation)
-      const onChainVotesQuery = `{
-        voteCasts(
-          first: 20,
-          where: { voter: "${lowerAddress}" },
-          orderBy: blockNumber,
-          orderDirection: desc
-        ) {
-          id
-          proposal { id description status }
-          support
-          votes
-          blockNumber
-        }
-      }`;
-
-      // 4. Fetch human-readable proposal metadata from Rootstock Collective API
-      const fetchCollectiveProposals = async (): Promise<any[]> => {
-        try {
-          const controller = new AbortController();
-          setTimeout(() => controller.abort(), 6000);
-          const res = await fetch(
-            `https://app.rootstockcollective.xyz/api/proposals/v1?proposer=${lowerAddress}&limit=20`,
-            {
-              headers: {
-                'User-Agent': 'Mozilla/5.0 (AndromedaCore/1.0; +https://andromeda.computer)',
-                'Accept': 'application/json'
-              },
-              signal: controller.signal
-            }
-          );
-          if (!res.ok) return [];
-          const d = await res.json();
-          return Array.isArray(d) ? d : (d.proposals || d.data || []);
-        } catch {
-          return [];
-        }
-      };
-
-      // Only fetch from governance subgraph if configured
-      let govProposalData: any = { data: { proposals: [] } };
-      let govVotesData: any = { data: { voteCasts: [] } };
-
-      if (this.governanceSubgraph) {
-        const [govProposalsRes, govVotesRes] = await Promise.allSettled([
-          fetch(this.governanceSubgraph, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: onChainProposalQuery }),
-          }),
-          fetch(this.governanceSubgraph, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: onChainVotesQuery }),
-          })
-        ]);
-
-        if (govProposalsRes.status === 'fulfilled') {
-          const res = govProposalsRes.value;
-          if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
-            try {
-              govProposalData = await res.json();
-            } catch (e) {
-              logger.warn('Failed to parse governance proposals JSON, using default');
-            }
-          }
-        }
-        if (govVotesRes.status === 'fulfilled') {
-          const res = govVotesRes.value;
-          if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
-            try {
-              govVotesData = await res.json();
-            } catch (e) {
-              logger.warn('Failed to parse governance votes JSON, using default');
-            }
-          }
-        }
-      } else {
-        logger.warn('⚠️ No governance subgraph URL configured (THEGRAPH_API_KEY missing)');
+      // 1. Try Redis Cache
+      const cached = await redisService.get(cacheKey);
+      if (cached) {
+        logger.info(`🚀 Cache HIT for scorecard: ${lower}`);
+        return JSON.parse(cached);
       }
 
+      logger.info(`📡 Generating Rootstock scorecard for builder ${lower}...`);
 
-      const [collectiveProposals] = await Promise.allSettled([
-        fetchCollectiveProposals()
+      // 2. Parallel data fetching with timeouts
+      const [activity, collectiveProposals] = await Promise.all([
+        this.fetchBuilderActivity(lower),
+        (async () => {
+          try {
+            const res = await this.fetchWithTimeout(
+              `https://app.rootstockcollective.xyz/api/proposals/v1?proposer=${lower}&limit=20`,
+              {
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (AndromedaCore/1.0; +https://andromeda.computer)',
+                  'Accept': 'application/json'
+                }
+              }, 6000
+            );
+            const d = await this.safeJson(res);
+            return Array.isArray(d) ? d : (d?.proposals || d?.data || []);
+          } catch { return []; }
+        })()
       ]);
 
-      const richProposals = collectiveProposals.status === 'fulfilled'
-        ? collectiveProposals.value : [];
+      // 3. Governance Subgraph check (voter role)
+      let onChainProposals = [];
+      let onChainVotes = [];
 
-      const onChainProposals = govProposalData.data?.proposals || [];
-      const onChainVotes = govVotesData.data?.voteCasts || [];
+      if (this.governanceSubgraph) {
+        try {
+          const onChainProposalQuery = `{ proposals(first: 20, where: { proposer: "${lower}" }) { id description status forVotes againstVotes } }`;
+          const onChainVotesQuery = `{ voteCasts(first: 20, where: { voter: "${lower}" }) { id proposal { id description status } support votes } }`;
 
-      // 5. Merge on-chain data with Collective API metadata for rich display
+          const [pRes, vRes] = await Promise.all([
+            this.fetchWithTimeout(this.governanceSubgraph, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ query: onChainProposalQuery }),
+            }, 7000),
+            this.fetchWithTimeout(this.governanceSubgraph, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ query: onChainVotesQuery }),
+            }, 7000)
+          ]);
+
+          const pJson = await this.safeJson(pRes);
+          const vJson = await this.safeJson(vRes);
+
+          onChainProposals = pJson?.data?.proposals || [];
+          onChainVotes = vJson?.data?.voteCasts || [];
+        } catch (e) {
+          logger.warn('Governance subgraph partially unreachable for scorecard');
+        }
+      }
+
+      // 4. Merge & Aggregate
       const mergedProposals = onChainProposals.map((p: any) => {
-        const rich = richProposals.find((r: any) =>
-          r.id === p.id || r.onChainId === p.id || r.proposalId === p.id
-        );
-        const descLines = (p.description || '').split('\n');
-        const autoTitle = descLines[0]?.replace(/^#+\s*/, '').trim() || `Proposal ${p.id.substring(0, 8)}`;
+        const rich = collectiveProposals.find((r: any) => r.id === p.id || r.onChainId === p.id);
+        const desc = p.description || '';
+        const autoTitle = desc.split('\n')[0]?.replace(/^#+\s*/, '').trim() || `Proposal ${p.id.substring(0, 8)}`;
         return {
           id: p.id,
           title: rich?.title || rich?.name || autoTitle,
@@ -469,74 +460,41 @@ export class RootstockConnector {
         };
       });
 
-      // 6. Aggregate staking data
       const staking = activity.backerStakingHistories?.[0] || { backerTotalAllocation: '0', accumulatedTime: '0' };
-      const gauges = activity.gaugeStakingHistories || [];
-
-      // 7. Calculate AVIP v2.0 Reputation Score
-      const proposalCount = onChainProposals.length;
-      const voteCount = onChainVotes.length;
       const totalStaked = parseFloat(staking.backerTotalAllocation) || 0;
-      const gaugeCount = gauges.length;
+      const gaugeCount = activity.gaugeStakingHistories?.length || 0;
 
-      // AVIP v2.0 calculation (Core Paper v3.1)
-      // Base score based on staking allocation (0-100 scale)
+      // 5. Reputation Score (AVIP v2.0)
       const baseScore = Math.min(Math.floor(totalStaked * 0.01) + 20, 100);
+      const propsBonus = Math.min(onChainProposals.length * 25, 150);
+      const voteBonus = Math.min(onChainVotes.length * 8, 100);
+      const totalRep = Math.min(Math.floor(baseScore * 6) + propsBonus + voteBonus + Math.min(totalStaked * 0.1, 150), 999);
 
-      // Bonuses with AVIP v2.0 weights
-      const proposalBonus = Math.min(proposalCount * 25, 150);  // +25 per authored proposal (max +150)
-      const voteBonus = Math.min(voteCount * 8, 100);           // +8 per vote cast (max +100)
-      const stakeBonus = Math.min(totalStaked * 0.08, 120);     // +0.08 per unit staked (max +120)
-      const gaugeBonus = Math.min(gaugeCount * 10, 80);         // +10 per active gauge (max +80)
+      // 6. Metadata
+      const metadata = await this.getMetadata(lower);
 
-      // Total reputation (0-999 scale)
-      const totalReputation = Math.min(
-        Math.floor(baseScore * 6) + proposalBonus + voteBonus + stakeBonus + gaugeBonus,
-        999
-      );
-
-      // 8. Resolve project name
-      const metadata = await this.getMetadata(address);
-
-      return {
-        address,
+      const scorecard = {
+        address: lower,
         name: metadata.name,
         category: metadata.category,
-        did: `did:andromeda:rootstock:${address}`,
-        reputation: totalReputation,
-        baseScore: baseScore, // For UI display
-        governanceSource: 'Rootstock Collective Governor (On-Chain)',
-        governanceUrl: 'https://app.rootstockcollective.xyz/proposals',
+        reputation: totalRep,
         stats: {
-          proposals: proposalCount,
-          votesCast: voteCount,
+          proposals: onChainProposals.length,
+          votesCast: onChainVotes.length,
           totalStaked,
           activeGauges: gaugeCount,
           timeInEcosystem: Math.floor(parseInt(staking.accumulatedTime || '0') / 86400),
         },
         proposals: mergedProposals,
-        votes: onChainVotes.slice(0, 5).map((v: any) => ({
-          proposalId: v.proposal?.id,
-          proposalTitle: (v.proposal?.description || '').split('\n')[0]?.replace(/^#+\s*/, '') || 'Proposal',
-          support: v.support === true || v.support === 1 ? 'FOR' : v.support === 0 ? 'AGAINST' : 'ABSTAIN',
-          votes: v.votes,
-          url: `https://app.rootstockcollective.xyz/proposals/${v.proposal?.id}`,
-        })),
-        staking: {
-          allocation: staking.backerTotalAllocation,
-          gauges: gauges.map((g: any) => g.gauge)
-        },
-        avipScore: {
-          base: baseScore,
-          proposalBonus,
-          voteBonus,
-          stakeBonus,
-          gaugeBonus,
-          total: totalReputation
-        }
+        avipScore: { total: totalRep }
       };
+
+      // 7. Cache result (5 mins)
+      await redisService.set(cacheKey, JSON.stringify(scorecard), 300);
+
+      return scorecard;
     } catch (error) {
-      logger.error(`❌ Error generating builder scorecard for ${address}:`, error);
+      logger.error(`❌ Error generating builder scorecard for ${lower}:`, error);
       return null;
     }
   }
