@@ -1,17 +1,7 @@
+.env
 node_modules/
-dist/
-build/
 .next/
-.turbo/
-out/
-.env*
+data/
+logs/
 *.log
 .DS_Store
-.vscode/
-
-# Block all .md files except README
-*.md
-!README.md
-*.txt
-.env
-.env.local
