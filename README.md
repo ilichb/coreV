@@ -147,3 +147,4 @@ Contributions are welcome! Help us with new connectors, ML models, or translatio
 MIT © 2026 Andromeda Computer. Public good infrastructure.
 
 <p align="center"> Made with <strong>clarity</strong>, <strong>immutability</strong>, and <strong>hard industrial design</strong>. </p>
+.
