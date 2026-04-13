@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const trimmedAddress = address.trim().toLowerCase();
+        const trimmedAddress = address.trim();
         logger.info(`Fetching scorecard for builder: ${trimmedAddress}`);
         
         const scorecard = await rootstockConnector.getBuilderScorecard(trimmedAddress);
@@ -80,3 +80,4 @@ export async function GET(request: NextRequest) {
         );
     }
 }
+

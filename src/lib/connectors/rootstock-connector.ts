@@ -187,7 +187,6 @@ export class RootstockConnector {
   async fetchAllBuilders(limit: number = 20): Promise<any[]> {
     const cacheKey = `rootstock:builders:all:${limit}`;
     
-
     // Pinned fallbacks for "Always-On" reliability
     const pinnedBuilders = [
       { id: '0xd9fcae4315920387f00725c78285d6d41c30b967', name: 'WoodSwap', category: 'DeFi', backerTotalAllocation: '0', accumulatedTime: '0' },
@@ -304,7 +303,6 @@ export class RootstockConnector {
         builderDid: `did:andromeda:rootstock:${pb.id.toLowerCase()}`
       }));
     }
-
   }
 
   // Minimal override map — only for confirmed addresses where the API is ambiguous
@@ -513,7 +511,6 @@ export class RootstockConnector {
           allocation: staking.backerTotalAllocation || '0',
           gauges: activity.gaugeStakingHistories?.map((g: any) => g.gauge) || []
         },
-
         proposals: mergedProposals,
         avipScore: { total: totalRep }
       };
