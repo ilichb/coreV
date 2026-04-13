@@ -140,7 +140,7 @@ MIT – see [LICENSE](LICENSE) file.
 ---
 
 **Built with 🔧 by Andromeda Core Team**  
-[Website](https://andromedacore.io) · [Twitter](https://twitter.com/AndromedaCore) · [GitHub](https://github.com/AndromedaCore)
+[Website](https://andromedacore.io) · [Twitter](https://x.com/Andromeda_Core) · [GitHub](https://github.com/AndromedaCore/Core-Solana)
 EOF
 
 
