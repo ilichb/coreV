@@ -5,6 +5,23 @@ import { logger } from '../../../../lib/utils/logger';
 
 const TALLY_API_KEY = process.env.TALLY_API_KEY || '***REMOVED***';
 
+
+// Helper to handle BigInt serialization in JSON responses
+function jsonResponse(data: any, status = 200) {
+    try {
+        const body = JSON.stringify(data, (key, value) =>
+            typeof value === 'bigint' ? value.toString() : value
+        );
+        return new NextResponse(body, {
+            status,
+            headers: { 'Content-Type': 'application/json' }
+        });
+    } catch (err) {
+        logger.error('Serialization Error in builders API:', err);
+        return NextResponse.json({ error: 'Internal serialization error' }, { status: 500 });
+    }
+}
+
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const address = searchParams.get('address');
@@ -14,14 +31,18 @@ export async function GET(request: NextRequest) {
             const builders = await rootstockConnector.fetchAllBuilders();
             // Enrich with metadata
             const enrichedBuilders = await Promise.all(builders.map(async (b: any) => {
-                const meta = await rootstockConnector.getMetadata(b.id);
-                return {
-                    ...b,
-                    builderDid: `did:andromeda:rootstock:${b.id}`,
-                    name: meta.name,
-                    category: meta.category,
-                    impactScore: Math.min(Math.floor(parseFloat(b.backerTotalAllocation || '0') * 0.1) + 65, 99) // Dynamic score based on allocation
-                };
+                try {
+                    const meta = await rootstockConnector.getMetadata(b.id);
+                    return {
+                        ...b,
+                        builderDid: `did:andromeda:rootstock:${b.id}`,
+                        name: meta.name,
+                        category: meta.category,
+                        impactScore: Math.min(Math.floor(parseFloat(b.backerTotalAllocation || '0') * 0.1) + 65, 99)
+                    };
+                } catch (e) {
+                    return b; // Fallback to raw builder if metadata fails
+                }
             }));
 
             // Proactively synchronize with ATLAS
@@ -29,25 +50,30 @@ export async function GET(request: NextRequest) {
                 logger.error('Error in background builder sync:', err)
             );
 
-            return NextResponse.json({ success: true, builders: enrichedBuilders });
+            return jsonResponse({ success: true, builders: enrichedBuilders });
         } catch (error: any) {
-            return NextResponse.json({ error: error.message }, { status: 500 });
+            logger.error('Error fetching all Rootstock builders:', error);
+            return jsonResponse({ error: error.message }, 500);
         }
     }
 
     try {
-        const scorecard = await rootstockConnector.getBuilderScorecard(address.trim());
+        const trimmedAddress = address.trim();
+        logger.info(`Fetching scorecard for builder: ${trimmedAddress}`);
+        
+        const scorecard = await rootstockConnector.getBuilderScorecard(trimmedAddress);
+        
         if (!scorecard) {
-            return NextResponse.json(
-                { error: 'Builder not found or error fetching data' },
-                { status: 404 }
-            );
+            return jsonResponse({ error: 'Builder not found or error fetching data' }, 404);
         }
-        return NextResponse.json(scorecard);
+        
+        return jsonResponse(scorecard);
     } catch (error: any) {
-        return NextResponse.json(
-            { error: error.message },
-            { status: 500 }
+        logger.error(`Fatal error in builder enrichment for ${address}:`, error);
+        return jsonResponse(
+            { error: error.message || 'Internal server error during data enrichment' },
+            500
         );
     }
 }
+
