@@ -39,57 +39,57 @@
 
 ## 🔷 What is Andromeda Core?
 
-**Andromeda Core** es una capa de infraestructura descentralizada que transforma la ambigüedad de la coordinación humana en **especificaciones ejecutables**, **reputación verificable** e **pruebas inmutables**. Actúa como el respaldo de confianza para DAOs, protocolos y marketplaces de Web3, permitiendo evaluar a builders y proyectos basados en evidencia criptográfica.
+**Andromeda Core** is a decentralized infrastructure layer that transforms the ambiguity of human coordination into **executable specifications**, **verifiable reputation**, and **immutable proofs**. It acts as the trust backbone for DAOs, protocols, and Web3 marketplaces, enabling the evaluation of builders and projects based on cryptographic evidence.
 
-> 🧠 _AVIP v2.0 – Andromeda Verifiable Immutable Proof: reputación portable entre cadenas, con decaimiento asimétrico y detección de anomalías._
+> 🧠 _AVIP v2.0 – Andromeda Verifiable Immutable Proof: cross-chain portable reputation, featuring asymmetric decay and anomaly detection._
 
 ---
 
 ## ❓ Why Verifiable Reputation?
 
-La coordinación actual en Web3 sufre de **opacidad estructural**:
+Current Web3 coordination suffers from **structural opacity**:
 
-| Problema | Solución Andromeda |
+| Problem | Andromeda Solution |
 | :--- | :--- |
-| **Ambigüedad** | **Scorecard** – Formato coercitivo que fuerza una especificación completa. |
-| **Fragmentación** | **AVIP** – Grafo de reputación portable e inmutable entre cadenas. |
-| **Manipulación** | Detección de anomalías + Decaimiento asimétrico + Staking de reputación. |
+| **Ambiguity** | **Scorecard** – A coercive format that forces complete specification. |
+| **Fragmentation** | **AVIP** – A portable and immutable reputation graph across chains. |
+| **Manipulation** | Anomaly detection + Asymmetric decay + Reputation staking. |
 
 ---
 
 ## ⚙️ Key Technologies
 
 ### AVIP v2.0 – Andromeda Verifiable Immutable Proof
-Protocolo que sintetiza puntuaciones multidimensionales de actividad on-chain y off-chain.
+A protocol that synthesizes multidimensional scores from on-chain and off-chain activity.
 
-* **Fundamento Matemático**:
-    * **Decaimiento asimétrico**: Los eventos positivos decaen a $λ_{pos} = 0.001$ por día, los negativos a $λ_{neg} = 0.003$ (3 veces más rápido).
-    * **Análisis de entropía de Shannon**: Detecta patrones de actividad tipo bot.
-    * **Merkle Proofs**: Cada puntuación se ancla en Vara Network.
+* **Mathematical Foundation**:
+    * **Asymmetric Decay**: Positive events decay at $λ_{pos} = 0.001$ per day, while negative events decay at $λ_{neg} = 0.003$ (3x faster).
+    * **Shannon Entropy Analysis**: Detects bot-like activity patterns.
+    * **Merkle Proofs**: Each score is anchored on the Vara Network.
 
 ### Scorecard – The Canonical Specification Format
-Esquema JSON que define: **Problema**, **Límites (Scope)**, **Especificación Técnica** y **Esfuerzo**. El Invariant Engine valida esto contra 7 categorías de reglas.
+A JSON schema that defines: **Problem**, **Boundaries (Scope)**, **Technical Specification**, and **Effort**. The Invariant Engine validates this against 7 categories of rules.
 
 ### Atlas Engine – Real‑time Data Ingestion
-Ingesta datos de: GitHub (Commits/PRs), Snapshot (Votos), L2s (Transacciones) y EAS (Atestaciones).
+Ingests data from: GitHub (Commits/PRs), Snapshot (Votes), L2s (Transactions), and EAS (Attestations).
 
 ---
 
 ## 🔗 Algorand Integration: X402 & Validator Rewards
 
-* **X402 Protocol**: Canal de micropagos off-chain para verificaciones de reputación.
-* **Reward Processor**: Contrato inteligente en Algorand que distribuye recompensas usando **VRF** para seleccionar comités de atestación.
-* **State Bridge**: Sincronización bi-direccional entre Algorand (contabilidad) y Vara Network (almacenamiento de pruebas).
+* **X402 Protocol**: Off-chain micropayment channel for reputation verifications.
+* **Reward Processor**: A smart contract on Algorand that distributes rewards using **VRF** (Verifiable Random Function) to select attestation committees.
+* **State Bridge**: Bi-directional synchronization between Algorand (accounting) and Vara Network (proof storage).
 
 ---
 
 ## 🧱 System Architecture
 
-| Capa | Componentes | Tecnologías |
+| Layer | Components | Technologies |
 | :--- | :--- | :--- |
 | **Ingestion** | Connectors (GitHub, L2, Graph) | BullMQ, Redis, GraphQL |
-| **Processing** | Identidad, ML, Anomalías | TypeScript, TensorFlow.js |
-| **Storage** | Pruebas inmutables, Knowledge Graph | IPFS, Neo4j, PostgreSQL |
+| **Processing** | Identity, ML, Anomalies | TypeScript, TensorFlow.js |
+| **Storage** | Immutable Proofs, Knowledge Graph | IPFS, Neo4j, PostgreSQL |
 | **Exposure** | API, Dashboard, Oracles, VCs | Next.js, GraphQL, NextAuth |
 
 ---
@@ -98,46 +98,38 @@ Ingesta datos de: GitHub (Commits/PRs), Snapshot (Votos), L2s (Transacciones) y 
 
 | Feature | Andromeda Core (AVIP) | Gitcoin Passport | EAS |
 | :--- | :--- | :--- | :--- |
-| **Immutability** | ✅ Inmutable (MMR + Vara) | ❌ Stamps revocables | ❌ Revocable |
-| **Portability** | ✅ Vara, Eth, Algorand | ❌ Solo Gitcoin | ❌ On-chain fixed |
-| **Sybil Resistance** | ✅ ML + Grafo | ❌ Agregación básica | ❌ Ninguna |
-| **Quality Scoring** | ✅ Multidimensional | ❌ Solo Humanhood | ❌ Texto plano |
+| **Immutability** | ✅ Immutable (MMR + Vara) | ❌ Revocable stamps | ❌ Revocable |
+| **Portability** | ✅ Vara, Eth, Algorand | ❌ Gitcoin only | ❌ On-chain fixed |
+| **Sybil Resistance** | ✅ ML + Graph | ❌ Basic aggregation | ❌ None |
+| **Quality Scoring** | ✅ Multidimensional | ❌ Humanhood only | ❌ Plain text |
 
 ---
 
 ## 📁 Project Structure
 
-```text
+```
 andromeda-core-platform/
 ├── src/
-│   ├── app/           # i18n pages (es, en, pt)
-│   ├── api/           # Next.js API Routes (Reputation, Coordination)
-│   ├── components/    # Industrial UI Components
-│   ├── lib/           # AVIP Engine, Invariants, Anomaly Detectors
-│   └── hooks/         # useAndromedaWallet, useScorecards
-├── scripts/           # Sync workers
-└── tests/             # Unit, stress & chaos tests
+│   ├── app/            # i18n pages (es, en, pt)
+│   ├── api/            # Next.js API Routes (Reputation, Coordination)
+│   ├── components/     # Industrial UI Components
+│   ├── lib/            # AVIP Engine, Invariants, Anomaly Detectors
+│   └── hooks/          # useAndromedaWallet, useScorecards
+├── scripts/            # Sync workers
+└── tests/              # Unit, stress & chaos tests
 
 ```
-```
-
 🚀 Installation & Setup
 git clone [https://github.com/AndromedaCore/AlgorandX402.git](https://github.com/AndromedaCore/AlgorandX402.git)
 cd AlgorandX402
 npm install
 npm run dev
-```
-```
 
-Environment Variables
-Configura tu .env.local con las llaves de Supabase, Pinata, Upstash y Algorand como se indica en la documentación técnica.
 ```
-
-📡 API EndpointsMétodoEndpointDescripciónPOST/api/coordination/validateValida un ScorecardGET/api/reputation/verify/:didObtiene score AVIP de un builderPOST/api/reputation/attestAtestación entre pares (staking)
+📡 API EndpointsMethodEndpointDescriptionPOST/api/coordination/validateValidates a ScorecardGET/api/reputation/verify/:didRetrieves a builder's AVIP scorePOST/api/reputation/attestPeer-to-peer attestation (staking)
 ```
-
 🗺️ Roadmap & Governance
-Andromeda Core es un bien público gobernado por la Assembly of Builders (basada en reputación) y el Invariants Parliament.
+Andromeda Core is a public good governed by the Assembly of Builders (reputation-weighted) and the Invariants Parliament.
 
 Phase 1: Foundation (Complete) ✅
 
@@ -147,12 +139,11 @@ Phase 3: Distributed pinning (Q3 2026) 🟡
 
 Phase 4: Full DAO (Q4 2026) 🔲
 ```
-
 🤝 Contributing
-¡Contribuciones bienvenidas! Ayúdanos con nuevos conectores, modelos de ML o traducciones. Reporta vulnerabilidades a security@andromedacomputer.net.
+```
+Contributions are welcome! Help us with new connectors, ML models, or translations. Report vulnerabilities to security@andromedacomputer.net.
 
 📄 License
 MIT © 2026 Andromeda Computer. Public good infrastructure.
 
 <p align="center"> Made with <strong>clarity</strong>, <strong>immutability</strong>, and <strong>hard industrial design</strong>. </p>
-
