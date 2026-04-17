@@ -91,7 +91,7 @@ export class AtlasIngestionService {
             (participationRatio * 40) +       // 40pts por participación real
             (approvalRatio * 30) +             // 30pts por consenso
             (decision.status === 'PASSED' || decision.status === 'EXECUTED' ? 20 : 5) + // 20pts outcome
-            (decision.verification_proofs?.length > 0 ? 10 : 0)  // 10pts evidencia
+            ((decision.verification_proofs?.length || 0) > 0 ? 10 : 0)  // 10pts evidencia
         );
 
         // Technical: basado en claridad de la propuesta (longitud, estructura, tags)
