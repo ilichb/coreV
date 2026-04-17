@@ -78,10 +78,48 @@ export class AtlasIngestionService {
         
         // Use AVIP v2.0 Reputation Engine instead of legacy trust score
         // For governance participation, we simulate the dimension scores
+        // Extraer métricas reales para alimentar AVIP v2.0
+        const votesForRaw = Number(decision.votes_for || 0);
+        const votesAgainstRaw = Number(decision.votes_against || 0);
+        const totalVotesRaw = votesForRaw + votesAgainstRaw;
+
+        // Governance: basado en participación real (votos, quorum, outcome)
+        const quorum = Number(decision.quorum_required || 0);
+        const participationRatio = quorum > 0 ? Math.min(totalVotesRaw / quorum, 1) : 0.5;
+        const approvalRatio = totalVotesRaw > 0 ? votesForRaw / totalVotesRaw : 0.5;
+        const governanceScore = Math.round(
+            (participationRatio * 40) +       // 40pts por participación real
+            (approvalRatio * 30) +             // 30pts por consenso
+            (decision.status === 'PASSED' || decision.status === 'EXECUTED' ? 20 : 5) + // 20pts outcome
+            (decision.verification_proofs?.length > 0 ? 10 : 0)  // 10pts evidencia
+        );
+
+        // Technical: basado en claridad de la propuesta (longitud, estructura, tags)
+        const descLength = (decision.description || '').length;
+        const hasSections = ['abstract','specification','rationale','implementation','timeline','budget']
+            .filter(s => (decision.description || '').toLowerCase().includes(s)).length;
+        const technicalScore = Math.min(100, Math.round(
+            Math.min(descLength / 50, 30) +    // hasta 30pts por contenido
+            (hasSections * 8) +                 // 8pts por cada sección estructurada
+            10                                  // base
+        ));
+
+        // Community: basado en ecosistema, tags y tipo de propuesta
+        const tags = decision.tags || [];
+        const communityTags = ['community','social','education','grant','dao','governance','delegate'];
+        const communityRelevance = tags.filter((t: string) => communityTags.includes(t.toLowerCase())).length;
+        const communityScore = Math.min(100, Math.round(
+            (communityRelevance * 15) +          // 15pts por tag relevante
+            (totalVotesRaw > 1000 ? 30 : totalVotesRaw > 100 ? 20 : 10) + // pts por participación
+            20                                   // base
+        ));
+
         const avipScore = await reputationEngineService.calculateScore({
-            technical: 50, 
-            governance: 80, 
-            community: 50
+            technical: technicalScore,
+            governance: governanceScore,
+            community: communityScore,
+            verifiedCount: decision.verification_proofs?.length || 0,
+            totalMilestones: 1
         });
 
         // Convertir bigint a number para MongoDB
@@ -99,6 +137,8 @@ export class AtlasIngestionService {
         return {
             atlasId,
             status: 'VERIFIED',
+            // Display name: use proposal title if available, else ecosystem DAO name
+            name: decision.title || `${decision.dao_identifier} — ${decision.ecosystem.charAt(0).toUpperCase() + decision.ecosystem.slice(1)}`,
             action: {
                 type: 'GOVERNANCE_PARTICIPATION',
                 description: decision.description || `Participación en ${decision.dao_identifier}`,

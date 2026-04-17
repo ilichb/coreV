@@ -181,6 +181,7 @@ export async function GET(request: NextRequest) {
     const formattedResults = results.map((doc: any) => ({
       atlasId: doc.atlasId,
       status: doc.status,
+      name: doc.name || doc.action?.metadata?.name || undefined,
       action: {
         type: doc.action?.type,
         description: doc.action?.description,
@@ -188,8 +189,10 @@ export async function GET(request: NextRequest) {
         metadata: doc.action?.metadata || {}
       },
       impactScore: doc.metadata?.trustScore || 0,
+      reputationScore: doc.metadata?.avipScore?.total || doc.metadata?.trustScore || 0,
+      avipDetails: doc.metadata?.avipScore || null,
       builderDid: doc.action?.metadata?.builderDid,
-      ecosystem: doc.sourceScorecard?.ecosystem,
+      ecosystem: doc.sourceScorecard?.ecosystem || doc.action?.metadata?.ecosystem || doc.action?.tags?.[0] || 'unknown',
       createdAt: doc.metadata?.createdAt,
       updatedAt: doc.metadata?.updatedAt,
       evidenceCount: doc.evidence?.length || 0,
@@ -494,10 +497,13 @@ export async function POST(request: NextRequest) {
     const formattedResults = results.map((doc: any) => ({
       atlasId: doc.atlasId,
       status: doc.status,
+      name: doc.name || doc.action?.metadata?.name || undefined,
       action: doc.action,
       impactScore: doc.metadata?.trustScore || 0,
+      reputationScore: doc.metadata?.avipScore?.total || doc.metadata?.trustScore || 0,
+      avipDetails: doc.metadata?.avipScore || null,
       builderDid: doc.action?.metadata?.builderDid,
-      ecosystem: doc.sourceScorecard?.ecosystem,
+      ecosystem: doc.sourceScorecard?.ecosystem || doc.action?.metadata?.ecosystem || doc.action?.tags?.[0] || 'unknown',
       createdAt: doc.metadata?.createdAt,
       updatedAt: doc.metadata?.updatedAt,
       evidence: doc.evidence?.map((e: any) => ({

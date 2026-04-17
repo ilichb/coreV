@@ -54,7 +54,8 @@ export async function GET(request: NextRequest) {
                         builderDid: `did:andromeda:rootstock:${b.id}`,
                         name: meta.name,
                         category: meta.category,
-                        impactScore: Math.min(Math.floor(parseFloat(b.backerTotalAllocation || '0') * 0.1) + 65, 99)
+                        ecosystem: 'rootstock',
+                        impactScore: Math.min(Math.floor(parseFloat(b.accumulatedTime || b.backerTotalAllocation || '0') * 0.1) + 50, 99)
                     };
                 } catch (e) {
                     return b; // Fallback to raw builder if metadata fails

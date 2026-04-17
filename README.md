@@ -120,32 +120,31 @@ andromeda-core-platform/
 
 ```
 🚀 Installation & Setup
-```bash
-git clone https://github.com/ilichb/coreV.git
-cd coreV
+git clone [https://github.com/AndromedaCore/AlgorandX402.git](https://github.com/AndromedaCore/AlgorandX402.git)
+cd AlgorandX402
 npm install
 npm run dev
+
 ```
-
-📡 API Endpoints
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| POST | /api/coordination/validate | Validates a Scorecard |
-| GET | /api/reputation/verify/:did | Retrieves a builder's AVIP score |
-| POST | /api/reputation/attest | Peer-to-peer attestation (staking) |
-
+📡 API EndpointsMethodEndpointDescriptionPOST/api/coordination/validateValidates a ScorecardGET/api/reputation/verify/:didRetrieves a builder's AVIP scorePOST/api/reputation/attestPeer-to-peer attestation (staking)
+```
 🗺️ Roadmap & Governance
 Andromeda Core is a public good governed by the Assembly of Builders (reputation-weighted) and the Invariants Parliament.
 
 Phase 1: Foundation (Complete) ✅
-Phase 2: Co-governance (Q2 2026) 🟡
-Phase 3: Distributed pinning (Q3 2026) 🟡
-Phase 4: Full DAO (Q4 2026) 🔲
 
+Phase 2: Co-governance (Q2 2026) 🟡
+
+Phase 3: Distributed pinning (Q3 2026) 🟡
+
+Phase 4: Full DAO (Q4 2026) 🔲
+```
 🤝 Contributing
+```
 Contributions are welcome! Help us with new connectors, ML models, or translations. Report vulnerabilities to security@andromedacomputer.net.
 
 📄 License
 MIT © 2026 Andromeda Computer. Public good infrastructure.
 
 <p align="center"> Made with <strong>clarity</strong>, <strong>immutability</strong>, and <strong>hard industrial design</strong>. </p>
+.
