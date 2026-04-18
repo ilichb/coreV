@@ -97,8 +97,9 @@ andromeda-core-platform/
 ├── scripts/ # Sync workers, recalculate AVIP
 ├── packages/ # Smart contracts (AVIP, Algorand, Solana)
 └── tests/ # Unit, stress, and chaos tests
-
 ```
+
+
 
 ## 🧪 How to Run Locally (for Judges)
 
@@ -121,7 +122,7 @@ Create a .env.local file from .env.example and set at least:
 git clone https://github.com/AndromedaCore/Core-Solana.git
 cd Core-Solana
 npm install
-
+```
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SOLANA_RPC_URL=https://api.devnet.solana.com
@@ -131,7 +132,7 @@ SOLANA_RPC_URL=https://api.devnet.solana.com
 ```
 
 Run the Development Server
-```
+
 ```
 npm run dev
 ```
@@ -142,7 +143,7 @@ Connect a Solana wallet (Phantom) – the Ed25519 signature will be verified.
 
 Fill a test Scorecard and publish it (the backend will validate invariants, upload to IPFS, and store in Supabase).
 ```
-
+```
 Check the health endpoint: http://localhost:4000/api/solana/health
 
 Run Tests
@@ -154,11 +155,10 @@ npm run test:chaos      # chaos engineering
 
 Build for Production
 ```
-
 npm run build
 npm start
 ```
-
+```
 📡 API Endpoints (Public)
 Method	Endpoint	Description
 POST	/api/coordination/publish	Publish a signed Scorecard (supports Solana Ed25519 & EVM EIP‑712)
@@ -174,17 +174,19 @@ Metric	Target
 Real‑time ingestion	Index proposals from ≥2 major Solana DAOs (e.g., Mango, PsyFinance)
 On‑chain finality	≥100 immutable milestones anchored on the AndromedaRegistry contract (devnet)
 Latency	TrustScore update ≤2 seconds after a vote is cast (measured via gRPC stream)
-```
+
 
  Roadmap & Governance
 Andromeda Core is a public good governed by the Assembly of Builders (reputation‑weighted) and the Invariants Parliament (technical committee).
-
+```
+```
 Phase	Status
 Phase 1 – Foundation (Scorecard + AVIP + Atlas)	✅ Complete
 Phase 2 – Co‑governance (Assembly active)	🟡 Q2 2026
 Phase 3 – Distributed pinning (IPFS community nodes)	🟡 Q3 2026
 Phase 4 – Full DAO (No privileged team keys)	🔲 Q4 2026
-
+```
+```
 🤝 Contributing
 Contributions are welcome! We need help with:
 
