@@ -1,148 +1,110 @@
-# Andromeda Core – Solana Integration
 
-[![Hackathon](https://img.shields.io/badge/Hackathon-Solana-14F195?style=for-the-badge&logo=solana)](https://solana.com/hackathon)
-[![Status](https://img.shields.io/badge/Status-Partial%20Integration-yellow)]()
 
-Andromeda Core is a **verifiable reputation protocol** for Web3 builders, DAOs, and validators. This repository contains the **Solana integration module** – the bridge that allows Solana-native identities to participate in the cross‑chain reputation network.
+# Andromeda Core – Solana Frontier Hackathon 🚀
 
-> 🚀 **This is our submission for the Solana Hackathon.** We are seeking feedback and support to complete the missing pieces (see below).
+[![Hackathon](https://img.shields.io/badge/Hackathon-Colosseum--Frontier-14F195?style=for-the-badge&logo=solana)](https://colosseum.org/frontier)
+[![RPC](https://img.shields.io/badge/RPC-RPC%20Fast%20(gRPC)-6D28D9?style=for-the-badge)](https://rpcfast.com/)
+[![Status](https://img.shields.io/badge/Status-Active%20Development-blue?style=for-the-badge)]()
+
+**Andromeda Core** is a **Verifiable Reputation Protocol** for the Agentic Economy. We provide a decentralized trust layer for builders, DAOs, and autonomous agents. During the **Colosseum Frontier Hackathon**, we are establishing **Solana** as our primary high‑performance infrastructure for identity, governance indexing, and immutable record anchoring.
+
+> 💡 **Vision:** Every Solana builder and AI agent will have a **TrustScore** – backed by on‑chain history, secured by Solana’s speed, and powered by **RPC Fast’s Yellowstone gRPC**.
 
 ---
 
-## ✅ What’s Already Built (Working)
+## ⚡ Why RPC Fast is Critical for Our Reputation Engine
+
+Traditional JSON‑RPC polling cannot keep up with real‑time reputation scoring. With **RPC Fast’s Yellowstone gRPC (Geyser)** we achieve:
+
+- **Real‑time Governance Indexing** – Subscribe to account changes of Realms/Squads, eliminating polling latency.
+- **Sub‑second TrustScore Updates** – Every vote or proposal creation triggers an immediate update of a builder’s reputation.
+- **Horizontal Scalability** – The gRPC stream can handle thousands of concurrent subscriptions, allowing our **AVIP engine** to process massive volumes of on‑chain activity without bottlenecks.
+- **Low‑Cost Anchoring** – Fast, reliable RPC means our **Atlas** registry can confirm milestone submissions in seconds, enabling a smooth user experience.
+
+> **RPC Fast is the backbone of our scalability strategy.** Without it, we cannot deliver real‑time reputation for the Solana ecosystem.
+
+---
+
+## ✅ Already Built (Pre‑Hackathon)
 
 | Component | Status | Description |
 |-----------|--------|-------------|
-| **Ed25519 signature verification** | ✅ Complete | The `/api/coordination/publish` endpoint accepts and verifies Ed25519 signatures from Solana wallets. |
-| **DID support for Solana** | ✅ Complete | DIDs like `did:andromeda:sol:<pubkey>` are parsed and recognized across the system. |
-| **Identity linking** | ✅ Complete | A Solana address can be linked to an Andromeda profile (no reputation yet, but identity is verified). |
-| **Test environment** | ✅ Complete | Full LocalNet setup for development (using Algorand LocalNet as sandbox; Solana testnet pending). |
-
-**Code references:**  
-- Signature verification: `src/lib/services/coordination/crypto-guard.ts` (Ed25519 path)  
-- DID parsing: `src/types/coordination/scorecard.ts`  
-- API endpoint: `src/app/api/coordination/publish/route.ts`
+| **Solana DID** | ✅ Complete | `did:andromeda:sol:<pubkey>` fully integrated into AVIP. |
+| **Ed25519 Signature Verification** | ✅ Complete | Wallets (Phantom/Solflare) can sign and publish Scorecards. |
+| **AVIP Reputation Engine** | ✅ Complete | Shannon entropy + asymmetric decay ready to consume Solana data. |
+| **Health Endpoint** | ✅ Complete | `/api/solana/health` monitors RPC connectivity. |
 
 ---
 
-## 🧱 What We Will Build During the Hackathon (Missing Pieces)
+## 🧱 Hackathon Sprint – Building a Scalable Reputation Layer on Solana
 
-Our goal is to turn Solana from a “signature‑only” identity layer into a **full reputation source** – the same way we already ingest data from Rootstock, Optimism, and Arbitrum.
+We will deliver **four tightly integrated components** that transform Solana into our primary reputation settlement layer.
 
-### 🔹 1. Governance Data Ingestor (Realms / Squads)
+### 1. Governance Indexer using Yellowstone gRPC
+- **What:** A `solana-connector.ts` that subscribes to **Realms** and **Squads** accounts via RPC Fast’s gRPC.
+- **How it scales:** Real‑time streams → AVIP engine updates TrustScores immediately → no polling delays.
+- **Deliverable:** Index proposals, votes, and delegate participation from at least 2 major Solana DAOs (e.g., Mango, PsyFinance).
 
-**Problem:** Solana DAOs use Realms or Squads. Their proposals, votes, and delegate activity are not indexed by Andromeda.
+### 2. AndromedaRegistry (Anchor Smart Contract)
+- **What:** A Rust/Anchor contract deployed on **Solana devnet** that permanently anchors verified milestones (Merkle roots + IPFS CIDs).
+- **Why Solana:** Finality in seconds, low cost, and high throughput – ideal for immutable reputation storage.
+- **Deliverable:** The contract will become the **canonical source of truth** for all TrustScores.
 
-**Plan:**  
-- Build a connector similar to `rootstock-connector.ts` using **The Graph** (or direct RPC to Realms program).  
-- Fetch proposals, votes, and participation history.  
-- Normalize into `StandardGovernanceDecision` format.
+### 3. Native SOL Micro‑Rewards (x402 for Solana)
+- **What:** Automated micropayments in **SOL** to validators who verify milestones.
+- **Leverages:** Solana’s near‑zero fees and RPC Fast’s low‑latency confirmation.
+- **Deliverable:** A reward system integrated into the Atlas workflow.
 
-### 🔹 2. TrustScore for Solana Builders & Validators
+### 4. Solana TrustScore API & Dashboard
+- **What:** Public endpoints (`/api/reputation/score/[did]`) and a frontend dashboard to visualise builder reputation.
+- **Data source:** Real‑time governance activity streamed via gRPC.
+- **Deliverable:** A live dashboard that shows TrustScores updating as new votes are cast.
 
-**Problem:** Currently, a Solana builder can prove *who they are* (signature) but not *what they have done* (reputation).
+---
 
-**Plan:**  
-- Feed the ingested governance data into the **AVIP reputation engine** (already supports Shannon entropy and asymmetric decay).  
-- Calculate a TrustScore based on:
-  - Number of proposals created/voted.
-  - Quality of participation (consistency, alignment with community outcomes).
-  - Cross‑chain activity (if the same DID also works on Ethereum, Algorand, etc.).
+## 🛠️ Technology Stack
 
-### 🔹 3. Solana Native Micropayments (x402‑like)
+- **Blockchain:** Solana (Anchor, Rust, `@solana/web3.js`)
+- **Infrastructure:** **RPC Fast (Yellowstone gRPC)**, MongoDB Atlas, IPFS (Pinata)
+- **Backend:** Next.js 16 (App Router), TypeScript, BullMQ
+- **Reputation Engine:** AVIP (Shannon entropy, asymmetric decay)
 
-**Problem:** Algorand has x402 for cheap micropayments. Solana lacks an equivalent standard, but we can use **native SOL transfers** (extremely cheap).
-
-**Plan:**  
-- Implement a `sendPaymentSolana` method using `@solana/web3.js`.  
-- Allow validators to receive micro‑rewards in SOL (similar to the Algorand CU‑02).  
-- Integrate with the Atlas verification flow.
-
-### 🔹 4. Dashboard for Solana Stakers (Meta Pool synergy)
-
-**Problem:** Stakers on Solana (e.g., through Meta Pool’s `mpSOL`) have no visibility into validator reliability.
-
-**Plan:**  
-- Extend the **Risk Dashboard** to show TrustScores of Solana validators.  
-- Combine on‑chain validator performance (uptime, commission) with governance history.
-
+---
 ```
-
-## 🛠️ Technologies Used
-
-- **Backend:** Next.js 16, TypeScript, BullMQ, Redis (Upstash)  
-- **Blockchain:** `@solana/web3.js`, `@solana/spl-token`, `ed25519`  
-- **Data Indexing:** The Graph (planned), Helius RPCs  
-- **Reputation Engine:** Shannon entropy, asymmetric decay (already implemented in AVIP v2.0)  
-- **Storage:** Supabase (PostgreSQL), MongoDB Atlas, IPFS (Pinata)
-
-```
-
-## 📁 Project Structure (Solana‑relevant)
-```
+## 📁 Project Structure (Solana‑focused)
 src/
+├── contract/ (AndromedaRegistry – Anchor/Rust)
+│ └── src/lib.rs
 ├── lib/
 │ ├── infrastructure/clients/
-│ │ └── algorand-client.ts (Algorand payments – reference for Solana)
+│ │ └── solana-client.ts # SOL rewards & contract interaction
 │ ├── services/
 │ │ ├── coordination/
-│ │ │ ├── crypto-guard.ts (Ed25519 verification – works)
 │ │ │ └── connectors/
-│ │ │ └── solana-connector.ts (TO BE BUILT)
+│ │ │ └── solana-connector.ts # gRPC ingestor for Realms/Squads
 │ │ └── reputation/
-│ │ └── reputation-engine.service.ts (AVIP – ready to consume Solana data)
-│ └── types/
-│ └── coordination/scorecard.ts (DID parsing includes 'sol')
-└── app/api/coordination/publish/route.ts (signature verification works)
+│ │ └── reputation-engine.service.ts # AVIP core
+└── app/api/reputation/score/ # Public TrustScore API
 ```
+---
 ```
-## 🧪 How to Test (Current Functionality)
+## 📈 Success Metrics for Colosseum
 
-1. Clone this repo and run `npm install`.
-2. Start the development server: `npm run dev`.
-3. Go to `http://localhost:4000/es/coordination`.
-4. Fill a Scorecard and connect a **Solana wallet** (Phantom) using the Ed25519 challenge.
-5. Sign the nonce – the backend will accept the signature and publish the Scorecard.
-
-> ⚠️ The published Scorecard will **not** yet reflect Solana on‑chain activity (governance data) because the connector is missing. That’s exactly what we will build during the hackathon.
+| Metric | Target |
+|--------|--------|
+| **Real‑time ingestion** | Index proposals from ≥2 major Solana DAOs (e.g., Mango, PsyFinance) |
+| **On‑chain finality** | ≥100 immutable milestones anchored on the `AndromedaRegistry` contract (devnet) |
+| **Latency** | TrustScore update ≤2 seconds after a vote is cast (measured via gRPC stream) |
 ```
 ---
 
-## 📈 Hackathon Goals – Success Metrics
-
-By the end of the hackathon, we will have:
-
-1. A **working Solana connector** that ingests governance data from Realms (minimum 2 DAOs).  
-2. **TrustScores** for at least 50 Solana builders/validators, computed by AVIP.  
-3. A **dashboard prototype** showing Solana validator reputation (combining governance + technical metrics).  
-4. **Documentation** and a demo video showcasing the end‑to‑end flow: identity → governance data → TrustScore → reward (in SOL).
-
----
-
-## 🤝 Call for Collaboration
-
-We are actively looking for:
-
-- **Solana developers** to help with the Realms/Squads indexer.  
-- **The Graph indexers** to deploy subgraphs for Solana governance data.  
-- **Validators and DAOs** to test our dashboard and provide feedback.  
-- **Meta Pool** (or other liquid staking protocols) to integrate the risk dashboard.
-
-If you are interested, please open an issue or reach out via seguridad@andromedacomputer.net.
-
----
-```
-```
 ## 📄 License
 
 MIT – see [LICENSE](LICENSE) file.
 
 ---
-
-**Built with 🔧 by Andromeda Core Team**  
-[Website](https://core.andromedacomputer.net/en) · [Twitter](https://x.com/Andromeda_Core) · [GitHub](https://github.com/AndromedaCore/Core-Solana)
-
-
-
+```
+**Built with 🔧 by Andromeda Core**  
+*Empowering the next generation of decentralized trust on Solana.*
 
 
