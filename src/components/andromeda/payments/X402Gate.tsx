@@ -1,11 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
-import { DeflyWalletConnect } from '@blockshake/defly-connect';
 import { Lock, CreditCard, ChevronRight, CheckCircle2, AlertCircle, Zap } from 'lucide-react';
 import { logger } from '../../../lib/utils/logger';
 
-const deflyWallet = new DeflyWalletConnect();
+// Lazy-loaded para evitar SSR issues
+let _peraWallet: any = null;
+const getPeraWallet = async () => {
+  if (!_peraWallet) {
+    const { PeraWalletConnect } = await import('@perawallet/connect');
+    _peraWallet = new PeraWalletConnect();
+  }
+  return _peraWallet;
+};
 
 interface X402GateProps {
   scorecardId: string;
@@ -23,10 +30,11 @@ export default function X402Gate({ scorecardId, onUnlocked, price = "0.001 ALGO"
     setIsConnecting(true);
     setError(null);
     try {
-      const accounts = await deflyWallet.connect();
+      const pera = await getPeraWallet();
+      const accounts = await pera.connect();
       setAccountAddress(accounts[0]);
-    } catch (err) {
-      setError('Pera Connection Error');
+    } catch (err: any) {
+      setError(err?.message || 'Connection Error');
     } finally {
       setIsConnecting(false);
     }
@@ -58,7 +66,8 @@ export default function X402Gate({ scorecardId, onUnlocked, price = "0.001 ALGO"
       });
 
       const singleTxnGroups = [{ txn: txn, signers: [accountAddress] }];
-      const signedTxn = await deflyWallet.signTransaction([singleTxnGroups]);
+      const pera = await getPeraWallet();
+      const signedTxn = await pera.signTransaction([singleTxnGroups]);
       
       const response = await algodClient.sendRawTransaction(signedTxn[0]).do();
       const txId = (response as any).txId || (response as any).txid;
