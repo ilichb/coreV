@@ -56,9 +56,11 @@ export default function BuilderRanking({
       if (ecosystem && ecosystem !== 'all') params.append('ecosystem', ecosystem);
       const trimmedSearch = (searchQuery || '').trim();
       if (trimmedSearch) params.append('search', trimmedSearch);
-      params.append('sortBy', sortBy === 'impact' ? 'metadata.trustScore' : 'metadata.trustScore');
+      params.append('sortBy', sortBy === 'impact' ? 'metadata.trustScore' : 'metadata.avipScore.total');
       params.append('sortOrder', sortOrder);
-      params.append('limit', limit.toString());
+      // When fetching all ecosystems, request a larger pool so ATLAS results dominate
+      const effectiveLimit = (!ecosystem || ecosystem === 'all') ? Math.max(limit * 3, 50) : limit;
+      params.append('limit', effectiveLimit.toString());
 
       const response = await fetch(`/api/atlas/search?${params.toString()}`);
       const data = await response.json();
@@ -105,16 +107,22 @@ export default function BuilderRanking({
           finalResults = [];
         }
       } else {
-        // 2. Para búsquedas por nombre o vista de lista: fusionar builders de Rootstock en vivo
-        if (ecosystem === 'rootstock' || ecosystem === 'all' || !ecosystem) {
-          logger.info('🔄 Fetching Rootstock builder list for ranking...');
+        // 2. Complementar con builders Rootstock en vivo SOLO cuando se filtra por rootstock
+        // Para ecosystem='all', los datos de ATLAS ya contienen todos los ecosistemas
+        if (ecosystem === 'rootstock') {
+          logger.info('🔄 Fetching Rootstock builder list to complement ATLAS results...');
           try {
             const buildersRes = await fetch('/api/rootstock/builders');
             const buildersData = await buildersRes.json();
 
             if (buildersData.success && buildersData.builders) {
+              // Construir set de DIDs ya presentes en ATLAS para evitar duplicados
+              const atlasDidSet = new Set(
+                dbResults.map((r: any) => (r.builderDid || '').toLowerCase())
+              );
               buildersData.builders.forEach((lb: any) => {
-                if (!finalResults.some((db: any) => db.builderDid?.toLowerCase() === lb.builderDid?.toLowerCase())) {
+                const lbDid = (lb.builderDid || '').toLowerCase();
+                if (lbDid && !atlasDidSet.has(lbDid)) {
                   finalResults.push(lb);
                 }
               });
@@ -145,25 +153,47 @@ export default function BuilderRanking({
           
           const didKey = bDid.toLowerCase();
           
-          // Normalización: si es did:pkh:eip155:30:0x..., convertir a did:andromeda:rootstock:0x... para consistencia
+          // Normalizar todos los formatos de DID a did:andromeda:{ecosystem}:{address}
           let normalizedDid = bDid;
-          if (didKey.includes('eip155:30')) {
-            const addr = didKey.split(':').pop();
-            normalizedDid = `did:andromeda:rootstock:${addr}`;
+          // Fix: DID may be nested like 'did:andromeda:optimism:did:pkh:eip155:10:0xAbCd...'
+          // Find the LAST segment that looks like a full 0x address (40+ hex chars)
+          const didParts = didKey.split(':');
+          const fullAddrPart = didParts.find((p: string) => /^0x[a-f0-9]{10,}/.test(p));
+          const rawAddr = fullAddrPart || didParts[didParts.length - 1];
+          if (rawAddr && rawAddr.startsWith('0x')) {
+            if (didKey.includes('eip155:30') || didKey.includes(':rootstock:')) {
+              normalizedDid = `did:andromeda:rootstock:${rawAddr}`;
+            } else if (didKey.includes('eip155:42161') || didKey.includes(':arbitrum:')) {
+              normalizedDid = `did:andromeda:arbitrum:${rawAddr}`;
+            } else if (didKey.includes('eip155:10') || didKey.includes(':optimism:')) {
+              normalizedDid = `did:andromeda:optimism:${rawAddr}`;
+            } else if (didKey.includes(':eth:') || didKey.includes('eip155:1')) {
+              normalizedDid = `did:andromeda:eth:${rawAddr}`;
+            }
           }
 
           const finalKey = normalizedDid.toLowerCase();
 
           if (!builderMap.has(finalKey)) {
+            // Extraer ecosistema: usar action.metadata.ecosystem como fuente autoritativa
+            // para evitar que el parsing del DID anidado de Optimism/Arbitrum falle
+            const resolvedEcosystem = 
+              item.action?.metadata?.ecosystem ||
+              item.ecosystem ||
+              item.sourceScorecard?.ecosystem ||
+              (didKey.includes(':rootstock:') || didKey.includes('eip155:30') ? 'rootstock' :
+               didKey.includes(':arbitrum:') || didKey.includes('eip155:42161') ? 'arbitrum' :
+               didKey.includes(':optimism:') || didKey.includes('eip155:10') ? 'optimism' : 'unknown');
+
             builderMap.set(finalKey, {
               rank: index + 1,
               did: normalizedDid,
               name: item.name, 
               shortDid: item.name || (normalizedDid.split(':').pop()?.substring(0, 10) + '...'),
-              reputationScore: Math.min(100, Math.round((item.metadata?.avipScore?.total || item.impactScore || item.reputation || 0) * 10)),
+              reputationScore: Math.min(100, Math.round(item.metadata?.avipScore?.total || item.reputationScore || item.impactScore || item.reputation || 0)),
               totalProjects: item.metadata?.impactMetrics?.projects || item.totalProjects || 1,
-              impactScore: Math.min(100, Math.round((item.metadata?.avipScore?.total || item.impactScore || item.metadata?.trustScore || 0) * 10)),
-              ecosystem: item.action?.metadata?.ecosystem || item.ecosystem || 'unknown',
+              impactScore: Math.min(100, Math.round(item.metadata?.trustScore || item.impactScore || 0)),
+              ecosystem: resolvedEcosystem,
               category: item.category || item.action?.tags?.[0] || 'infrastructure',
               lastActivity: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'recent',
               crossChainAddresses: 1,
@@ -203,13 +233,17 @@ export default function BuilderRanking({
     const colors: Record<string, string> = {
       ethereum: 'text-purple-500',
       rootstock: 'text-orange-500',
+      arbitrum: 'text-blue-400',
+      optimism: 'text-red-400',
       polkadot: 'text-pink-500',
       snapshot: 'text-blue-500',
       vara: 'text-cyan-500',
       polygon: 'text-violet-500',
-      avalanche: 'text-red-500'
+      avalanche: 'text-red-500',
+      algorand: 'text-teal-400',
+      solana: 'text-green-400'
     };
-    return colors[ecosystem] || 'text-gray-500';
+    return colors[ecosystem?.toLowerCase()] || 'text-gray-500';
   };
 
   const getCategoryColor = (category: string) => {

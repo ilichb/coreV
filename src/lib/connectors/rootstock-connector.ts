@@ -186,8 +186,7 @@ export class RootstockConnector {
 
   async fetchAllBuilders(limit: number = 20): Promise<any[]> {
     const cacheKey = `rootstock:builders:all:${limit}`;
-    
-    // Pinned fallbacks for "Always-On" reliability
+
     const pinnedBuilders = [
       { id: '0xd9fcae4315920387f00725c78285d6d41c30b967', name: 'WoodSwap', category: 'DeFi', backerTotalAllocation: '0', accumulatedTime: '0' },
       { id: '0xf675d0b9432607172776856525143a2991060934', name: 'Asami.Club', category: 'Social', backerTotalAllocation: '0', accumulatedTime: '0' },
@@ -282,10 +281,9 @@ export class RootstockConnector {
 
       // C. Last Resort: Pinned Fallback
       if (builders.length === 0) {
-        logger.info('⚠️ All external sources failed. Applying Pinned Builder Fallback.');
         builders.push(...pinnedBuilders.map(pb => ({
           ...pb,
-          builderDid: `did:andromeda:rootstock:${pb.id.toLowerCase()}`
+          builderDid: `did:andromeda:rootstock:${pb.id}`
         })));
       }
 
@@ -297,10 +295,9 @@ export class RootstockConnector {
       return builders;
     } catch (error: any) {
       logger.error('❌ Error in fetchAllBuilders:', error);
-      // Even in catch, return pinned builders instead of empty
       return pinnedBuilders.map(pb => ({
         ...pb,
-        builderDid: `did:andromeda:rootstock:${pb.id.toLowerCase()}`
+        builderDid: `did:andromeda:rootstock:${pb.id}`
       }));
     }
   }
@@ -499,6 +496,7 @@ export class RootstockConnector {
         name: metadata.name,
         category: metadata.category,
         did: `did:andromeda:rootstock:${lower}`,
+
         reputation: totalRep,
         stats: {
           proposals: onChainProposals.length,
@@ -511,6 +509,7 @@ export class RootstockConnector {
           allocation: staking.backerTotalAllocation || '0',
           gauges: activity.gaugeStakingHistories?.map((g: any) => g.gauge) || []
         },
+
         proposals: mergedProposals,
         avipScore: { total: totalRep }
       };

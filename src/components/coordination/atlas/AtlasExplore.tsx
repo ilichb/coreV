@@ -285,7 +285,6 @@ export default function AtlasExplore() {
                     ecosystem={ecosystemFilter === 'all' ? undefined : ecosystemFilter}
                     searchQuery={searchQuery?.trim()}
                     onBuilderClick={(did) => {
-                      // Extract address from DID (e.g. did:andromeda:rootstock:0x... or just raw 0x...)
                       const parts = did.split(':');
                       const address = parts[parts.length - 1];
                       if (address && address.startsWith('0x')) {

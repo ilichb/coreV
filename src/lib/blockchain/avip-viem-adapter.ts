@@ -23,6 +23,7 @@ export class AvipViemAdapter {
     }
 
     private ensureDirectories() {
+        if (process.env.VERCEL || process.env.NODE_ENV === 'production') return;
         const dataDir = path.dirname(this.FALLBACK_PATH);
         if (!fs.existsSync(dataDir)) {
             fs.mkdirSync(dataDir, { recursive: true });
