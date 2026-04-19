@@ -21,6 +21,12 @@ Traditional JSON‑RPC polling cannot keep up with real‑time reputation scorin
 
 > **RPC Fast is the backbone of our scalability strategy.** Without it, we cannot deliver real‑time reputation for the Solana ecosystem.
 
+
+The project already features a functional Solana client (solana-client.ts) and a batch adapter (solana-adapter.ts) that anchors scorecards using the Solana Memo program. The audit system (/es/audit) already displays the status of this connection. For the hackathon, we need to add:
+
+Real-time governance (gRPC connector for Realms/Squads).
+
+A custom Anchor contract (to record reputation milestones, replacing the simple Memo).
 ---
 
 ## ✅ Already Built (Pre‑Hackathon)
