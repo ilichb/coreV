@@ -8,7 +8,7 @@ async function test() {
   const metadata = {
     merkle_root: merkleRoot,
     ipfs_cid: "QmExample123",
-    did: "did:sol:GUjhtFcxBEpi5",
+    did: "did:sol:GUjhtFcxBEpi6",
     ecosystem: "solana",
     dao_identifier: "test-dao"
   };

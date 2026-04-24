@@ -159,7 +159,23 @@ class SolanaIngestionService {
 
       // 2. Enviar a AVIP (motor matemático de reputación)
       //    Mismo método que usa publish/route.ts para scorecards EVM
-      const avipResult = await avipViemAdapter.submitScorecard(scorecard);
+      // Adaptar scorecard al schema de AVIP antes de enviar
+      const avipScorecard = {
+        id: data.signature.slice(0, 32),
+        daoId: '0x' + Buffer.from(data.submitter, 'base64').toString('hex').slice(0, 40).padStart(40, '0'),
+        proposalId: data.slot.toString(),
+        userId: data.submitter,
+        vote: 'MILESTONE_SUBMIT',
+        weight: 0.85,
+        timestamp: data.timestamp,
+        metadata: {
+          chain: 'solana-devnet',
+          program: 'AndromedaRegistry',
+          signature: data.signature,
+          atlasId: scorecard.metadata.authorDid,
+        }
+      };
+      const avipResult = await avipViemAdapter.submitScorecard(avipScorecard);
 
       if (!avipResult.queued) {
         logger.warn(`⚠️  SolanaIngestionService: AVIP submission failed: ${avipResult.error}`);
