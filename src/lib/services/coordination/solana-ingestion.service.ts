@@ -225,4 +225,13 @@ class SolanaIngestionService {
 }
 
 // Singleton — igual que atlasOrchestrator y avipViemAdapter
-export const solanaIngestionService = new SolanaIngestionService();
+// Singleton global compartido entre instrumentation.ts y API routes
+const GLOBAL_KEY = '__solanaIngestionService__';
+const globalObj = global as any;
+
+const existing = globalObj[GLOBAL_KEY];
+if (existing === undefined) {
+  globalObj[GLOBAL_KEY] = new SolanaIngestionService();
+}
+
+export const solanaIngestionService: SolanaIngestionService = globalObj[GLOBAL_KEY];
