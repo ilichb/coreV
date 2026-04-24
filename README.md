@@ -1,5 +1,3 @@
-
-
 # Andromeda Core – Solana Frontier Hackathon 🚀
 
 [![Hackathon](https://img.shields.io/badge/Hackathon-Colosseum--Frontier-14F195?style=for-the-badge&logo=solana)](https://colosseum.org/frontier)
@@ -23,6 +21,12 @@ Traditional JSON‑RPC polling cannot keep up with real‑time reputation scorin
 
 > **RPC Fast is the backbone of our scalability strategy.** Without it, we cannot deliver real‑time reputation for the Solana ecosystem.
 
+
+The project already features a functional Solana client (solana-client.ts) and a batch adapter (solana-adapter.ts) that anchors scorecards using the Solana Memo program. The audit system (/es/audit) already displays the status of this connection. For the hackathon, we need to add:
+
+Real-time governance (gRPC connector for Realms/Squads).
+
+A custom Anchor contract (to record reputation milestones, replacing the simple Memo).
 ---
 
 ## ✅ Already Built (Pre‑Hackathon)
@@ -33,6 +37,7 @@ Traditional JSON‑RPC polling cannot keep up with real‑time reputation scorin
 | **Ed25519 Signature Verification** | ✅ Complete | Wallets (Phantom/Solflare) can sign and publish Scorecards. |
 | **AVIP Reputation Engine** | ✅ Complete | Shannon entropy + asymmetric decay ready to consume Solana data. |
 | **Health Endpoint** | ✅ Complete | `/api/solana/health` monitors RPC connectivity. |
+| **Rootstock / Algorand / Optimism / Arbitrum** | ✅ Complete | Governance data already ingested from multiple chains. |
 
 ---
 
@@ -62,49 +67,146 @@ We will deliver **four tightly integrated components** that transform Solana int
 
 ---
 
+## 📊 Comparison with Existing Solutions
+
+| Feature | Andromeda Core (AVIP) | Gitcoin Passport | Ethereum Attestation Service (EAS) |
+| :--- | :--- | :--- | :--- |
+| **Immutability** | ✅ Immutable (MMR + Solana anchor) | ❌ Revocable stamps | ❌ Revocable |
+| **Portability** | ✅ Solana, Algorand, EVM, Rootstock | ❌ Gitcoin only | ❌ On‑chain fixed |
+| **Sybil Resistance** | ✅ Shannon entropy + graph analysis | ❌ Basic aggregation | ❌ None |
+| **Quality Scoring** | ✅ Multidimensional (tech, governance, community) | ❌ Humanhood only | ❌ Plain text |
+
+---
+
 ## 🛠️ Technology Stack
 
-- **Blockchain:** Solana (Anchor, Rust, `@solana/web3.js`)
-- **Infrastructure:** **RPC Fast (Yellowstone gRPC)**, MongoDB Atlas, IPFS (Pinata)
-- **Backend:** Next.js 16 (App Router), TypeScript, BullMQ
-- **Reputation Engine:** AVIP (Shannon entropy, asymmetric decay)
+- **Blockchain:** Solana (Anchor, Rust, `@solana/web3.js`), Algorand (x402), EVM (EIP‑712)
+- **Infrastructure:** **RPC Fast (Yellowstone gRPC)**, MongoDB Atlas, IPFS (Pinata), Upstash Redis
+- **Backend:** Next.js 16 (App Router), TypeScript, BullMQ, Zod
+- **Reputation Engine:** AVIP (Shannon entropy, asymmetric decay, anomaly detection)
+- **Frontend:** React 19, Tailwind CSS, Radix UI, Framer Motion
+- **Testing:** Jest, tsx (stress/chaos tests)
 
 ---
 ```
-## 📁 Project Structure (Solana‑focused)
-src/
-├── contract/ (AndromedaRegistry – Anchor/Rust)
-│ └── src/lib.rs
-├── lib/
-│ ├── infrastructure/clients/
-│ │ └── solana-client.ts # SOL rewards & contract interaction
-│ ├── services/
-│ │ ├── coordination/
-│ │ │ └── connectors/
-│ │ │ └── solana-connector.ts # gRPC ingestor for Realms/Squads
-│ │ └── reputation/
-│ │ └── reputation-engine.service.ts # AVIP core
-└── app/api/reputation/score/ # Public TrustScore API
+## 📁 Project Structure
+andromeda-core-platform/
+├── src/
+│ ├── app/ # Next.js App Router (API routes, i18n pages)
+│ ├── components/ # Industrial‑style UI components
+│ ├── lib/
+│ │ ├── infrastructure/ # Clients (Algorand, Solana, Vara)
+│ │ ├── services/ # AVIP engine, connectors (Rootstock, Solana, etc.)
+│ │ └── coordination/ # Invariants, registry, Atlas orchestrator
+│ ├── hooks/ # useWallet, useScorecards
+│ └── types/ # Scorecard, DID parsers
+├── scripts/ # Sync workers, recalculate AVIP
+├── packages/ # Smart contracts (AVIP, Algorand, Solana)
+└── tests/ # Unit, stress, and chaos tests
 ```
----
+
+
+
+## 🧪 How to Run Locally (for Judges)
+
+> These instructions assume you want to test the **Solana integration** and the core reputation engine.
+
+### Prerequisites
+- Node.js 20+ and npm
+- A Solana wallet (Phantom) for testing signatures (devnet)
+- (Optional) Algorand LocalNet for x402 payments
+
 ```
-## 📈 Success Metrics for Colosseum
 
-| Metric | Target |
-|--------|--------|
-| **Real‑time ingestion** | Index proposals from ≥2 major Solana DAOs (e.g., Mango, PsyFinance) |
-| **On‑chain finality** | ≥100 immutable milestones anchored on the `AndromedaRegistry` contract (devnet) |
-| **Latency** | TrustScore update ≤2 seconds after a vote is cast (measured via gRPC stream) |
+### Setup
+
+
+Environment Variables
+Create a .env.local file from .env.example and set at least:
+
 ```
----
-
-## 📄 License
-
-MIT – see [LICENSE](LICENSE) file.
-
----
+git clone https://github.com/AndromedaCore/Core-Solana.git
+cd Core-Solana
+npm install
 ```
-**Built with 🔧 by Andromeda Core**  
-*Empowering the next generation of decentralized trust on Solana.*
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SOLANA_RPC_URL=https://api.devnet.solana.com
+# For RPC Fast users:
+# SOLANA_RPC_URL=https://<your-grpc-endpoint>.rpcfast.com
+
+```
+
+Run the Development Server
+
+```
+npm run dev
+```
+
+Open http://localhost:4000/en/coordination – you can now:
+
+Connect a Solana wallet (Phantom) – the Ed25519 signature will be verified.
+
+Fill a test Scorecard and publish it (the backend will validate invariants, upload to IPFS, and store in Supabase).
+```
+```
+Check the health endpoint: http://localhost:4000/api/solana/health
+
+Run Tests
+```
+npm test                # unit tests
+npm run test:stress     # load testing
+npm run test:chaos      # chaos engineering
+```
+
+Build for Production
+```
+npm run build
+npm start
+```
+```
+📡 API Endpoints (Public)
+Method	Endpoint	Description
+POST	/api/coordination/publish	Publish a signed Scorecard (supports Solana Ed25519 & EVM EIP‑712)
+GET	/api/reputation/score/[did]	Retrieve a builder’s TrustScore (requires API key for enterprise)
+GET	/api/solana/health	Check Solana RPC connectivity and feature support
+GET	/api/atlas/search?q=...	Search milestones (builders, projects)
+GET	/api/rootstock/builders	List builders from Rootstock (example cross‑chain connector)
+Full Swagger documentation is available at /docs when running locally.
+```
+```
+ Success Metrics for Colosseum
+Metric	Target
+Real‑time ingestion	Index proposals from ≥2 major Solana DAOs (e.g., Mango, PsyFinance)
+On‑chain finality	≥100 immutable milestones anchored on the AndromedaRegistry contract (devnet)
+Latency	TrustScore update ≤2 seconds after a vote is cast (measured via gRPC stream)
 
 
+ Roadmap & Governance
+Andromeda Core is a public good governed by the Assembly of Builders (reputation‑weighted) and the Invariants Parliament (technical committee).
+```
+```
+Phase	Status
+Phase 1 – Foundation (Scorecard + AVIP + Atlas)	✅ Complete
+Phase 2 – Co‑governance (Assembly active)	🟡 Q2 2026
+Phase 3 – Distributed pinning (IPFS community nodes)	🟡 Q3 2026
+Phase 4 – Full DAO (No privileged team keys)	🔲 Q4 2026
+```
+```
+🤝 Contributing
+Contributions are welcome! We need help with:
+
+New blockchain connectors (Solana governance, NEAR, ICP)
+
+ML models for anomaly detection
+
+Translations and documentation
+
+Security audits
+
+Report vulnerabilities to security@andromedacomputer.net.
+
+📄 License
+MIT © 2026 Andromeda Computer. Public good infrastructure.
+
+<p align="center">Made with <strong>clarity</strong>, <strong>immutability</strong>, and <strong>hard industrial design</strong>.</p> ```

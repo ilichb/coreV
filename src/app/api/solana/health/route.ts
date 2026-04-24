@@ -13,8 +13,7 @@ export async function GET() {
                 jsonrpc: '2.0',
                 id: 1,
                 method: 'getHealth'
-            }),
-            next: { revalidate: 0 }
+            })
         });
 
         if (!response.ok) {
