@@ -49,6 +49,8 @@
     "tests/**/*",
     "packages/avip-contracts",
     "packages/contracts",
-    "packages/supabase"
+    "packages/supabase",
+    "packages/solana-contracts/**/*",
+    "packages/avip-contracts/**/*"
   ]
 }
