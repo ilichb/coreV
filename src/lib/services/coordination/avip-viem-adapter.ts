@@ -13,7 +13,7 @@ import {
     toHex
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { hardhat, sepolia, polygonZkEvmTestnet } from 'viem/chains';
+import { hardhat, sepolia, polygonZkEvmTestnet, arbitrumSepolia } from 'viem/chains';
 import { logger } from '../../utils/logger';
 import { Mutex } from 'async-mutex';
 import * as z from 'zod';
@@ -169,6 +169,9 @@ export class AVIPViemAdapter {
                 break;
             case 'polygon-zkevm':
                 chain = polygonZkEvmTestnet;
+                break;
+            case 'arbitrum-sepolia':
+                chain = arbitrumSepolia;
                 break;
             default:
                 chain = hardhat;
