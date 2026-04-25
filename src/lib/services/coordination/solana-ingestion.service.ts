@@ -82,8 +82,9 @@ function buildScorecardFromSolanaTx(data: {
       completeness: 0.8,
       content: {
         chain:       'solana',
-        ecosystem:   'solana-devnet',
+        ecosystem:   'solana',
         slot:        data.slot.toString(),
+        tags:        ['solana', 'on-chain', 'milestone', 'governance', 'andromeda-solana'],
       },
       metadata: { version: '2.0', timestamp: now },
     },

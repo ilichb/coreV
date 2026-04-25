@@ -8,6 +8,7 @@ import ProjectRanking from './ProjectRanking';
 import MilestoneFeed from './MilestoneFeed';
 import RootstockProposals from '../governance/RootstockProposals';
 import RootstockBuilderScorecard from '../scorecards/RootstockBuilderScorecard';
+import SolanaBuilderScorecard from '../scorecards/SolanaBuilderScorecard';
 import { Search, Filter, TrendingUp, Users, FolderGit2, RefreshCw, Hexagon } from 'lucide-react';
 import { logger } from '../../../lib/utils/logger';
 
@@ -26,14 +27,15 @@ export default function AtlasExplore() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [stats, setStats] = useState<AtlasStats | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedBuilderAddress, setSelectedBuilderAddress] = useState<string | null>(null);
+  const [selectedBuilder, setSelectedBuilder] = useState<{ address: string; ecosystem: string } | null>(null);
+  const selectedBuilderAddress = selectedBuilder?.address || null;
 
   const categories = [
     'all', 'defi', 'governance', 'infrastructure', 'refi', 'social', 'gaming', 'ai'
   ];
 
   const ecosystems = [
-    'all', 'rootstock', 'snapshot', 'ethereum', 'polygon', 'avalanche', 'optimism', 'arbitrum'
+    'all', 'rootstock', 'snapshot', 'ethereum', 'polygon', 'avalanche', 'optimism', 'arbitrum', 'solana'
   ];
 
   useEffect(() => {
@@ -271,12 +273,16 @@ export default function AtlasExplore() {
               {selectedBuilderAddress ? (
                 <div className="space-y-4">
                   <button
-                    onClick={() => setSelectedBuilderAddress(null)}
+                    onClick={() => setSelectedBuilder(null)}
                     className="text-xs font-mono-display text-reactor-cyan hover:underline flex items-center gap-1 mb-2"
                   >
                     ← Back to Ranking
                   </button>
-                  <RootstockBuilderScorecard address={selectedBuilderAddress} />
+                  {selectedBuilder?.ecosystem === 'solana' ? (
+                    <SolanaBuilderScorecard address={selectedBuilder.address} />
+                  ) : (
+                    <RootstockBuilderScorecard address={selectedBuilderAddress || ''} />
+                  )}
                 </div>
               ) : (
                 <EmbeddedDisplay title={t('Sections.topBuilders')} status="active">
@@ -287,8 +293,12 @@ export default function AtlasExplore() {
                     onBuilderClick={(did) => {
                       const parts = did.split(':');
                       const address = parts[parts.length - 1];
-                      if (address && address.startsWith('0x')) {
-                        setSelectedBuilderAddress(address);
+                      // Detectar ecosistema desde el DID directamente
+                      const isSolana = did.includes(':sol:') || did.includes('solana');
+                      if (isSolana) {
+                        setSelectedBuilder({ address, ecosystem: 'solana' });
+                      } else {
+                        setSelectedBuilder({ address, ecosystem: ecosystemFilter === 'all' ? 'evm' : ecosystemFilter });
                       }
                     }}
                   />

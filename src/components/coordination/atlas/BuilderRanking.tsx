@@ -148,7 +148,10 @@ export default function BuilderRanking({
         
         finalResults.forEach((item: any, index: number) => {
           // Extraer builderDid de forma más robusta (puede estar en item.builderDid o en metadata)
-          const bDid = item.builderDid || item.action?.metadata?.builderDid;
+          const bDid = item.builderDid 
+            || item.action?.metadata?.builderDid
+            || item.sourceScorecard?.authorDid
+            || item.metadata?.authorDid;
           if (!bDid) return;
           
           const didKey = bDid.toLowerCase();
@@ -158,9 +161,15 @@ export default function BuilderRanking({
           // Fix: DID may be nested like 'did:andromeda:optimism:did:pkh:eip155:10:0xAbCd...'
           // Find the LAST segment that looks like a full 0x address (40+ hex chars)
           const didParts = didKey.split(':');
+          // Detectar dirección Solana (Base58: 32-44 chars alfanuméricos sin 0x)
+          const isSolanaAddr = (s: string) => /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(s) && !s.startsWith('0x');
           const fullAddrPart = didParts.find((p: string) => /^0x[a-f0-9]{10,}/.test(p));
-          const rawAddr = fullAddrPart || didParts[didParts.length - 1];
-          if (rawAddr && rawAddr.startsWith('0x')) {
+          const solanaAddrPart = didParts.find((p: string) => isSolanaAddr(p));
+          const rawAddr = fullAddrPart || solanaAddrPart || didParts[didParts.length - 1];
+
+          if (rawAddr && isSolanaAddr(rawAddr) && (didKey.includes(':sol:') || didKey.includes('solana'))) {
+            normalizedDid = `did:andromeda:sol:${rawAddr}`;
+          } else if (rawAddr && rawAddr.startsWith('0x')) {
             if (didKey.includes('eip155:30') || didKey.includes(':rootstock:')) {
               normalizedDid = `did:andromeda:rootstock:${rawAddr}`;
             } else if (didKey.includes('eip155:42161') || didKey.includes(':arbitrum:')) {
@@ -183,6 +192,7 @@ export default function BuilderRanking({
               item.sourceScorecard?.ecosystem ||
               (didKey.includes(':rootstock:') || didKey.includes('eip155:30') ? 'rootstock' :
                didKey.includes(':arbitrum:') || didKey.includes('eip155:42161') ? 'arbitrum' :
+               didKey.includes(':sol:') || didKey.includes('solana') ? 'solana' :
                didKey.includes(':optimism:') || didKey.includes('eip155:10') ? 'optimism' : 'unknown');
 
             builderMap.set(finalKey, {
