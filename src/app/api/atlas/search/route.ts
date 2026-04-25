@@ -83,8 +83,13 @@ export async function GET(request: NextRequest) {
         });
       }
       
-      const isAddress = /^0x[a-fA-F0-9]{40}$/i.test(builderDid);
-      if (isAddress) {
+      const isEvmAddress = /^0x[a-fA-F0-9]{40}$/i.test(builderDid);
+      // Base58 (standard Solana pubkey) OR Base64 (pubkey from Yellowstone gRPC, may include = padding)
+      const isSolanaAddress = (
+        /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(builderDid) ||
+        /^[A-Za-z0-9+/]{42,48}={0,2}$/.test(builderDid)
+      ) && !builderDid.startsWith('0x');
+      if (isEvmAddress) {
         const addr = builderDid.toLowerCase();
         query['action.metadata.builderDid'] = { $in: [
           addr,
@@ -93,6 +98,18 @@ export async function GET(request: NextRequest) {
           `did:andromeda:optimism:${addr}`,
           `did:andromeda:arbitrum:${addr}`
         ]};
+      } else if (isSolanaAddress) {
+        // Buscar en todos los campos donde el ingestion service puede haber guardado el DID
+        const solanaDid = `did:andromeda:sol:${builderDid}`;
+        query['$or'] = [
+          { 'action.metadata.builderDid': builderDid },
+          { 'action.metadata.builderDid': solanaDid },
+          { 'action.metadata.builderDid': `did:sol:${builderDid}` },
+          { 'metadata.authorDid': builderDid },
+          { 'metadata.authorDid': solanaDid },
+          { 'sourceScorecard.authorDid': builderDid },
+          { 'sourceScorecard.authorDid': solanaDid },
+        ];
       } else {
         query['action.metadata.builderDid'] = builderDid;
       }
@@ -103,7 +120,18 @@ export async function GET(request: NextRequest) {
     }
 
     if (ecosystem) {
-      query['sourceScorecard.ecosystem'] = ecosystem;
+      const ecosystemOr = [
+        { 'sourceScorecard.ecosystem': ecosystem },
+        { 'action.metadata.ecosystem': ecosystem },
+        { 'action.tags': ecosystem }
+      ];
+      if (query['$or']) {
+        // Merge: both the DID $or and the ecosystem $or must be satisfied
+        query['$and'] = [{ '$or': query['$or'] }, { '$or': ecosystemOr }];
+        delete query['$or'];
+      } else {
+        query['$or'] = ecosystemOr;
+      }
     }
 
     if (minImpact || maxImpact) {
@@ -141,16 +169,25 @@ export async function GET(request: NextRequest) {
     }
 
     if (searchText) {
-      const isAddress = /^0x[a-fA-F0-9]{40}$/i.test(searchText);
-      if (isAddress) {
+      const isEvmSearch = /^0x[a-fA-F0-9]{40}$/i.test(searchText);
+      const isSolanaSearch = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(searchText) && !searchText.startsWith('0x');
+      if (isEvmSearch) {
         const addr = searchText.toLowerCase();
-        // Si es una dirección, buscamos coincidencia exacta o por múltiples formatos de DID
         query.$or = [
           { 'action.metadata.builderDid': { $regex: searchText, $options: 'i' } },
           { 'action.metadata.builderDid': `did:andromeda:rootstock:${addr}` },
           { 'action.metadata.builderDid': `did:andromeda:eth:${addr}` },
           { 'action.metadata.builderDid': `did:pkh:eip155:30:${addr}` },
           { 'action.metadata.builderDid': `did:pkh:eip155:1:${addr}` }
+        ];
+      } else if (isSolanaSearch) {
+        query.$or = [
+          { 'action.metadata.builderDid': { $regex: searchText, $options: 'i' } },
+          { 'action.metadata.builderDid': `did:andromeda:sol:${searchText}` },
+          { 'action.metadata.builderDid': searchText },
+          { 'sourceScorecard.authorDid': `did:andromeda:sol:${searchText}` },
+          { 'sourceScorecard.authorDid': searchText },
+          { 'metadata.authorDid': `did:andromeda:sol:${searchText}` }
         ];
       } else {
         query.$text = { $search: searchText };
@@ -191,7 +228,7 @@ export async function GET(request: NextRequest) {
       impactScore: doc.metadata?.trustScore || 0,
       reputationScore: doc.metadata?.avipScore?.total || doc.metadata?.trustScore || 0,
       avipDetails: doc.metadata?.avipScore || null,
-      builderDid: doc.action?.metadata?.builderDid,
+      builderDid: doc.action?.metadata?.builderDid || doc.sourceScorecard?.authorDid || doc.metadata?.authorDid,
       ecosystem: doc.sourceScorecard?.ecosystem || doc.action?.metadata?.ecosystem || doc.action?.tags?.[0] || 'unknown',
       createdAt: doc.metadata?.createdAt,
       updatedAt: doc.metadata?.updatedAt,
@@ -502,7 +539,7 @@ export async function POST(request: NextRequest) {
       impactScore: doc.metadata?.trustScore || 0,
       reputationScore: doc.metadata?.avipScore?.total || doc.metadata?.trustScore || 0,
       avipDetails: doc.metadata?.avipScore || null,
-      builderDid: doc.action?.metadata?.builderDid,
+      builderDid: doc.action?.metadata?.builderDid || doc.sourceScorecard?.authorDid || doc.metadata?.authorDid,
       ecosystem: doc.sourceScorecard?.ecosystem || doc.action?.metadata?.ecosystem || doc.action?.tags?.[0] || 'unknown',
       createdAt: doc.metadata?.createdAt,
       updatedAt: doc.metadata?.updatedAt,

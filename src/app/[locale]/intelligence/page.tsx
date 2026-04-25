@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { ProjectScorecards } from '@/components/intelligence/ProjectScorecards';
 import NetworkGraph from '@/components/intelligence/NetworkGraph';
 import { useTranslations } from 'next-intl';
+import { SolanaReputationFlow } from '@/components/intelligence/SolanaReputationFlow';
 import { useParams } from 'next/navigation';
 
 export default function IntelligencePage() {
@@ -368,6 +369,24 @@ export default function IntelligencePage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* SOLANA REPUTATION PIPELINE */}
+        <div className="col-span-12">
+          <div className="panel p-0 overflow-hidden">
+            <div className="panel-corner tl"></div>
+            <div className="panel-corner tr"></div>
+            <div className="panel-corner bl"></div>
+            <div className="panel-corner br"></div>
+            <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-gray-800">
+              <span className="text-[10px] text-mono font-bold text-gray-500 tracking-wider uppercase">Solana Reputation Pipeline</span>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-[#00f0ff] rounded-full animate-pulse"></div>
+                <span className="text-[9px] font-mono text-[#00f0ff]">LIVE</span>
+              </div>
+            </div>
+            <SolanaReputationFlow />
           </div>
         </div>
 

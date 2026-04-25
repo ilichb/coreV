@@ -1,7 +1,60 @@
+# ─── Environment & Secrets ────────────────────────────────────────────────────
 .env
-node_modules/
+.env.*
+.env.local
+.env.development
+.env.production
+.env.staging
+.env.test
+*.pem
+*.key
+*.p12
+*.pfx
+*.cert
+*.crt
+
+# ─── Next.js ──────────────────────────────────────────────────────────────────
 .next/
-data/
+out/
+build/
+dist/
+
+# ─── Node ─────────────────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+package-lock.json
+
+# ─── TypeScript ───────────────────────────────────────────────────────────────
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
+# ─── Testing & Debug scripts (never in production repo) ───────────────────────
+test-*.ts
+test-*.js
+test_*.js
+test_*.sh
+audit_*.js
+verify_*.js
+check_*.js
+debug_*.js
+*.test.local.ts
+scratch/
+
+# ─── Logs & Data ──────────────────────────────────────────────────────────────
 logs/
 *.log
+data/
+*.csv
+*.bak
+
+# ─── OS / Editor ──────────────────────────────────────────────────────────────
 .DS_Store
+Thumbs.db
+.idea/
+.vscode/settings.json
+*.swp
+*.swo

@@ -1264,5 +1264,37 @@
       "copyright": "© 2026 ANDROMEDA_COMPUTER",
       "app": "App"
     }
+  },
+  "SolanaReputationFlow": {
+    "title": "PIPELINE DE REPUTACIÓN SOLANA",
+    "live": "EN VIVO",
+    "nodes": {
+      "solanaDevnet": "Solana Devnet",
+      "yellowstone": "Yellowstone gRPC",
+      "avipEngine": "Motor AVIP",
+      "arbitrumSepolia": "Arbitrum Sepolia",
+      "atlasIndex": "Índice ATLAS"
+    },
+    "labels": {
+      "slot": "Slot",
+      "balance": "Balance",
+      "program": "Programa",
+      "status": "Estado",
+      "processed": "Procesados",
+      "errors": "Errores",
+      "queue": "Cola",
+      "dlq": "DLQ",
+      "network": "Red",
+      "chainId": "Chain ID",
+      "contract": "Contrato",
+      "milestones": "Hitos",
+      "storage": "Almacenamiento"
+    },
+    "stats": {
+      "milestonesDetected": "Hitos Detectados",
+      "activeFlows": "Flujos Activos",
+      "dlqPending": "DLQ Pendiente"
+    },
+    "initializing": "INICIALIZANDO MONITOR DE PIPELINE..."
   }
 }
