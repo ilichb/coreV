@@ -1,4 +1,4 @@
-# Andromeda Core – Solana Frontier Hackathon 🚀
+# Andromeda Core –
 
 [![Hackathon](https://img.shields.io/badge/Hackathon-Colosseum--Frontier-14F195?style=for-the-badge&logo=solana)](https://colosseum.org/frontier)
 [![RPC](https://img.shields.io/badge/RPC-RPC%20Fast%20(gRPC)-6D28D9?style=for-the-badge)](https://rpcfast.com/)
