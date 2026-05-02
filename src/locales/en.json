@@ -519,7 +519,9 @@
       "ai": "AI",
       "AI": "AI",
       "rootstock": "Rootstock",
-      "Rootstock": "Rootstock"
+      "Rootstock": "Rootstock",
+      "andromeda-core-v1-5": "Andromeda Core v1.5",
+      "solana": "Solana"
     },
     "BuilderRanking": {
       "impact": "IMPACT",

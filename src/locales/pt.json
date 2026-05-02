@@ -512,7 +512,8 @@
       "gaming": "GAMING",
       "ai": "IA",
       "rootstock": "ROOTSTOCK",
-      "Rootstock": "ROOTSTOCK"
+      "Rootstock": "ROOTSTOCK",
+      "solana": "Solana"
     },
     "BuilderRanking": {
       "impact": "IMPACTO",

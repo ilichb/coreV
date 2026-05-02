@@ -1,4 +1,5 @@
 'use client';
+import { logger } from '@/lib/utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { Shield, FolderGit2, Zap, Clock, AlertCircle, CheckCircle, ExternalLink } from 'lucide-react';
@@ -18,10 +19,12 @@ interface SolanaScorecard {
   did: string;
   reputation: number;
   avipDetails: {
-    base: number;
-    milestoneBonus: number;
-    verifiedBonus: number;
+    technical: number;
+    governance: number;
+    community: number;
+    behavioralConfidence: number;
     total: number;
+    trustLevel: string;
   };
   stats: {
     totalMilestones: number;
@@ -34,13 +37,13 @@ interface SolanaScorecard {
 }
 
 function ReputationBar({ value }: { value: number }) {
-  const pct = Math.min((value / 999) * 100, 100);
+  const pct = Math.min(value, 100);
   const color = pct >= 75 ? 'bg-reactor-cyan' : pct >= 50 ? 'bg-amber-500' : 'bg-red-500';
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-[9px] font-mono-display uppercase tracking-widest text-gray-600">
-        <span>Reputation Score (AVIP)</span>
-        <span className="text-reactor-cyan font-bold">{value} / 999</span>
+        <span>Reputation Score (AVIP v2.0)</span>
+        <span className="text-reactor-cyan font-bold">{value} / 100</span>
       </div>
       <div className="w-full h-1.5 bg-gray-900 rounded-full overflow-hidden">
         <div className={`h-full ${color} transition-all duration-700`} style={{ width: `${pct}%` }} />
@@ -89,72 +92,136 @@ export default function SolanaBuilderScorecard({ address }: { address: string })
       setLoading(true);
       setError(null);
 
-      // Llamar a la API unificada de ATLAS con el address/DID de Solana
-      const response = await fetch(`/api/atlas/search?builderDid=${encodeURIComponent(address)}&ecosystem=solana&limit=50`);
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      // Construir DID completo
+      const normalizedDid = address.startsWith('did:andromeda:sol:')
+        ? address
+        : `did:andromeda:sol:${address}`;
 
-      const data = await response.json();
-      if (!data.success) throw new Error(data.error || 'API returned failure');
+      // 1. Obtener milestones desde ATLAS
+      let results: any[] = [];
+      try {
+        const atlasRes = await fetch(
+          `/api/atlas/search?builderDid=${encodeURIComponent(normalizedDid)}&ecosystem=solana&limit=50`
+        );
+        if (atlasRes.ok) {
+          const atlasData = await atlasRes.json();
+          if (atlasData.success) {
+            results = atlasData.results || [];
+          }
+        }
+      } catch (e) {
+        logger.warn('Failed to fetch ATLAS milestones, trying governance fallback...', e);
+      }
 
-      const results: any[] = data.results || [];
-      if (results.length === 0) throw new Error('No milestones found for this Solana address');
+      // 2. Fallback a Gobernanza si no hay datos técnicos
+      let governanceData: any[] = [];
+      const realmId = address.split(':').pop() || address;
+      
+      try {
+        const govRes = await fetch(`/api/solana/governance?realm=${realmId}`);
+        if (govRes.ok) {
+          const govJson = await govRes.json();
+          if (govJson.success && govJson.proposals) {
+            governanceData = govJson.proposals;
+          }
+        }
+      } catch (e) {
+        logger.warn('Governance fetch failed:', e);
+      }
 
-      // Calcular AVIP desde los datos reales
-      const verifiedMilestones = results.filter(
+      if (results.length === 0 && governanceData.length === 0) {
+        throw new Error('No milestones or governance records found for this Solana address');
+      }
+
+      // 3. Mapear gobernanza a formato milestone
+      const mappedGovernance = governanceData.map((p: any) => ({
+        id: p.id || p.realm,
+        title: p.title || `Proposal: ${p.realm}`,
+        status: p.state === 'Succeeded' ? 'VERIFIED' : 'PENDING',
+        date: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Recent',
+        category: 'governance',
+        impactScore: p.impact || 40,
+        avipScore: 0,
+        isGovernance: true
+      }));
+
+      const finalMilestones: MilestoneItem[] = [
+        ...results.map((m) => ({
+          id: m.atlasId || '',
+          title: m.name || m.action?.description || 'On-chain milestone',
+          status: m.status || 'VERIFIED',
+          date: m.createdAt ? new Date(m.createdAt).toLocaleDateString() : 'Recent',
+          category: m.action?.tags?.[0] || 'infrastructure',
+          impactScore: m.impactScore || 0,
+          avipScore: m.reputationScore || m.metadata?.avipScore?.total || 0,
+        })),
+        ...mappedGovernance
+      ];
+
+      // 4. Obtener score AVIP
+      let avipScore = 0;
+      let avipDetails = {
+        technical: 0,
+        governance: results.length > 0 ? 30 : 50, // Bonus por gobernanza si no hay técnica
+        community: 0,
+        behavioralConfidence: 70,
+        total: 0,
+        trustLevel: 'UNVERIFIED'
+      };
+
+      try {
+        const scoreRes = await fetch(
+          `/api/reputation/score/${encodeURIComponent(normalizedDid)}`,
+          { headers: { 'x-api-key': 'public-read' } }
+        );
+        if (scoreRes.ok) {
+          const scoreData = await scoreRes.json();
+          if (scoreData?.success && scoreData?.reputation) {
+            avipScore = scoreData.reputation.avipScore || 0;
+            avipDetails = {
+              technical: scoreData.reputation.components?.verificationScore?.value || 0,
+              governance: scoreData.reputation.components?.ecosystemDiversity?.value || avipDetails.governance,
+              community: scoreData.reputation.components?.volumeScore?.value || 0,
+              behavioralConfidence: scoreData.reputation.components?.behavioralConfidence?.value || 70,
+              total: avipScore,
+              trustLevel: scoreData.reputation.trustLevel || getTrustLevel(avipScore)
+            };
+          }
+        }
+      } catch (e) {
+        avipScore = results[0]?.metadata?.avipScore?.total || (mappedGovernance.length > 0 ? 45 : 0);
+        avipDetails.total = avipScore;
+        avipDetails.trustLevel = getTrustLevel(avipScore);
+      }
+
+      // Stats
+      const verifiedCount = finalMilestones.filter(
         (m) => m.status === 'VERIFIED' || m.status === 'IMMUTABLE'
-      );
-      const avgImpact = results.length > 0
-        ? Math.round(results.reduce((acc, m) => acc + (m.impactScore || 0), 0) / results.length)
+      ).length;
+      
+      const avgImpact = finalMilestones.length > 0
+        ? Math.round(finalMilestones.reduce((acc, m) => acc + (m.impactScore || 0), 0) / finalMilestones.length)
         : 0;
 
-      const BASE = 600;
-      const milestoneBonus = Math.min(results.length * 12, 150);
-      const verifiedBonus = Math.min(verifiedMilestones.length * 10, 150);
-      const avipTotal = Math.min(BASE + milestoneBonus + verifiedBonus, 999);
-
-      // Obtener primera fecha de actividad
-      const dates = results
-        .map((m) => m.createdAt)
-        .filter(Boolean)
-        .sort();
+      const dates = results.map((m) => m.createdAt).filter(Boolean).sort();
       const firstActivity = dates.length > 0
         ? new Date(dates[0]).toLocaleDateString()
-        : 'Unknown';
+        : mappedGovernance.length > 0 ? mappedGovernance[mappedGovernance.length-1].date : 'Unknown';
 
-      // Categoría predominante
-      const allTags: string[] = results.flatMap((m) => m.action?.tags || []);
-      const tagFreq: Record<string, number> = {};
-      allTags.forEach((t) => { tagFreq[t] = (tagFreq[t] || 0) + 1; });
-      const topCategory = Object.entries(tagFreq).sort((a, b) => b[1] - a[1])[0]?.[0] || 'infrastructure';
-
-      // Mapear milestones al shape local
-      const milestones: MilestoneItem[] = results.map((m) => ({
-        id: m.atlasId || '',
-        title: m.name || m.action?.description || 'On-chain milestone',
-        status: m.status || 'VERIFIED',
-        date: m.createdAt ? new Date(m.createdAt).toLocaleDateString() : 'Recent',
-        category: m.action?.tags?.[0] || 'infrastructure',
-        impactScore: m.impactScore || 0,
-        avipScore: m.reputationScore || m.avipDetails?.total || 0,
-      }));
+      const topCategory = results.length > 0 ? (results[0].action?.tags?.[0] || 'infrastructure') : 'governance';
 
       setScorecard({
         address,
-        did: `did:andromeda:sol:${address}`,
-        reputation: avipTotal,
-        avipDetails: {
-          base: BASE,
-          milestoneBonus,
-          verifiedBonus,
-          total: avipTotal,
-        },
+        did: normalizedDid,
+        reputation: avipScore || avipDetails.total,
+        avipDetails,
         stats: {
-          totalMilestones: results.length,
-          verifiedMilestones: verifiedMilestones.length,
+          totalMilestones: finalMilestones.length,
+          verifiedMilestones: verifiedCount,
           avgImpact,
           firstActivity,
         },
-        milestones,
+        milestones: finalMilestones,
         category: topCategory,
       });
     } catch (err: any) {
@@ -163,6 +230,14 @@ export default function SolanaBuilderScorecard({ address }: { address: string })
       setLoading(false);
     }
   };
+
+  function getTrustLevel(score: number): string {
+    if (score >= 90) return 'PLATINUM';
+    if (score >= 75) return 'GOLD';
+    if (score >= 50) return 'SILVER';
+    if (score >= 25) return 'BRONZE';
+    return 'UNVERIFIED';
+  }
 
   if (loading) {
     return (
@@ -197,11 +272,13 @@ export default function SolanaBuilderScorecard({ address }: { address: string })
     );
   }
 
+  const trustLevel = scorecard.avipDetails.trustLevel;
   const reputationTier =
-    scorecard.reputation >= 900 ? { label: 'ELITE', color: 'text-reactor-cyan', bg: 'bg-reactor-cyan/10 border-reactor-cyan/30' } :
-      scorecard.reputation >= 750 ? { label: 'VERIFIED', color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/30' } :
-        scorecard.reputation >= 600 ? { label: 'ACTIVE', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/30' } :
-          { label: 'EMERGING', color: 'text-gray-400', bg: 'bg-gray-500/10 border-gray-500/30' };
+    trustLevel === 'PLATINUM' ? { label: 'PLATINUM', color: 'text-reactor-cyan', bg: 'bg-reactor-cyan/10 border-reactor-cyan/30' } :
+      trustLevel === 'GOLD' ? { label: 'GOLD', color: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/30' } :
+        trustLevel === 'SILVER' ? { label: 'SILVER', color: 'text-gray-300', bg: 'bg-gray-400/10 border-gray-400/30' } :
+          trustLevel === 'BRONZE' ? { label: 'BRONZE', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/30' } :
+            { label: 'UNVERIFIED', color: 'text-gray-500', bg: 'bg-gray-500/10 border-gray-500/30' };
 
   const shortAddr = `${scorecard.address.substring(0, 8)}...${scorecard.address.slice(-6)}`;
 
@@ -246,34 +323,10 @@ export default function SolanaBuilderScorecard({ address }: { address: string })
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          label="Total Milestones"
-          value={scorecard.stats.totalMilestones}
-          sub="Indexed via Yellowstone"
-          icon={FolderGit2}
-          color="text-reactor-cyan"
-        />
-        <StatCard
-          label="Verified On-Chain"
-          value={scorecard.stats.verifiedMilestones}
-          sub={scorecard.stats.verifiedMilestones > 0 ? 'IMMUTABLE records' : 'None verified yet'}
-          icon={Shield}
-          color="text-green-400"
-        />
-        <StatCard
-          label="Avg Impact Score"
-          value={scorecard.stats.avgImpact}
-          sub="AVIP weighted"
-          icon={Zap}
-          color="text-amber-400"
-        />
-        <StatCard
-          label="First Activity"
-          value={scorecard.stats.firstActivity}
-          sub="Since first milestone"
-          icon={Clock}
-          color="text-blue-400"
-        />
+        <StatCard label="Total Milestones" value={scorecard.stats.totalMilestones} sub="Indexed via Yellowstone" icon={FolderGit2} color="text-reactor-cyan" />
+        <StatCard label="Verified On-Chain" value={scorecard.stats.verifiedMilestones} sub={scorecard.stats.verifiedMilestones > 0 ? 'IMMUTABLE records' : 'None verified yet'} icon={Shield} color="text-green-400" />
+        <StatCard label="Avg Impact Score" value={scorecard.stats.avgImpact} sub="AVIP weighted" icon={Zap} color="text-amber-400" />
+        <StatCard label="First Activity" value={scorecard.stats.firstActivity} sub="Since first milestone" icon={Clock} color="text-blue-400" />
       </div>
 
       {/* Milestones + AVIP Formula */}
@@ -282,42 +335,28 @@ export default function SolanaBuilderScorecard({ address }: { address: string })
         {/* Milestone list */}
         <div className="bg-[#0d0f14] border border-white/5 overflow-hidden">
           <div className="px-6 py-4 border-b border-white/5 bg-black/20 flex items-center justify-between">
-            <h3 className="title-orbitron text-xs font-bold text-gray-300 tracking-widest uppercase">
-              Verified Activity Milestones
-            </h3>
+            <h3 className="title-orbitron text-xs font-bold text-gray-300 tracking-widest uppercase">Verified Activity Milestones</h3>
             <span className="text-[9px] text-reactor-cyan/60 font-mono-display">YELLOWSTONE GRPC</span>
           </div>
           <div className="p-6 space-y-3 max-h-80 overflow-y-auto">
             {scorecard.milestones.length > 0 ? (
               scorecard.milestones.map((m, i) => (
                 <div key={i} className="flex items-start gap-4 group pb-3 border-b border-white/5 last:border-0">
-                  <div className={`mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    m.status === 'VERIFIED' || m.status === 'IMMUTABLE'
-                      ? 'bg-reactor-cyan'
-                      : m.status === 'PENDING'
-                      ? 'bg-amber-400 animate-pulse'
-                      : 'bg-gray-600'
-                  }`} />
+                  <div className={`mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 ${m.status === 'VERIFIED' || m.status === 'IMMUTABLE' ? 'bg-reactor-cyan' :
+                      m.status === 'PENDING' ? 'bg-amber-400 animate-pulse' : 'bg-gray-600'
+                    }`} />
                   <div className="flex-1">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-xs font-bold text-gray-300 group-hover:text-white transition-colors flex-1">
-                        {m.title}
-                      </p>
+                      <p className="text-xs font-bold text-gray-300 group-hover:text-white transition-colors flex-1">{m.title}</p>
                     </div>
                     <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                      <span className={`text-[9px] font-bold uppercase ${
-                        m.status === 'VERIFIED' || m.status === 'IMMUTABLE'
-                          ? 'text-reactor-cyan'
-                          : m.status === 'PENDING'
-                          ? 'text-amber-400'
-                          : 'text-gray-600'
-                      }`}>{m.status}</span>
+                      <span className={`text-[9px] font-bold uppercase ${m.status === 'VERIFIED' || m.status === 'IMMUTABLE' ? 'text-reactor-cyan' :
+                          m.status === 'PENDING' ? 'text-amber-400' : 'text-gray-600'
+                        }`}>{m.status}</span>
                       {m.impactScore > 0 && (
                         <>
                           <span className="w-1 h-1 rounded-full bg-white/10" />
-                          <span className="text-[9px] text-green-500 font-mono-display">
-                            IMPACT: {m.impactScore}
-                          </span>
+                          <span className="text-[9px] text-green-500 font-mono-display">IMPACT: {m.impactScore}</span>
                         </>
                       )}
                       <span className="w-1 h-1 rounded-full bg-white/10" />
@@ -335,30 +374,30 @@ export default function SolanaBuilderScorecard({ address }: { address: string })
         {/* AVIP Score Breakdown */}
         <div className="bg-[#0d0f14] border border-white/5 overflow-hidden">
           <div className="px-6 py-4 border-b border-white/5 bg-black/20 flex items-center justify-between">
-            <h3 className="title-orbitron text-xs font-bold text-gray-300 tracking-widest uppercase">
-              AVIP Score Breakdown
-            </h3>
-            <span className="text-[9px] text-gray-600 font-mono-display">SOLANA REGISTRY</span>
+            <h3 className="title-orbitron text-xs font-bold text-gray-300 tracking-widest uppercase">AVIP Score Breakdown</h3>
+            <span className="text-[9px] text-gray-600 font-mono-display">REPUTATION ENGINE</span>
           </div>
           <div className="p-6 space-y-6">
             <div className="space-y-1.5 font-mono-display text-[9px] text-gray-600">
               <div className="flex justify-between py-2 border-b border-white/5">
-                <span>Base Score</span>
-                <span className="text-gray-400">{scorecard.avipDetails.base}</span>
+                <span>Technical Score</span>
+                <span className="text-gray-400">{scorecard.avipDetails.technical}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-white/5">
-                <span>Milestone Bonus ({scorecard.stats.totalMilestones} × 12)</span>
-                <span className="text-reactor-cyan">+{scorecard.avipDetails.milestoneBonus}</span>
+                <span>Governance Score</span>
+                <span className="text-reactor-cyan">{scorecard.avipDetails.governance}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-white/5">
-                <span>Verified On-chain Bonus ({scorecard.stats.verifiedMilestones} × 10)</span>
-                <span className="text-green-400">+{scorecard.avipDetails.verifiedBonus}</span>
+                <span>Community Score</span>
+                <span className="text-green-400">{scorecard.avipDetails.community}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-white/5">
+                <span>Behavioral Confidence</span>
+                <span className="text-blue-400">{scorecard.avipDetails.behavioralConfidence}%</span>
               </div>
               <div className="flex justify-between border-t border-white/10 pt-3 mt-1">
                 <span className="text-white font-bold text-[10px]">Final AVIP Score</span>
-                <span className={`font-bold text-[10px] ${reputationTier.color}`}>
-                  {scorecard.avipDetails.total}
-                </span>
+                <span className={`font-bold text-[10px] ${reputationTier.color}`}>{scorecard.avipDetails.total}</span>
               </div>
             </div>
 
@@ -387,9 +426,7 @@ export default function SolanaBuilderScorecard({ address }: { address: string })
       <div className="p-5 bg-black/40 border border-reactor-cyan/10 space-y-2">
         <div className="flex items-center gap-2">
           <CheckCircle className="w-4 h-4 text-reactor-cyan" />
-          <h4 className="text-[10px] font-bold text-reactor-cyan uppercase tracking-widest">
-            Andromeda AVIP Score — What It Means
-          </h4>
+          <h4 className="text-[10px] font-bold text-reactor-cyan uppercase tracking-widest">Andromeda AVIP Score — What It Means</h4>
         </div>
         <p className="text-[10px] text-gray-500 leading-relaxed">
           This scorecard is generated in real time from on-chain data streamed via Yellowstone gRPC and indexed
