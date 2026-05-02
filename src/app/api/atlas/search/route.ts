@@ -120,13 +120,13 @@ export async function GET(request: NextRequest) {
     }
 
     if (ecosystem) {
+      const ecoRegex = new RegExp(`^${ecosystem}$`, 'i');
       const ecosystemOr = [
-        { 'sourceScorecard.ecosystem': ecosystem },
-        { 'action.metadata.ecosystem': ecosystem },
-        { 'action.tags': ecosystem }
+        { 'sourceScorecard.ecosystem': ecoRegex },
+        { 'action.metadata.ecosystem': ecoRegex },
+        { 'action.tags': ecoRegex }
       ];
       if (query['$or']) {
-        // Merge: both the DID $or and the ecosystem $or must be satisfied
         query['$and'] = [{ '$or': query['$or'] }, { '$or': ecosystemOr }];
         delete query['$or'];
       } else {

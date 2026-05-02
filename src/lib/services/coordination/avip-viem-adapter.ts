@@ -24,7 +24,10 @@ import path from 'path';
 
 const ScorecardSchema = z.object({
     id: z.string().optional(),
-    daoId: z.string().startsWith('0x'),
+    daoId: z.string().refine(
+        val => val.startsWith('0x') || val.startsWith('did:') || /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(val),
+        { message: 'daoId must be an EVM address (0x...), a DID, or a Solana pubkey (Base58)' }
+    ),
     proposalId: z.string(),
     userId: z.string(),
     vote: z.union([z.string(), z.number()]),

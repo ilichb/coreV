@@ -82,6 +82,7 @@ export interface CanonicalMilestoneProof {
     authorDid: string;
     clarityDelta: number;
     canonicalHash: string;
+    ecosystem?: string;
   };
 
   // Metadatos de ATLAS

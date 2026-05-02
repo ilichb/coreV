@@ -1,8 +1,8 @@
-import { 
-  CanonicalMilestoneProof, 
-  AtlasActionType, 
+import {
+  CanonicalMilestoneProof,
+  AtlasActionType,
   VerificationLevel,
-  MilestoneTransformationResult 
+  MilestoneTransformationResult
 } from "../../../types/coordination/atlas";
 import { SignedScorecard } from "../../../types/coordination/scorecard";
 import { cryptoGuard } from "./crypto-guard";
@@ -16,9 +16,12 @@ import { cryptoGuard } from "./crypto-guard";
  * 1. Deriva atlasId del canonical_hash original del Scorecard.
  * 2. Mantiene una cadena de custodia referenciando el CID de IPFS.
  * 3. Incorpora firmas criptográficas originales como Atestación de Nivel 0.
+ * 
+ * 🔧 PATCH v3.1: Persiste ecosystem en sourceScorecard y action.metadata
+ *    para que el motor de búsqueda ATLAS pueda filtrar por ecosistema.
  */
 export class AtlasOntologyAdapter {
-  
+
   /**
    * Transforma un Scorecard firmado en un Milestone Proof Core.
    */
@@ -27,23 +30,31 @@ export class AtlasOntologyAdapter {
     ipfsCid: string,
     clarityDelta: number
   ): MilestoneTransformationResult {
-    
+
     // El canonicalHash es el ancla de inmutabilidad
     const canonicalHash = cryptoGuard.generateCanonicalHash(scorecard);
     const now = new Date().toISOString();
 
+    // 🔧 Extraer y normalizar ecosistema (siempre minúsculas para queries MongoDB)
+    const ecosystem = (
+      scorecard["B. Límites"]?.content?.network ||
+      scorecard["D. Esfuerzo"]?.content?.ecosystem ||
+      scorecard["C. Especificación Técnica"]?.content?.ecosystem ||
+      'unknown'
+    ).toLowerCase();
+
     // Ontología de ATLAS: Mapeo de Scorecard a Milestone
     const milestone: CanonicalMilestoneProof = {
       status: 'PENDING',
-      // El atlasId es idéntico al hash canónico para asegurar unicidad y verificabilidad
       atlasId: canonicalHash,
-      
+
       action: {
         type: this.mapScorecardToType(scorecard),
         description: scorecard["A. Problema"]?.content?.description || "Logro verificado vía Andromeda Core",
         tags: this.extractTags(scorecard),
         metadata: {
           originalClarityDelta: clarityDelta,
+          ecosystem: ecosystem,  // 🔧 PATCH: ecosystem persistido en action.metadata
           sections: Object.keys(scorecard).filter(k => k.length === 1 || k.includes('.'))
         }
       },
@@ -77,11 +88,12 @@ export class AtlasOntologyAdapter {
         cid: ipfsCid,
         authorDid: scorecard.metadata.authorDid,
         clarityDelta: clarityDelta,
-        canonicalHash: canonicalHash
+        canonicalHash: canonicalHash,
+        ecosystem: ecosystem  // 🔧 PATCH: ecosystem persistido en sourceScorecard
       },
 
       metadata: {
-        version: "3.0",
+        version: "3.1",
         createdAt: now,
         updatedAt: now
       }
@@ -104,7 +116,7 @@ export class AtlasOntologyAdapter {
     if (techSpec?.github_repo || techSpec?.repository) {
       return 'CODE_CONTRIBUTION';
     }
-    
+
     if (problem?.category === 'GOVERNANCE' || problem?.tags?.includes('DAO')) {
       return 'COMMUNITY_GOVERNANCE';
     }
@@ -121,16 +133,14 @@ export class AtlasOntologyAdapter {
    */
   private extractTags(scorecard: SignedScorecard): string[] {
     const tags = new Set<string>();
-    
-    // Extraer de metadatos de secciones si existen
+
     Object.values(scorecard).forEach((section: any) => {
       if (section?.content?.tags && Array.isArray(section.content.tags)) {
         section.content.tags.forEach((t: string) => tags.add(t));
       }
     });
 
-    // Default tags
-    tags.add('andromeda-core-v1.5');
+    tags.add('andromeda-core-v1-5');
     tags.add('verified-progress');
 
     return Array.from(tags);

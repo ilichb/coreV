@@ -123,16 +123,25 @@ export class YellowstoneConnector {
         }
       });
 
+      let retryDelay = 5000;
+      const maxDelay = 60000;
+
+      const reconnect = (reason: string) => {
+        this.isRunning = false;
+        logger.warn(`⚠️  YellowstoneConnector: ${reason}. Reconnecting in ${retryDelay/1000}s...`);
+        setTimeout(() => {
+          retryDelay = Math.min(retryDelay * 2, maxDelay);
+          this.start().then(() => { retryDelay = 5000; }).catch(() => {});
+        }, retryDelay);
+      };
+
       this.stream.on('error', (err: any) => {
         logger.error(`❌ YellowstoneConnector: Stream error: ${err.message}`);
-        this.isRunning = false;
-        setTimeout(() => this.start(), 5000);
+        reconnect('Stream error');
       });
 
       this.stream.on('end', () => {
-        logger.warn('⚠️  YellowstoneConnector: Stream ended, reconnecting...');
-        this.isRunning = false;
-        setTimeout(() => this.start(), 5000);
+        reconnect('Stream ended');
       });
 
     } catch (err: any) {
