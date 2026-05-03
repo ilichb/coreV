@@ -236,9 +236,20 @@ export default function BuilderRanking({
               did: normalizedDid,
               name: item.name,
               shortDid: item.name || (normalizedDid.split(':').pop()?.substring(0, 10) + '...'),
-              reputationScore: Math.min(100, Math.round(item.metadata?.avipScore?.total || item.reputationScore || item.impactScore || item.reputation || 0)),
+              reputationScore: Math.min(100, Math.round(
+                item.metadata?.avipScore?.total ||
+                item.metadata?.trustScore ||
+                item.reputationScore ||
+                item.reputation ||
+                0
+              )),
               totalProjects: item.metadata?.impactMetrics?.projects || item.totalProjects || 1,
-              impactScore: Math.min(100, Math.round(item.metadata?.trustScore || item.impactScore || 0)),
+              impactScore: Math.min(100, Math.round(
+                item.metadata?.trustScore ||
+                item.metadata?.avipScore?.total ||
+                item.impactScore ||
+                0
+              )),
               ecosystem: resolvedEcosystem,
               category: (item.category || item.action?.tags?.[0] || 'infrastructure').replace(/\./g, '-'),
               lastActivity: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'recent',

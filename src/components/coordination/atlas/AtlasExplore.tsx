@@ -45,23 +45,49 @@ export default function AtlasExplore() {
   const loadAtlasStats = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/intelligence/telemetry');
-      const data = await response.json();
 
-      if (data.success && data.telemetry) {
-        const t = data.telemetry;
-        const avgScore = t.dataSources?.verifiedCount && t.dataSources?.totalMilestones
-          ? Math.round((t.dataSources.verifiedCount / t.dataSources.totalMilestones) * 100)
-          : 0;
-        setStats({
-          totalBuilders: t.dataSources?.uniqueBuilders || t.ecosystems?.rootstock?.builders || 0,
-          totalProjects: t.dataSources?.totalMilestones || 0,
-          totalMilestones: t.dataSources?.totalMilestones || 0,
-          avgImpactScore: avgScore
-        });
-      } else {
-        setStats({ totalBuilders: 0, totalProjects: 0, totalMilestones: 0, avgImpactScore: 0 });
+      // Cargar telemetría base (builders, milestones totales)
+      const [telemetryRes, searchRes] = await Promise.allSettled([
+        fetch('/api/intelligence/telemetry'),
+        fetch('/api/atlas/search?limit=100&status=VERIFIED')
+      ]);
+
+      let totalBuilders = 0;
+      let totalMilestones = 0;
+
+      if (telemetryRes.status === 'fulfilled' && telemetryRes.value.ok) {
+        const telData = await telemetryRes.value.json();
+        if (telData.success && telData.telemetry) {
+          const tel = telData.telemetry;
+          totalBuilders = tel.dataSources?.uniqueBuilders || tel.ecosystems?.rootstock?.builders || 0;
+          totalMilestones = tel.dataSources?.totalMilestones || 0;
+        }
       }
+
+      // Calcular impacto promedio REAL desde los trustScores en ATLAS
+      let avgImpactScore = 0;
+      if (searchRes.status === 'fulfilled' && searchRes.value.ok) {
+        const searchData = await searchRes.value.json();
+        if (searchData.success && searchData.aggregateStats?.averageImpact > 0) {
+          // averageImpact ya viene calculado desde trustScore real en la API
+          avgImpactScore = Math.round(searchData.aggregateStats.averageImpact);
+        } else if (searchData.success && Array.isArray(searchData.results) && searchData.results.length > 0) {
+          // Fallback: calcular manualmente desde los resultados
+          const scores = searchData.results
+            .map((r: any) => r.metadata?.trustScore || r.impactScore || 0)
+            .filter((s: number) => s > 0);
+          if (scores.length > 0) {
+            avgImpactScore = Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length);
+          }
+        }
+      }
+
+      setStats({
+        totalBuilders,
+        totalProjects: totalMilestones,
+        totalMilestones,
+        avgImpactScore
+      });
     } catch (error) {
       logger.error('Error loading ATLAS stats:', error);
       setStats({ totalBuilders: 0, totalProjects: 0, totalMilestones: 0, avgImpactScore: 0 });

@@ -205,7 +205,36 @@ class SolanaIngestionService {
 
       if (atlasResult.success) {
         this.processed++;
-        logger.info(`🗺️  SolanaIngestionService: ATLAS indexed → ${atlasResult.transformation?.milestone.atlasId} (total: ${this.processed})`);
+        const atlasId = atlasResult.transformation?.milestone.atlasId;
+        logger.info(`🗺️  SolanaIngestionService: ATLAS indexed → ${atlasId} (total: ${this.processed})`);
+
+        // ── AVIP Loop Closure ──────────────────────────────────────────────
+        // Flush AVIP batch and write trustScore back to the MongoDB document.
+        // Without this, scores stay at 0 in the registry and scorecards.
+        try {
+          const flushResult = await avipViemAdapter.flush();
+          if (flushResult.success && atlasId) {
+            // trustScore derivado del weight del batch confirmado on-chain
+            const trustScore = Math.min(100, Math.round(avipScorecard.weight * 100));
+            const db = await mongoDBClient.getDb();
+            await db.collection('atlas_milestones').updateOne(
+              { 'metadata.atlasId': atlasId },
+              {
+                $set: {
+                  'metadata.trustScore': trustScore,
+                  'metadata.avipBatchId': flushResult.batchId || null,
+                  'metadata.avipTxHash': flushResult.txHash || null,
+                  'metadata.avipVerifiedAt': new Date().toISOString(),
+                }
+              }
+            );
+            logger.info(`🛡️  SolanaIngestionService: trustScore ${trustScore} written back → ${atlasId}`);
+          }
+        } catch (avipErr: any) {
+          // Non-fatal: AVIP writeback failure should not block ingestion
+          logger.warn(`⚠️  SolanaIngestionService: AVIP writeback skipped: ${avipErr.message}`);
+        }
+        // ──────────────────────────────────────────────────────────────────
       } else {
         this.errors++;
         logger.error(`❌ SolanaIngestionService: ATLAS failed: ${atlasResult.errors.join(', ')}`);

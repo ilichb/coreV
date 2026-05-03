@@ -1,7 +1,7 @@
 import { atlasAuditor } from "./atlas-auditor";
 import { atlasRegistry } from "./atlas-registry";
 import { atlasOntologyAdapter } from "./atlas-ontology-adapter";
-import { 
+import {
   CanonicalMilestoneProof,
   MilestoneStatus,
   MilestoneTransformationResult
@@ -28,7 +28,7 @@ export interface AtlasWorkflowResult {
  * Orquesta el workflow completo: Adaptación → Auditoría → Registro → Inmutabilidad
  */
 export class AtlasOrchestrator {
-  
+
   /**
    * Ejecuta el workflow completo para un Scorecard
    */
@@ -43,7 +43,7 @@ export class AtlasOrchestrator {
   ): Promise<AtlasWorkflowResult> {
     const errors: string[] = [];
     const warnings: string[] = [];
-    
+
     try {
       // 1. Transformación (Capa M0)
       const transformation = atlasOntologyAdapter.transformScorecardToMilestone(
@@ -51,12 +51,12 @@ export class AtlasOrchestrator {
         ipfsCid,
         clarityDelta
       );
-      
+
       logger.info(`🔄 Transformación completada: ${transformation.milestone.atlasId}`);
-      
+
       // 2. Auditoría (Capa M1)
       const auditResult = await atlasAuditor.auditMilestone(transformation.milestone);
-      
+
       if (!auditResult.isValid) {
         errors.push('Auditoría fallida: ' + auditResult.alerts.map(a => a.message).join(', '));
         return {
@@ -67,20 +67,20 @@ export class AtlasOrchestrator {
           warnings
         };
       }
-      
+
       logger.info(`✅ Auditoría exitosa. Nuevo estado: ${auditResult.newStatus}`);
-      
+
       // 3. Actualizar estado del milestone basado en auditoría
       const milestoneToPersist: CanonicalMilestoneProof = {
         ...transformation.milestone,
         status: auditResult.newStatus
       };
-      
+
       // 4. Persistencia en Registry (Capa M2)
       const persistenceResult = await atlasRegistry.persist(milestoneToPersist, {
         skipIpfsUpload: options?.skipIpfsUpload
       });
-      
+
       if (!persistenceResult.success) {
         errors.push(`Persistencia fallida: ${persistenceResult.error}`);
         return {
@@ -92,19 +92,19 @@ export class AtlasOrchestrator {
           warnings
         };
       }
-      
+
       logger.info(`📝 Registro completado: ${persistenceResult.existing ? 'existente' : 'nuevo'}`);
-      
+
       // 5. Si la persistencia fue exitosa y el milestone está VERIFIED, actualizar a IMMUTABLE
       let finalStatus = auditResult.newStatus;
-      
+
       if (persistenceResult.success && auditResult.newStatus === 'VERIFIED') {
         // Actualizar estado a IMMUTABLE en el registro
         const updateResult = await atlasRegistry.updateStatus(
           milestoneToPersist.atlasId,
           'IMMUTABLE'
         );
-        
+
         if (updateResult.success) {
           finalStatus = 'IMMUTABLE';
           // Enviar recompensa al validador
@@ -124,7 +124,7 @@ export class AtlasOrchestrator {
           warnings.push(`No se pudo marcar como IMMUTABLE: ${updateResult.error}`);
         }
       }
-      
+
       return {
         success: true,
         transformation,
@@ -134,7 +134,7 @@ export class AtlasOrchestrator {
         errors,
         warnings
       };
-      
+
     } catch (error: any) {
       logger.error('Error en workflow Atlas:', error);
       errors.push(`Error inesperado: ${error.message}`);
@@ -145,7 +145,7 @@ export class AtlasOrchestrator {
       };
     }
   }
-  
+
   /**
    * Workflow solo para milestones ya transformados
    */
@@ -157,11 +157,11 @@ export class AtlasOrchestrator {
   ): Promise<AtlasWorkflowResult> {
     const errors: string[] = [];
     const warnings: string[] = [];
-    
+
     try {
       // 1. Auditoría (Capa M1)
       const auditResult = await atlasAuditor.auditMilestone(milestone);
-      
+
       if (!auditResult.isValid) {
         errors.push('Auditoría fallida: ' + auditResult.alerts.map(a => a.message).join(', '));
         return {
@@ -171,20 +171,20 @@ export class AtlasOrchestrator {
           warnings
         };
       }
-      
+
       logger.info(`✅ Auditoría exitosa. Nuevo estado: ${auditResult.newStatus}`);
-      
+
       // 2. Actualizar estado del milestone basado en auditoría
       const milestoneToPersist: CanonicalMilestoneProof = {
         ...milestone,
         status: auditResult.newStatus
       };
-      
+
       // 3. Persistencia en Registry (Capa M2)
       const persistenceResult = await atlasRegistry.persist(milestoneToPersist, {
         skipIpfsUpload: options?.skipIpfsUpload
       });
-      
+
       if (!persistenceResult.success) {
         errors.push(`Persistencia fallida: ${persistenceResult.error}`);
         return {
@@ -195,18 +195,18 @@ export class AtlasOrchestrator {
           warnings
         };
       }
-      
+
       logger.info(`📝 Registro completado: ${persistenceResult.existing ? 'existente' : 'nuevo'}`);
-      
+
       // 4. Si la persistencia fue exitosa y el milestone está VERIFIED, actualizar a IMMUTABLE
       let finalStatus = auditResult.newStatus;
-      
+
       if (persistenceResult.success && auditResult.newStatus === 'VERIFIED') {
         const updateResult = await atlasRegistry.updateStatus(
           milestoneToPersist.atlasId,
           'IMMUTABLE'
         );
-        
+
         if (updateResult.success) {
           finalStatus = 'IMMUTABLE';
           // Reward distribution handled in executeFullWorkflow
@@ -215,7 +215,7 @@ export class AtlasOrchestrator {
           warnings.push(`No se pudo marcar como IMMUTABLE: ${updateResult.error}`);
         }
       }
-      
+
       return {
         success: true,
         auditResult,
@@ -224,7 +224,7 @@ export class AtlasOrchestrator {
         errors,
         warnings
       };
-      
+
     } catch (error: any) {
       logger.error('Error en workflow de verificación:', error);
       errors.push(`Error inesperado: ${error.message}`);
