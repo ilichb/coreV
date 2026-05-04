@@ -3,6 +3,7 @@ import { cryptoGuard } from '../services/coordination/crypto-guard';
 import { varaAdapter } from '../services/coordination/vara-adapter';
 import { ProjectMetadata } from '../clients/vara-client';
 import { logger } from '../utils/logger';
+import { getRootstockBuilderMeta } from '../../data/rootstock-builders-registry';
 import { redisService } from '../services/coordination/redis';
 
 export interface GovernanceDecision {
@@ -314,7 +315,11 @@ export class RootstockConnector {
     const lower = address.toLowerCase();
     const cacheKey = `rootstock:metadata:${lower}`;
 
-    // 1. Static override fast-path
+    // 1. Registry verificado on-chain (prioridad máxima)
+    const registryMeta = getRootstockBuilderMeta(lower);
+    if (registryMeta) return { name: registryMeta.name, category: registryMeta.category };
+
+    // 2. Static override fast-path
     if (this.knownMetadata[lower]) return this.knownMetadata[lower];
 
     try {
