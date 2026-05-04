@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Trophy, TrendingUp, Users, FolderGit2, ExternalLink, Shield, Zap } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { logger } from '../../../lib/utils/logger';
+import { getRootstockBuilderMeta } from '@/data/rootstock-builders-registry';
 
 interface BuilderRankingItem {
   rank: number;
@@ -231,30 +232,33 @@ export default function BuilderRanking({
                   didKey.includes(':sol:') || didKey.includes('solana') ? 'solana' :
                     didKey.includes(':optimism:') || didKey.includes('eip155:10') ? 'optimism' : 'unknown');
 
+            const address = normalizedDid.split(':').pop() || '';
+            const rootstockMeta = resolvedEcosystem === 'rootstock' ? getRootstockBuilderMeta(address) : null;
+
             builderMap.set(finalKey, {
               rank: index + 1,
               did: normalizedDid,
-              name: item.name,
-              shortDid: item.name || (normalizedDid.split(':').pop()?.substring(0, 10) + '...'),
+              name: rootstockMeta?.name || item.name,
+              shortDid: rootstockMeta?.name || item.name || (normalizedDid.split(':').pop()?.substring(0, 10) + '...'),
               reputationScore: Math.min(100, Math.round(
                 item.metadata?.avipScore?.total ||
                 item.metadata?.trustScore ||
                 item.reputationScore ||
                 item.reputation ||
-                0
+                (rootstockMeta ? 50 : 0) // Base score for registered builders
               )),
               totalProjects: item.metadata?.impactMetrics?.projects || item.totalProjects || 1,
               impactScore: Math.min(100, Math.round(
                 item.metadata?.trustScore ||
                 item.metadata?.avipScore?.total ||
                 item.impactScore ||
-                0
+                (rootstockMeta ? 40 : 0) // Base impact
               )),
               ecosystem: resolvedEcosystem,
-              category: (item.category || item.action?.tags?.[0] || 'infrastructure').replace(/\./g, '-'),
-              lastActivity: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'recent',
-              crossChainAddresses: 1,
-              change: item.isVirtual ? -1 : (item.isLive || item.name ? 0 : 2)
+              category: rootstockMeta?.category || item.category || 'Builders',
+              lastActivity: item.updatedAt ? new Date(item.updatedAt * 1000).toLocaleDateString() : new Date().toLocaleDateString(),
+              crossChainAddresses: item.metadata?.socialImpact?.verifiedDids || 1,
+              change: item.change || 0
             });
           }
         });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { rootstockConnector } from '@/lib/connectors/rootstock-connector';
 import { builderIngestionService } from '@/lib/services/atlas/builder-ingestion.service';
 import { logger } from '../../../../lib/utils/logger';
+import { getRootstockBuilderMeta } from '@/data/rootstock-builders-registry';
 
 const TALLY_API_KEY = process.env.TALLY_API_KEY || '***REMOVED***';
 
@@ -40,25 +41,31 @@ export async function GET(request: NextRequest) {
             const builders = await Promise.race([buildersPromise, timeoutPromise]).catch(() => {
                 logger.warn('⏱️ fetchAllBuilders timed out — returning pinned fallback');
                 return [
-                    { id: '0xd9fcae4315920387f00725c78285d6d41c30b967', name: 'WoodSwap', category: 'DeFi', backerTotalAllocation: '0', accumulatedTime: '0', builderDid: 'did:andromeda:rootstock:0xd9fcae4315920387f00725c78285d6d41c30b967' },
-                    { id: '0xf675d0b9432607172776856525143a2991060934', name: 'Asami.Club', category: 'Social', backerTotalAllocation: '0', accumulatedTime: '0', builderDid: 'did:andromeda:rootstock:0xf675d0b9432607172776856525143a2991060934' },
-                    { id: '0x3d0b28ac46d900662d515a28ea17c38c6423985b', name: 'Boltz', category: 'Bridge', backerTotalAllocation: '0', accumulatedTime: '0', builderDid: 'did:andromeda:rootstock:0x3d0b28ac46d900662d515a28ea17c38c6423985b' }
+                    { id: '0x1da45683bd3ccd6f8308050d0d99c1ee7f761e5f', name: 'Wesatoshis Labs', category: 'Infrastructure', backerTotalAllocation: '0', accumulatedTime: '0', builderDid: 'did:andromeda:rootstock:0x1da45683bd3ccd6f8308050d0d99c1ee7f761e5f' },
+                    { id: '0x1d1114666d0f21e479c122c138a527dfbc0f2d00', name: 'OpenOcean', category: 'DeFi', backerTotalAllocation: '0', accumulatedTime: '0', builderDid: 'did:andromeda:rootstock:0x1d1114666d0f21e479c122c138a527dfbc0f2d00' },
+                    { id: '0x9763146dd94e0e6fd96ca88839e88ebda34a7f94', name: 'Tropykus', category: 'DeFi', backerTotalAllocation: '0', accumulatedTime: '0', builderDid: 'did:andromeda:rootstock:0x9763146dd94e0e6fd96ca88839e88ebda34a7f94' }
                 ];
             });
             // Enrich with metadata
             const enrichedBuilders = await Promise.all(builders.map(async (b: any) => {
                 try {
+                    const registryMeta = getRootstockBuilderMeta(b.id);
                     const meta = await rootstockConnector.getMetadata(b.id);
                     return {
                         ...b,
                         builderDid: `did:andromeda:rootstock:${b.id}`,
-                        name: meta.name,
-                        category: meta.category,
+                        name: registryMeta?.name || meta.name || b.name,
+                        category: registryMeta?.category || meta.category || b.category,
                         ecosystem: 'rootstock',
                         impactScore: Math.min(Math.floor(parseFloat(b.accumulatedTime || b.backerTotalAllocation || '0') * 0.1) + 50, 99)
                     };
                 } catch (e) {
-                    return b; // Fallback to raw builder if metadata fails
+                    const registryMeta = getRootstockBuilderMeta(b.id);
+                    return {
+                        ...b,
+                        name: registryMeta?.name || b.name,
+                        category: registryMeta?.category || b.category
+                    };
                 }
             }));
 

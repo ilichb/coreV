@@ -8,7 +8,6 @@ const nextConfig = {
   // es mejor NO definir el objeto i18n aquí si da problemas de redirección.
   
   skipTrailingSlashRedirect: true,
-  instrumentationHook: true,
 
   async rewrites() {
     return [
