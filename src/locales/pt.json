@@ -513,7 +513,12 @@
       "ai": "IA",
       "rootstock": "ROOTSTOCK",
       "Rootstock": "ROOTSTOCK",
-      "solana": "Solana"
+      "solana": "Solana",
+      "Wallet": "Carteira",
+      "Governance": "Governança",
+      "Bridge": "Bridge",
+      "Social": "Social",
+      "Infrastructure": "Infraestrutura"
     },
     "BuilderRanking": {
       "impact": "IMPACTO",

@@ -521,7 +521,9 @@
       "rootstock": "Rootstock",
       "Rootstock": "Rootstock",
       "andromeda-core-v1-5": "Andromeda Core v1.5",
-      "solana": "Solana"
+      "solana": "Solana",
+      "Wallet": "Wallet",
+      "Bridge": "Bridge"
     },
     "BuilderRanking": {
       "impact": "IMPACTO",
