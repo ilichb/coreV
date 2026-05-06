@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ReputationEngineService } from '@/lib/services/reputation/reputation-engine.service';
-
+import { SolanaNormalizer } from '@/lib/services/reputation/normalizers/solana.normalizer';
+const solanaNormalizer = new SolanaNormalizer();
 const reputationEngine = new ReputationEngineService();
 import { mongoDBClient } from '@/lib/infrastructure/mongodb';
 import { validateApiKey } from '@/lib/services/api-keys/api-key.service';
@@ -65,7 +66,27 @@ export async function GET(
     const ecosystems = [...new Set(milestones.map((m: any) => m.action?.metadata?.ecosystem).filter(Boolean))] as string[];
     const verificationRate = Math.round((verified / total) * 100);
 
-    // Desglose detallado del score AVIP
+    // 🔧 AVIP v2.0 NORMALIZATION
+    // Agregamos scores normalizados para cada milestone
+    const normalizedScores = milestones.map((m: any) => {
+      if (did.includes(':sol:')) {
+        return solanaNormalizer.normalize({ 
+          type: m.action?.type === 'governance' ? 'governance' : 'milestone', 
+          data: m.metadata?.raw || m 
+        });
+      }
+      // Fallback a trustScore si no es Solana (Rootstock ya viene normalizado en metadata)
+      return {
+        technical: m.metadata?.trustScore || 0,
+        governance: 0,
+        community: 0
+      };
+    });
+
+    const avgTechnical = Math.round(normalizedScores.reduce((a, b) => a + b.technical, 0) / milestones.length);
+    const avgGovernance = Math.round(normalizedScores.reduce((a, b) => a + b.governance, 0) / milestones.length);
+    const avgCommunity = Math.round(normalizedScores.reduce((a, b) => a + b.community, 0) / milestones.length);
+
     // Calculate days since last activity for decay
     const lastActivityDate = milestones[0]?._id
       ? new Date((milestones[0]._id as any).getTimestamp())
@@ -74,19 +95,10 @@ export async function GET(
       (Date.now() - lastActivityDate.getTime()) / (1000 * 60 * 60 * 24)
     );
 
-    // Feed real data into the AVIP v2.0 engine
-    // AVIP v2.0 input calibration
-    // technical = verification quality (0-100)
-    // governance = ecosystem breadth (0-100)  
-    // community = activity volume normalized (0-100)
-    const verificationQuality = Math.round((verified / Math.max(total, 1)) * 100);
-    const ecosystemBreadth = Math.min(50 + ecosystems.length * 17, 100);
-    const activityVolume = Math.min(60 + total * 5, 100); // base 50 + volume bonus
-
     const engineInput = {
-      technical: verificationQuality,
-      governance: ecosystemBreadth,
-      community: activityVolume,
+      technical: avgTechnical,
+      governance: avgGovernance,
+      community: avgCommunity,
       verifiedCount: verified,
       totalMilestones: total,
       daysSinceLastActivity,
@@ -97,9 +109,9 @@ export async function GET(
 
     const components = {
       verificationScore: {
-        value: Math.round((verified / Math.max(total, 1)) * 70),
-        max: 70,
-        description: 'Based on verified vs total milestones (AVIP v2.0)',
+        value: avgTechnical,
+        max: 100,
+        description: 'Quality of on-chain proofs (AVIP v2.0)',
         detail: `${verified}/${total} milestones verified`
       },
       ecosystemDiversity: {

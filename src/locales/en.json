@@ -523,7 +523,9 @@
       "andromeda-core-v1-5": "Andromeda Core v1.5",
       "solana": "Solana",
       "Wallet": "Wallet",
-      "Bridge": "Bridge"
+      "Bridge": "Bridge",
+      "Builders": "Builders",
+      "builders": "Builders"
     },
     "BuilderRanking": {
       "impact": "IMPACT",
@@ -1899,5 +1901,67 @@
       "dlqPending": "DLQ Pending"
     },
     "initializing": "INITIALIZING PIPELINE MONITOR..."
+  },
+  "RootstockBuilderScorecard": {
+      "Badges": {
+        "rootstockBuilder": "Rootstock Builder",
+        "anomalyDetected": "⚠ ANOMALY DETECTED"
+      },
+      "Tiers": {
+        "elite": "ELITE",
+        "verified": "VERIFIED",
+        "active": "ACTIVE",
+        "emerging": "EMERGING"
+      },
+      "Loading": {
+        "consulting": "Consulting Rootstock Subgraphs and Snapshot..."
+      },
+      "Error": {
+        "notFound": "Builder not found in Rootstock Collective",
+        "noActivity": "This address does not have on-chain activity in the Rootstock Rewards or Governance subgraphs."
+      },
+      "ReputationBar": {
+        "label": "Reputation Score"
+      },
+      "Stats": {
+        "proposalsLabel": "Governance Proposals",
+        "proposalsNone": "No proposals authored",
+        "proposalsActive": "On Snapshot",
+        "votesLabel": "Votes Cast",
+        "votesActive": "Governance participation",
+        "votesNone": "No votes recorded",
+        "stakingLabel": "Staked Allocation",
+        "stakingSub": "From Rewards Subgraph",
+        "daysLabel": "Days in Ecosystem",
+        "daysSub": "Calculated from staking history",
+        "daysNone": "N/A"
+      },
+      "Governance": {
+        "title": "Governance Activity",
+        "externalLink": "ROOTSTOCK GOVERNOR",
+        "emptyTitle": "No on-chain proposals found for this address in the Rootstock Governor contract.",
+        "emptyDetail": "This builder may have activity on the Rootstock Discourse forum (pre-governance phase) or participate in governance through staking without formal proposals."
+      },
+      "Staking": {
+        "title": "Rewards & Staking",
+        "source": "ROOTSTOCK SUBGRAPH",
+        "allocationLabel": "Total Allocation",
+        "gaugesLabel": "Active Gauge Addresses",
+        "gaugesEmpty": "No gauge allocations found. Builder may only hold tokens without staking."
+      },
+      "Formula": {
+        "title": "Reputation Formula (AVIP v2.0)",
+        "confidence": "confidence",
+        "technical": "Technical Score",
+        "governance": "Governance Score",
+        "community": "Community Score",
+        "avipScore": "AVIP Score (0–100)",
+        "scaleFactor": "Scale factor",
+        "finalScore": "Final Score (0–999)"
+      },
+      "Banner": {
+        "title": "Andromeda AVIP Score — What It Means",
+        "description": "This scorecard is generated in real time from on-chain data (Rootstock Rewards Subgraph) and off-chain governance activity (Snapshot). The AVIP v2.0 engine applies Shannon entropy anomaly detection and asymmetric temporal decay to produce a mathematically verifiable reputation score — anchored to Andromeda's open standard and consistent across all supported ecosystems."
+      }
+    }
   }
-}

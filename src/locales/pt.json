@@ -518,7 +518,9 @@
       "Governance": "Governança",
       "Bridge": "Bridge",
       "Social": "Social",
-      "Infrastructure": "Infraestrutura"
+      "Infrastructure": "Infraestrutura",
+      "Builders": "Construtores",
+      "builders": "Construtores"
     },
     "BuilderRanking": {
       "impact": "IMPACTO",
@@ -1883,5 +1885,67 @@
       "dlqPending": "DLQ Pendente"
     },
     "initializing": "INICIALIZANDO MONITOR DE PIPELINE..."
+  },
+  "RootstockBuilderScorecard": {
+      "Badges": {
+        "rootstockBuilder": "Construtor Rootstock",
+        "anomalyDetected": "⚠ ANOMALIA DETECTADA"
+      },
+      "Tiers": {
+        "elite": "ELITE",
+        "verified": "VERIFICADO",
+        "active": "ATIVO",
+        "emerging": "EMERGENTE"
+      },
+      "Loading": {
+        "consulting": "Consultando Subgraphs da Rootstock e Snapshot..."
+      },
+      "Error": {
+        "notFound": "Construtor não encontrado no Rootstock Collective",
+        "noActivity": "Este endereço não possui atividade on-chain nos subgraphs de Rewards ou Governança da Rootstock."
+      },
+      "ReputationBar": {
+        "label": "Pontuação de Reputação"
+      },
+      "Stats": {
+        "proposalsLabel": "Propostas de Governança",
+        "proposalsNone": "Sem propostas criadas",
+        "proposalsActive": "No Snapshot",
+        "votesLabel": "Votos Emitidos",
+        "votesActive": "Participação em governança",
+        "votesNone": "Sem votos registrados",
+        "stakingLabel": "Alocação em Staking",
+        "stakingSub": "Do Subgraph de Rewards",
+        "daysLabel": "Dias no Ecossistema",
+        "daysSub": "Calculado a partir do histórico de staking",
+        "daysNone": "N/D"
+      },
+      "Governance": {
+        "title": "Atividade de Governança",
+        "externalLink": "ROOTSTOCK GOVERNOR",
+        "emptyTitle": "Nenhuma proposta on-chain encontrada para este endereço no contrato Rootstock Governor.",
+        "emptyDetail": "Este construtor pode ter atividade no fórum Rootstock Discourse (fase pré-governança) ou participar da governança via staking sem propostas formais."
+      },
+      "Staking": {
+        "title": "Rewards e Staking",
+        "source": "ROOTSTOCK SUBGRAPH",
+        "allocationLabel": "Alocação Total",
+        "gaugesLabel": "Endereços de Gauges Activos",
+        "gaugesEmpty": "Nenhuma alocação em gauges encontrada. O construtor pode apenas deter tokens sem fazer staking."
+      },
+      "Formula": {
+        "title": "Fórmula de Reputación (AVIP v2.0)",
+        "confidence": "confiança",
+        "technical": "Pontuação Técnica",
+        "governance": "Pontuação de Governança",
+        "community": "Pontuação de Comunidade",
+        "avipScore": "Pontuação AVIP (0–100)",
+        "scaleFactor": "Fator de escala",
+        "finalScore": "Pontuação Final (0–999)"
+      },
+      "Banner": {
+        "title": "Pontuação AVIP da Andromeda — O Que Significa",
+        "description": "Este scorecard é gerado em tempo real a partir de dados on-chain (Subgraph de Rewards da Rootstock) e atividade de governança off-chain (Snapshot). O motor AVIP v2.0 aplica detecção de anomalias por entropia de Shannon e decaimento temporal assimétrico para produzir uma pontuação de reputação matematicamente verificável — ancorada ao padrão aberto da Andromeda e consistente em todos os ecossistemas suportados."
+      }
+    }
   }
-}

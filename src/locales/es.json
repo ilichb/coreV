@@ -499,7 +499,7 @@
       "active": "ACTIVO"
     },
     "Categories": {
-      "all": "Todo",
+      "all": "Todos",
       "defi": "DeFi",
       "DeFi": "DeFi",
       "governance": "Gobernanza",
@@ -514,16 +514,18 @@
       "Gaming": "Gaming",
       "ai": "IA",
       "AI": "IA",
+      "rootstock": "Rootstock",
+      "Rootstock": "Rootstock",
+      "solana": "Solana",
+      "Wallet": "Billetera",
+      "Bridge": "Puente",
+      "Builders": "Constructores",
+      "builders": "Constructores",
       "optimism": "Optimism",
       "Optimism": "Optimism",
       "arbitrum": "Arbitrum",
       "Arbitrum": "Arbitrum",
-      "rootstock": "Rootstock",
-      "Rootstock": "Rootstock",
-      "andromeda-core-v1-5": "Andromeda Core v1.5",
-      "solana": "Solana",
-      "Wallet": "Wallet",
-      "Bridge": "Bridge"
+      "andromeda-core-v1-5": "Andromeda Core v1.5"
     },
     "BuilderRanking": {
       "impact": "IMPACTO",
@@ -1300,5 +1302,67 @@
       "dlqPending": "DLQ Pendiente"
     },
     "initializing": "INICIALIZANDO MONITOR DE PIPELINE..."
+  },
+  "RootstockBuilderScorecard": {
+    "Badges": {
+      "rootstockBuilder": "Builder Rootstock",
+      "anomalyDetected": "⚠ ANOMALÍA DETECTADA"
+    },
+    "Tiers": {
+      "elite": "ÉLITE",
+      "verified": "VERIFICADO",
+      "active": "ACTIVO",
+      "emerging": "EMERGENTE"
+    },
+    "Loading": {
+      "consulting": "Consultando Subgraphs de Rootstock y Snapshot..."
+    },
+    "Error": {
+      "notFound": "Builder no encontrado en Rootstock Collective",
+      "noActivity": "Esta dirección no tiene actividad on-chain en los subgraphs de Rewards o Gobernanza de Rootstock."
+    },
+    "ReputationBar": {
+      "label": "Puntaje de Reputación"
+    },
+    "Stats": {
+      "proposalsLabel": "Propuestas de Gobernanza",
+      "proposalsNone": "Sin propuestas creadas",
+      "proposalsActive": "En Snapshot",
+      "votesLabel": "Votos Emitidos",
+      "votesActive": "Participación en gobernanza",
+      "votesNone": "Sin votos registrados",
+      "stakingLabel": "Asignación en Staking",
+      "stakingSub": "Del Subgraph de Rewards",
+      "daysLabel": "Días en el Ecosistema",
+      "daysSub": "Calculado desde el historial de staking",
+      "daysNone": "N/D"
+    },
+    "Governance": {
+      "title": "Actividad de Gobernanza",
+      "externalLink": "ROOTSTOCK GOVERNOR",
+      "emptyTitle": "No se encontraron propuestas on-chain para esta dirección en el contrato Rootstock Governor.",
+      "emptyDetail": "Este builder puede tener actividad en el foro Rootstock Discourse (fase pre-gobernanza) o participar en la gobernanza a través del staking sin propuestas formales."
+    },
+    "Staking": {
+      "title": "Rewards y Staking",
+      "source": "ROOTSTOCK SUBGRAPH",
+      "allocationLabel": "Asignación Total",
+      "gaugesLabel": "Direcciones de Gauges Activos",
+      "gaugesEmpty": "No se encontraron asignaciones en gauges. El builder puede solo poseer tokens sin hacer staking."
+    },
+    "Formula": {
+      "title": "Fórmula de Reputación (AVIP v2.0)",
+      "confidence": "confianza",
+      "technical": "Puntaje Técnico",
+      "governance": "Puntaje de Gobernanza",
+      "community": "Puntaje de Comunidad",
+      "avipScore": "Puntaje AVIP (0–100)",
+      "scaleFactor": "Factor de escala",
+      "finalScore": "Puntaje Final (0–999)"
+    },
+    "Banner": {
+      "title": "Puntaje AVIP de Andromeda — Qué Significa",
+      "description": "Esta scorecard se genera en tiempo real desde datos on-chain (Subgraph de Rewards de Rootstock) y actividad de gobernanza off-chain (Snapshot). El motor AVIP v2.0 aplica detección de anomalías por entropía de Shannon y decaimiento temporal asimétrico para producir un puntaje de reputación matemáticamente verificable — anclado al estándar abierto de Andromeda y consistente en todos los ecosistemas soportados."
+    }
   }
 }
