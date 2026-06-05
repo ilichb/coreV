@@ -5,15 +5,15 @@
 [![Rootstock Rewards](https://img.shields.io/badge/Rootstock%20Rewards-Mainnet%20Live-14F195?style=for-the-badge)]()
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)]()
 
-**Andromeda Core** is a verifiable reputation protocol and economic activation engine for DAO ecosystems. We provide a decentralized trust layer for builders, DAOs, and autonomous agents, with Mainnet data infrastructure that already extracts, normalizes, and persists governance and staking information from the **Rootstock Collective**.
+**Andromeda Core** is a verifiable reputation protocol and economic activation engine for DAO ecosystems. We provide a decentralized trust layer for builders, DAOs, and autonomous agents, with Mainnet data infrastructure that already extracts, normalizes, and persists governance and staking information from the **Rootstock Collective** — live 24/7 at [core.andromedacomputer.net](http://core.andromedacomputer.net).
 
 > 🎯 **Mission:** Convert the 97.7% idle RIF supply into productive capital through an activation dashboard, automated impact reports, and external data feeds for the **FES (Funding Efficiency Score)** developed by the Rootstock Lab.
 
 ---
 
-## ⚡ What Already Exists for Rootstock (Production on Mainnet)
+## ⚡ What Already Exists for Rootstock (Live on Mainnet)
 
-Andromeda Core has **~7,200 lines of 100% functional TypeScript code**, of which **~1,650 lines are live connectors** already reading Rootstock Mainnet data (Governance Subgraph, Rewards Subgraph, Collective REST API, and direct RPC calls). The remaining ~5,500 lines are the reputation engine, data persistence layer, and dashboard UI — all ready to process and visualize that data. This is not a proposal — it is live infrastructure.
+Andromeda Core has **~7,200 lines of 100% functional TypeScript code**, of which **~1,650 lines are live connectors** already reading Rootstock Mainnet data (Governance Subgraph, Rewards Subgraph, Collective REST API, and direct RPC calls) — deployed 24/7 on Vercel. The remaining ~5,500 lines are the reputation engine, data persistence layer, and dashboard UI — all processing and visualizing that data in real time. This is not a proposal — it is live infrastructure.
 
 ### 🔌 Network Connectors (3 Live Data Channels)
 
@@ -284,7 +284,7 @@ Full Swagger documentation available at `/docs` when the server is running.
 | **Sybil Resistance** | ✅ Shannon entropy + graph analysis | ❌ Basic aggregation | ❌ None |
 | **Multidimensional Score** | ✅ Technical, governance, community | ❌ Humanhood only | ❌ Plain text |
 | **Logarithmic Scale** | ✅ Anti-whale inflation | ❌ | ❌ |
-| **Mainnet Connection** | ✅ Already live on Rootstock | ✅ | ✅ |
+| **Mainnet Connection** | ✅ Live on Rootstock Mainnet 24/7 | ✅ | ✅ |
 
 > *Andromeda does not compete with these solutions; it complements them. AVIP consumes data from EAS and Passport as additional signals in its trust engine.*
 
@@ -324,8 +324,8 @@ MIT © 2026 Andromeda Computer. Public good infrastructure.
 </p>
 
 <p align="center">
-  <a href="https://dev.andromedacomputer.net">🌐 Dashboard</a> ·
-  <a href="https://dev.andromedacomputer.net/rootstock-graphics.html">📊 Graphics</a> ·
-  <a href="https://dev.andromedacomputer.net/rootstock-paper.html">📄 Paper</a> ·
-  <a href="https://dev.andromedacomputer.net/verify.html">🛡️ Verifier</a>
+  <a href="http://core.andromedacomputer.net">🌐 Dashboard</a> ·
+  <a href="http://core.andromedacomputer.net/rootstock-graphics.html">📊 Graphics</a> ·
+  <a href="http://core.andromedacomputer.net/rootstock-paper.html">📄 Paper</a> ·
+  <a href="http://core.andromedacomputer.net/verify.html">🛡️ Verifier</a>
 </p>
