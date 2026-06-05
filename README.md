@@ -13,7 +13,7 @@
 
 ## ⚡ What Already Exists for Rootstock (Production on Mainnet)
 
-Andromeda Core has **~7,200 lines of 100% functional TypeScript code** already connected to Rootstock Mainnet. This is not a proposal — it is live infrastructure.
+Andromeda Core has **~7,200 lines of 100% functional TypeScript code**, of which **~1,650 lines are live connectors** already reading Rootstock Mainnet data (Governance Subgraph, Rewards Subgraph, Collective REST API, and direct RPC calls). The remaining ~5,500 lines are the reputation engine, data persistence layer, and dashboard UI — all ready to process and visualize that data. This is not a proposal — it is live infrastructure.
 
 ### 🔌 Network Connectors (3 Live Data Channels)
 
