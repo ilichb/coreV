@@ -325,7 +325,7 @@ MIT © 2026 Andromeda Computer. Public good infrastructure.
 
 <p align="center">
   <a href="http://core.andromedacomputer.net">🌐 Dashboard</a> ·
-  <a href="http://core.andromedacomputer.net/rootstock-graphics.html">📊 Graphics</a> ·
-  <a href="http://core.andromedacomputer.net/rootstock-paper.html">📄 Paper</a> ·
+  <a href="https://dev.andromedacomputer.net/rootstock-graphics.html">📊 Graphics</a> ·
+  <a href="https://dev.andromedacomputer.net/rootstock-paper.html">📄 Paper</a> ·
   <a href="http://core.andromedacomputer.net/verify.html">🛡️ Verifier</a>
 </p>
