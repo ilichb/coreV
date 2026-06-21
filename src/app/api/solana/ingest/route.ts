@@ -7,6 +7,9 @@ export async function GET() {
 }
 
 export async function POST() {
+  if (process.env.DISABLE_YELLOWSTONE === 'true') {
+    return NextResponse.json({ status: 'error', message: 'YellowstoneConnector disabled via DISABLE_YELLOWSTONE' }, { status: 400 });
+  }
   try {
     await solanaIngestionService.start();
     return NextResponse.json({ status: 'started', ...solanaIngestionService.getStats() });

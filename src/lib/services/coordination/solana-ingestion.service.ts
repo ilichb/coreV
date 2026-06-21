@@ -102,6 +102,10 @@ class SolanaIngestionService {
    * 🔧 PATCH: start() idempotente — si ya está corriendo o iniciándose, no duplica.
    */
   async start(): Promise<void> {
+    if (process.env.DISABLE_YELLOWSTONE === 'true') {
+      logger.info('ℹ️  SolanaIngestionService: Yellowstone disabled via DISABLE_YELLOWSTONE');
+      return;
+    }
     if (this.connector?.running) {
       logger.info('ℹ️  SolanaIngestionService: Already running (connector active)');
       return;

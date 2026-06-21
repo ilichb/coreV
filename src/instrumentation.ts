@@ -4,7 +4,7 @@
  * Inicia el conector Yellowstone automáticamente.
  */
 export async function register() {
-  if (process.env.NEXT_RUNTIME === 'nodejs') {
+  if (process.env.NEXT_RUNTIME === 'nodejs' && process.env.DISABLE_YELLOWSTONE !== 'true') {
     const { solanaIngestionService } = await import(
       './lib/services/coordination/solana-ingestion.service'
     );

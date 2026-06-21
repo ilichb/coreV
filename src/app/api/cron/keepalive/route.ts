@@ -18,6 +18,10 @@ export async function GET() {
   try {
     const stats = solanaIngestionService.getStats();
 
+    if (process.env.DISABLE_YELLOWSTONE === 'true') {
+      return NextResponse.json({ status: 'ok', gRPC: 'disabled', processed: 0, errors: 0, timestamp: Date.now() });
+    }
+
     if (!stats.running) {
       logger.info('Keepalive: gRPC stream inactivo. Reiniciando...');
       await solanaIngestionService.start();
