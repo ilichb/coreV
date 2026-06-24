@@ -3,6 +3,8 @@ import { inactiveHolderService } from '@/lib/services/rootstock/inactive-holder.
 import { cohortAssignmentService } from '@/lib/services/rootstock/cohort-assignment.service';
 import { buildMessage } from '@/lib/services/rootstock/message-templates';
 import { fesStorage } from '@/lib/services/rootstock/fes-storage.service';
+import { yieldProjectionService } from '@/lib/services/rootstock/yield-projection.service';
+import { walletHashService } from '@/lib/services/security/wallet-hash.service';
 
 function toDateStr(v: Date | string): string {
   if (typeof v === 'string') return v.split('T')[0];
@@ -29,11 +31,21 @@ export async function GET() {
 
     const cohortResult = cohortAssignmentService.assign(inactive.holders);
 
-    const msgCtx = (h: { wallet: string; balance: number; daysInactive: number; lastStakeActivity: Date | string }) => ({
+    // Enriquecer con proyección de rendimiento para cada holder
+    const holdersWithYield = await Promise.all(
+      inactive.holders.map(async (h) => {
+        const yieldProj = await yieldProjectionService.calculate(h.balance, h.daysInactive);
+        return { ...h, yieldProjection: yieldProj };
+      })
+    );
+
+    const msgCtx = (h: { wallet: string; balance: number; daysInactive: number; lastStakeActivity: Date | string; yieldProjection?: any }) => ({
       wallet: h.wallet,
       balance: h.balance,
       daysInactive: h.daysInactive,
       lastStakeActivity: toDateStr(h.lastStakeActivity),
+      projectedYield: h.yieldProjection?.projectedYieldRIF,
+      recommendedBuilders: h.yieldProjection?.recommendedBuilders,
     });
 
     const messages = {
@@ -42,19 +54,21 @@ export async function GET() {
       vip: cohortResult.whales.map(h => buildMessage(msgCtx(h), 'vip')),
     };
 
-    const holderDetails = inactive.holders.map(h => {
+    // Holder details con wallet hasheada en lugar de address cruda
+    const holderDetails = holdersWithYield.map(h => {
       const all = [...cohortResult.cohorts.A, ...cohortResult.cohorts.B, ...cohortResult.whales];
       const assignment = all.find(a => a.wallet === h.wallet);
       return {
-        wallet: h.wallet,
+        walletHash: walletHashService.hashWallet(h.wallet).walletHash,
         balance: h.balance,
         daysInactive: h.daysInactive,
         lastStakeActivity: typeof h.lastStakeActivity === 'string' ? h.lastStakeActivity : h.lastStakeActivity.toISOString(),
         cohort: assignment?.cohort || null,
         message_variant: assignment?.cohort === 'A' ? 'control'
           : assignment?.cohort === 'B' ? 'treatment'
-          : assignment?.cohort === 'WHALE' ? 'vip'
-          : null,
+            : assignment?.cohort === 'WHALE' ? 'vip'
+              : null,
+        yieldProjection: h.yieldProjection,
       };
     });
 
@@ -64,7 +78,10 @@ export async function GET() {
       count: inactive.count,
       holders: holderDetails,
       cohorts: cohortResult.summary,
-      whales: cohortResult.whales,
+      whales: cohortResult.whales.map(w => ({
+        ...w,
+        walletHash: walletHashService.hashWallet(w.wallet).walletHash,
+      })),
       messages: {
         control: { total: messages.control.length, sample: messages.control.slice(0, 2) },
         treatment: { total: messages.treatment.length, sample: messages.treatment.slice(0, 2) },
@@ -75,7 +92,7 @@ export async function GET() {
         ...inactive.metadata,
         cohortStrategy: cohortResult.metadata.strategy,
         generatedAt: new Date().toISOString(),
-        note: 'MVP v1 — FES metrics based on Rewards Subgraph stakers only. Phase 2 will add Governance, Snapshot, RIF Transfer data. Whales (>1M RIF) excluded from A/B experiment.',
+        note: 'FES metrics — Internal use only. Wallets are hashed for privacy. Cohort A (control) receives informational message. Cohort B (treatment) receives personalized message with yield projection and builder recommendations.',
       },
     });
   } catch (error: any) {

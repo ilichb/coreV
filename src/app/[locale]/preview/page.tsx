@@ -1,403 +1,303 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
-type Cohort = 'A' | 'B' | 'WHALE';
-type MessageVariant = 'control' | 'treatment' | 'vip';
+interface YieldProjection {
+  projectedYieldRIF: number;
+  aprUsed: number;
+  recommendedBuilders: Array<{ name: string; category: string; address: string }>;
+}
 
-interface Holder {
+interface CheckResult {
+  found: boolean;
   wallet: string;
-  balance: number;
-  daysInactive: number;
-  lastStakeActivity: string;
-  cohort: Cohort | null;
-  message_variant: MessageVariant | null;
-}
-
-interface CohortSummary {
-  count: number;
-  avgBalance: number;
-  avgDaysInactive: number;
-  totalBalance: number;
-}
-
-interface MessageGroup {
-  total: number;
-  sample: Array<{ subject: string; body: string; variant: MessageVariant }>;
-}
-
-interface ByCohortMetric {
-  cohort: string;
-  contacted: number;
-  reactivated: number;
-  rate: number;
-  avgDaysToReactivate: number | null;
-}
-
-interface ReactivationMetrics {
-  totalContacted: number;
-  totalReactivated: number;
-  conversionRate: number;
-  avgDaysToReactivate: number | null;
-  byCohort: ByCohortMetric[];
-}
-
-interface MetricsData {
-  count: number;
-  holders: Holder[];
-  cohorts: {
-    total: number;
-    mainPool: number;
-    cohortA: CohortSummary;
-    cohortB: CohortSummary;
-    whales: CohortSummary;
+  cohort?: string;
+  balance?: number;
+  daysInactive?: number;
+  lastStakeActivity?: string;
+  message?: {
+    subject: string;
+    body: string;
+    variant: string;
   };
-  whales: Holder[];
-  messages: {
-    control: MessageGroup;
-    treatment: MessageGroup;
-    vip: MessageGroup;
-  };
-  reactivation: ReactivationMetrics | null;
-  metadata: {
-    source: string;
-    minBalanceRIF: number;
-    minDaysInactive: number;
-    generatedAt: string;
-    note: string;
-  };
+  yieldProjection?: YieldProjection;
+  viewLogged?: boolean;
+  error?: string;
 }
 
-function Loading() {
-  return (
-    <div className="min-h-screen bg-[#050608] flex items-center justify-center">
-      <div className="text-xs font-mono text-[#00f0ff] animate-pulse tracking-[0.2em] uppercase">
-        Loading preview data...
-      </div>
-    </div>
-  );
+function shortenHash(hash: string): string {
+  return `${hash.slice(0, 10)}...${hash.slice(-6)}`;
 }
 
-function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div className="border border-[#00f0ff]/20 bg-black/40 p-4">
-      <div className="text-[9px] font-mono text-gray-500 uppercase tracking-widest">{label}</div>
-      <div className="text-xl font-mono font-bold text-gray-100 mt-1">{value}</div>
-      {sub && <div className="text-[10px] font-mono text-gray-600 mt-0.5">{sub}</div>}
-    </div>
-  );
-}
-
-function shortenAddress(addr: string) {
-  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-}
-
-function MessagePreview({ msg, color }: { msg: { subject: string; body: string; variant: string }; color: string }) {
-  return (
-    <div className="px-4 py-4 space-y-2 border-b border-[#f59e0b]/10 last:border-b-0">
-      <div className="flex items-center gap-2">
-        <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 border ${color}`}>
-          {msg.variant.toUpperCase()}
-        </span>
-        <div className="text-xs font-mono font-bold text-gray-200">{msg.subject}</div>
-      </div>
-      <div className="text-[10px] font-mono text-gray-500 leading-relaxed whitespace-pre-line">{msg.body}</div>
-    </div>
-  );
+function formatRIF(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return n.toLocaleString();
 }
 
 export default function PreviewPage() {
-  const [data, setData] = useState<MetricsData | null>(null);
+  const [walletInput, setWalletInput] = useState('');
+  const [result, setResult] = useState<CheckResult | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const [lang, setLang] = useState<'en' | 'es'>('en');
-  const [selectedHolder, setSelectedHolder] = useState<Holder | null>(null);
 
-  useEffect(() => {
-    fetch('/api/fes/metrics')
-      .then(r => r.json())
-      .then(d => {
-        if (d.error) throw new Error(d.detail || d.error);
-        setData(d);
-      })
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false));
-  }, []);
+  const handleCheck = async () => {
+    const trimmed = walletInput.trim();
+    if (!trimmed || !/^0x[a-fA-F0-9]{40}$/.test(trimmed)) {
+      setError('Please enter a valid 0x wallet address (42 characters).');
+      return;
+    }
 
-  if (loading) return <Loading />;
+    setLoading(true);
+    setError(null);
+    setResult(null);
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-[#050608] flex items-center justify-center">
-        <div className="text-red-400 font-mono text-xs">{error}</div>
-      </div>
-    );
-  }
+    try {
+      const res = await fetch('/api/fes/check-wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet: trimmed }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setResult(data);
+    } catch (e: any) {
+      setError(e.message || 'Failed to check wallet. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (!data || data.count === 0) {
-    return (
-      <div className="min-h-screen bg-[#050608] flex items-center justify-center">
-        <div className="text-gray-500 font-mono text-xs">No inactive holders detected.</div>
-      </div>
-    );
-  }
-
-  const cohortA = data.holders.filter(h => h.cohort === 'A');
-  const cohortB = data.holders.filter(h => h.cohort === 'B');
-  const whales = data.holders.filter(h => h.cohort === 'WHALE');
-  const rx = data.reactivation;
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleCheck();
+  };
 
   return (
-    <div className="min-h-screen bg-[#050608] text-gray-100 p-6">
-      <div className="max-w-[1400px] mx-auto space-y-8">
+    <div className="min-h-screen bg-[#050608] text-gray-100 p-4 md:p-8">
+      <div className="max-w-[720px] mx-auto space-y-8">
 
         {/* Header */}
         <header className="border-b border-[#00f0ff]/20 pb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-2 h-2 rounded-full bg-[#00f0ff] shadow-[0_0_8px_rgba(0,240,255,0.6)] animate-pulse" />
-                <span className="text-[10px] font-mono font-medium text-[#00f0ff] bg-[#00f0ff]/10 border border-[#00f0ff]/20 px-3 py-1 tracking-widest">
-                  ROOTSTOCK_FES_PREVIEW
-                </span>
-              </div>
-              <h1 className="text-3xl font-mono font-bold tracking-tighter">
-                INACTIVE <span className="text-[#00f0ff]">HOLDERS</span>
-              </h1>
-              <p className="text-[10px] font-mono text-gray-500 mt-1 uppercase tracking-wider">
-                {data.metadata.source} // {data.count} wallets detected
-              </p>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-[#00f0ff] shadow-[0_0_8px_rgba(0,240,255,0.6)]" />
+              <span className="text-[10px] font-mono font-medium text-[#00f0ff] bg-[#00f0ff]/10 border border-[#00f0ff]/20 px-3 py-1 tracking-widest">
+                ROOTSTOCK_FES_CHECKER
+              </span>
             </div>
             <button
               onClick={() => setLang(lang === 'en' ? 'es' : 'en')}
               className="text-[10px] font-mono text-gray-500 hover:text-[#00f0ff] border border-gray-800 hover:border-[#00f0ff]/30 px-3 py-1.5 transition-all uppercase tracking-widest"
+              aria-label={lang === 'en' ? 'Switch to Spanish' : 'Switch to English'}
             >
               {lang === 'en' ? 'ES' : 'EN'}
             </button>
           </div>
+          <h1 className="text-2xl md:text-3xl font-mono font-bold tracking-tighter">
+            {lang === 'en' ? 'STAKING ACTIVITY' : 'ACTIVIDAD DE STAKING'}
+            <span className="text-[#00f0ff]"> {lang === 'en' ? 'CHECKER' : 'VERIFICADOR'}</span>
+          </h1>
+          <p className="text-[10px] font-mono text-gray-500 mt-1 uppercase tracking-wider">
+            {lang === 'en'
+              ? 'Enter your wallet to check your staking status'
+              : 'Ingresá tu wallet para verificar tu estado de staking'}
+          </p>
         </header>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <StatCard label="Total Holders" value={String(data.count)} />
-          <StatCard label="Main Pool" value={String(data.cohorts.mainPool)} sub="A/B candidates" />
-          <StatCard
-            label="Cohort A (Control)"
-            value={String(data.cohorts.cohortA.count)}
-            sub={`avg ${data.cohorts.cohortA.avgDaysInactive.toFixed(0)}d inactive`}
-          />
-          <StatCard
-            label="Cohort B (Treatment)"
-            value={String(data.cohorts.cohortB.count)}
-            sub={`avg ${data.cohorts.cohortB.avgDaysInactive.toFixed(0)}d inactive`}
-          />
-          <StatCard
-            label="Whales (>1M RIF)"
-            value={String(data.cohorts.whales.count)}
-            sub={`${data.cohorts.whales.totalBalance.toLocaleString()} RIF`}
-          />
+        {/* Input */}
+        <div className="space-y-3">
+          <label htmlFor="wallet-input" className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block">
+            {lang === 'en' ? 'Wallet Address' : 'Dirección de Wallet'}
+          </label>
+          <div className="flex gap-2">
+            <input
+              id="wallet-input"
+              type="text"
+              placeholder="0x..."
+              value={walletInput}
+              onChange={(e) => setWalletInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="flex-1 bg-black/60 border border-gray-800 px-4 py-3 text-sm font-mono text-gray-200 placeholder:text-gray-700 focus:outline-none focus:border-[#00f0ff]/40 focus:ring-1 focus:ring-[#00f0ff]/20 transition-all"
+              autoComplete="off"
+              spellCheck={false}
+            />
+            <button
+              onClick={handleCheck}
+              disabled={loading}
+              className="px-6 py-3 bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-[#00f0ff] text-xs font-mono font-bold tracking-widest hover:bg-[#00f0ff]/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all uppercase focus-visible:ring-2 focus-visible:ring-[#00f0ff]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050608]"
+              aria-label={lang === 'en' ? 'Check wallet' : 'Verificar wallet'}
+            >
+              {loading ? (
+                <span className="animate-pulse">{lang === 'en' ? 'CHECKING...' : 'VERIFICANDO...'}</span>
+              ) : (
+                lang === 'en' ? 'CHECK' : 'VERIFICAR'
+              )}
+            </button>
+          </div>
+          {error && (
+            <div className="text-[10px] font-mono text-red-400 bg-red-400/5 border border-red-400/20 px-4 py-2" role="alert">
+              {error}
+            </div>
+          )}
         </div>
 
-        {/* Reactivation Metrics */}
-        {rx && (
-          <div className="border border-[#00ff88]/20 bg-black/40">
-            <div className="border-b border-[#00ff88]/20 px-4 py-3">
-              <span className="text-[10px] font-mono font-bold text-[#00ff88] tracking-widest uppercase">
-                Reactivation Metrics
-              </span>
+        {/* Result */}
+        {result && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            {result.found ? (
+              <>
+                {/* Status Card */}
+                <div className="border border-[#00f0ff]/20 bg-black/40 p-4 md:p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest">
+                      {lang === 'en' ? 'Wallet' : 'Wallet'}
+                    </span>
+                    <span className={`text-[9px] font-mono font-bold px-2 py-1 border ${result.cohort === 'VIP'
+                        ? 'border-[#ff6b6b]/40 text-[#ff6b6b]'
+                        : result.cohort === 'B'
+                          ? 'border-[#f59e0b]/40 text-[#f59e0b]'
+                          : 'border-[#00f0ff]/40 text-[#00f0ff]'
+                      }`}>
+                      {result.cohort === 'VIP' ? 'VIP' : `COHORT ${result.cohort}`}
+                    </span>
+                  </div>
+                  <div className="text-[10px] font-mono text-gray-400 break-all">
+                    {shortenHash(result.wallet)}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-800">
+                    <div>
+                      <div className="text-[9px] font-mono text-gray-600 uppercase tracking-widest">
+                        {lang === 'en' ? 'Balance' : 'Balance'}
+                      </div>
+                      <div className="text-sm font-mono font-bold text-gray-200 mt-0.5">
+                        {formatRIF(result.balance!)} RIF
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] font-mono text-gray-600 uppercase tracking-widest">
+                        {lang === 'en' ? 'Days Inactive' : 'Días Inactivo'}
+                      </div>
+                      <div className="text-sm font-mono font-bold text-gray-200 mt-0.5">
+                        {result.daysInactive}d
+                      </div>
+                    </div>
+                  </div>
+                  {result.lastStakeActivity && (
+                    <div className="text-[9px] font-mono text-gray-600">
+                      {lang === 'en' ? 'Last activity' : 'Última actividad'}: {result.lastStakeActivity}
+                    </div>
+                  )}
+                </div>
+
+                {/* Yield Projection */}
+                {result.yieldProjection && result.yieldProjection.projectedYieldRIF > 0 && (
+                  <div className="border border-[#f59e0b]/20 bg-black/40 p-4 md:p-6">
+                    <div className="text-[9px] font-mono text-[#f59e0b] uppercase tracking-widest mb-3">
+                      {lang === 'en' ? 'Projected Yield' : 'Rendimiento Proyectado'}
+                    </div>
+                    <div className="text-lg font-mono font-bold text-[#f59e0b]">
+                      ~{formatRIF(result.yieldProjection.projectedYieldRIF)} RIF
+                    </div>
+                    <div className="text-[9px] font-mono text-gray-600 mt-1">
+                      {lang === 'en'
+                        ? `At ${result.yieldProjection.aprUsed}% estimated APR during ${result.daysInactive} days of inactivity`
+                        : `Al ${result.yieldProjection.aprUsed}% APR estimado durante ${result.daysInactive} días de inactividad`}
+                    </div>
+
+                    {result.yieldProjection.recommendedBuilders.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-800">
+                        <div className="text-[9px] font-mono text-gray-500 uppercase tracking-widest mb-2">
+                          {lang === 'en' ? 'Recommended Builders' : 'Builders Recomendados'}
+                        </div>
+                        <div className="space-y-1.5">
+                          {result.yieldProjection.recommendedBuilders.map((b, i) => (
+                            <div key={i} className="flex items-center gap-2 text-[10px] font-mono">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#00f0ff]/60" />
+                              <span className="text-gray-300">{b.name}</span>
+                              <span className="text-gray-600">({b.category})</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Message */}
+                {result.message && (
+                  <div className="border border-gray-700/30 bg-black/40">
+                    <div className="border-b border-gray-700/30 px-4 py-3 flex items-center gap-2">
+                      <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 border ${result.message.variant === 'vip'
+                          ? 'border-[#ff6b6b]/40 text-[#ff6b6b]'
+                          : result.message.variant === 'treatment'
+                            ? 'border-[#f59e0b]/40 text-[#f59e0b]'
+                            : 'border-[#00f0ff]/40 text-[#00f0ff]'
+                        }`}>
+                        {result.message.variant.toUpperCase()}
+                      </span>
+                      <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest">
+                        {lang === 'en' ? 'Your Message' : 'Tu Mensaje'}
+                      </span>
+                    </div>
+                    <div className="px-4 py-4 space-y-3">
+                      <div className="text-xs font-mono font-bold text-gray-200">
+                        {result.message.subject}
+                      </div>
+                      <div className="text-[10px] font-mono text-gray-500 leading-relaxed whitespace-pre-line">
+                        {result.message.body}
+                      </div>
+                    </div>
+                    <div className="px-4 py-2 border-t border-gray-700/30">
+                      <span className="text-[8px] font-mono text-gray-700">
+                        {lang === 'en' ? 'View logged' : 'Vista registrada'} — {new Date().toISOString()}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              /* Not found */
+              <div className="border border-gray-700/30 bg-black/40 p-6 text-center">
+                <div className="text-[10px] font-mono text-gray-500">
+                  {result.message || (lang === 'en'
+                    ? 'No inactive staking position found.'
+                    : 'No se encontró posición de staking inactiva.')}
+                </div>
+                <div className="text-[9px] font-mono text-gray-700 mt-3">
+                  {shortenHash(result.wallet)}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!result && !loading && !error && (
+          <div className="border border-gray-800/50 bg-black/20 p-8 text-center">
+            <div className="text-[10px] font-mono text-gray-600">
+              {lang === 'en'
+                ? 'Enter a wallet address above to check your staking status.'
+                : 'Ingresá una dirección de wallet arriba para verificar tu estado de staking.'}
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
-              <StatCard label="Contacted" value={String(rx.totalContacted)} />
-              <StatCard label="Reactivated" value={String(rx.totalReactivated)} sub={`${(rx.conversionRate * 100).toFixed(1)}% rate`} />
-              <StatCard
-                label="Avg Days to Reactivate"
-                value={rx.avgDaysToReactivate !== null ? rx.avgDaysToReactivate.toFixed(1) : '—'}
-                sub="across all cohorts"
-              />
-              <StatCard
-                label="Best Cohort"
-                value={rx.byCohort.reduce((best, c) => c.rate > (best?.rate || 0) ? c : best, rx.byCohort[0])?.cohort || '—'}
-                sub={`${(Math.max(...rx.byCohort.map(c => c.rate)) * 100).toFixed(1)}% rate`}
-              />
-            </div>
-            <div className="px-4 pb-4">
-              <table className="w-full text-[10px] font-mono">
-                <thead>
-                  <tr className="text-gray-500 uppercase tracking-wider border-b border-gray-800">
-                    <th className="text-left py-2">Cohort</th>
-                    <th className="text-right py-2">Contacted</th>
-                    <th className="text-right py-2">Reactivated</th>
-                    <th className="text-right py-2">Rate</th>
-                    <th className="text-right py-2">Avg Days</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rx.byCohort.map(c => (
-                    <tr key={c.cohort} className="border-b border-gray-800/50">
-                      <td className="py-2 text-gray-300">{c.cohort}</td>
-                      <td className="py-2 text-right text-gray-400">{c.contacted}</td>
-                      <td className="py-2 text-right text-gray-400">{c.reactivated}</td>
-                      <td className="py-2 text-right text-[#00ff88]">{(c.rate * 100).toFixed(1)}%</td>
-                      <td className="py-2 text-right text-gray-400">{c.avgDaysToReactivate !== null ? c.avgDaysToReactivate.toFixed(1) : '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="text-[9px] font-mono text-gray-800 mt-2">
+              {lang === 'en'
+                ? 'Only you can see your information.'
+                : 'Solo vos podés ver tu información.'}
             </div>
           </div>
         )}
 
-        {!rx && (
-          <div className="border border-yellow-500/20 bg-black/40 p-4">
-            <span className="text-[10px] font-mono text-yellow-500">
-              No reactivation data yet. Messages have not been sent or tracking has not started.
-            </span>
-          </div>
-        )}
-
-        {/* Cohort Comparison */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Cohort A */}
-          <div className="border border-[#00f0ff]/20 bg-black/40">
-            <div className="border-b border-[#00f0ff]/20 px-4 py-3 flex items-center justify-between">
-              <span className="text-[10px] font-mono font-bold text-[#00f0ff] tracking-widest uppercase">
-                Cohort A — Control ({cohortA.length})
-              </span>
-              <span className="text-[10px] font-mono text-gray-500">
-                {data.cohorts.cohortA.totalBalance.toLocaleString()} RIF
-              </span>
-            </div>
-            <div className="divide-y divide-[#00f0ff]/10">
-              {cohortA.map(h => (
-                <button
-                  key={h.wallet}
-                  onClick={() => setSelectedHolder(selectedHolder?.wallet === h.wallet ? null : h)}
-                  className="w-full text-left px-4 py-2.5 hover:bg-[#00f0ff]/5 transition-all font-mono"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-300">{shortenAddress(h.wallet)}</span>
-                    <span className="text-[10px] text-gray-500">{h.balance.toLocaleString()} RIF</span>
-                  </div>
-                  <div className="text-[9px] text-gray-600 mt-0.5">{h.daysInactive}d inactive</div>
-                  {selectedHolder?.wallet === h.wallet && (
-                    <div className="mt-2 pt-2 border-t border-[#00f0ff]/10 text-[10px] text-gray-400 space-y-1">
-                      <div>Wallet: {h.wallet}</div>
-                      <div>Balance: {h.balance.toLocaleString()} RIF</div>
-                      <div>Inactive: {h.daysInactive} days</div>
-                      <div>Last stake: {new Date(h.lastStakeActivity).toLocaleDateString()}</div>
-                      <div>Message: {h.message_variant || 'not sent'}</div>
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Cohort B */}
-          <div className="border border-[#f59e0b]/20 bg-black/40">
-            <div className="border-b border-[#f59e0b]/20 px-4 py-3 flex items-center justify-between">
-              <span className="text-[10px] font-mono font-bold text-[#f59e0b] tracking-widest uppercase">
-                Cohort B — Treatment ({cohortB.length})
-              </span>
-              <span className="text-[10px] font-mono text-gray-500">
-                {data.cohorts.cohortB.totalBalance.toLocaleString()} RIF
-              </span>
-            </div>
-            <div className="divide-y divide-[#f59e0b]/10">
-              {cohortB.map(h => (
-                <button
-                  key={h.wallet}
-                  onClick={() => setSelectedHolder(selectedHolder?.wallet === h.wallet ? null : h)}
-                  className="w-full text-left px-4 py-2.5 hover:bg-[#f59e0b]/5 transition-all font-mono"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-300">{shortenAddress(h.wallet)}</span>
-                    <span className="text-[10px] text-gray-500">{h.balance.toLocaleString()} RIF</span>
-                  </div>
-                  <div className="text-[9px] text-gray-600 mt-0.5">{h.daysInactive}d inactive</div>
-                  {selectedHolder?.wallet === h.wallet && (
-                    <div className="mt-2 pt-2 border-t border-[#f59e0b]/10 text-[10px] text-gray-400 space-y-1">
-                      <div>Wallet: {h.wallet}</div>
-                      <div>Balance: {h.balance.toLocaleString()} RIF</div>
-                      <div>Inactive: {h.daysInactive} days</div>
-                      <div>Last stake: {new Date(h.lastStakeActivity).toLocaleDateString()}</div>
-                      <div>Message: {h.message_variant || 'not sent'}</div>
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Whales */}
-        {whales.length > 0 && (
-          <div className="border border-[#ff6b6b]/20 bg-black/40">
-            <div className="border-b border-[#ff6b6b]/20 px-4 py-3 flex items-center justify-between">
-              <span className="text-[10px] font-mono font-bold text-[#ff6b6b] tracking-widest uppercase">
-                Whales — VIP Cohort ({whales.length})
-              </span>
-              <span className="text-[10px] font-mono text-gray-500">
-                {data.cohorts.whales.totalBalance.toLocaleString()} RIF
-              </span>
-            </div>
-            <div className="divide-y divide-[#ff6b6b]/10">
-              {whales.map(h => (
-                <button
-                  key={h.wallet}
-                  onClick={() => setSelectedHolder(selectedHolder?.wallet === h.wallet ? null : h)}
-                  className="w-full text-left px-4 py-2.5 hover:bg-[#ff6b6b]/5 transition-all font-mono"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-300">{shortenAddress(h.wallet)}</span>
-                    <span className="text-[10px] text-gray-500">{h.balance.toLocaleString()} RIF</span>
-                  </div>
-                  <div className="text-[9px] text-gray-600 mt-0.5">{h.daysInactive}d inactive</div>
-                  {selectedHolder?.wallet === h.wallet && (
-                    <div className="mt-2 pt-2 border-t border-[#ff6b6b]/10 text-[10px] text-gray-400 space-y-1">
-                      <div>Wallet: {h.wallet}</div>
-                      <div>Balance: {h.balance.toLocaleString()} RIF</div>
-                      <div>Inactive: {h.daysInactive} days</div>
-                      <div>Last stake: {new Date(h.lastStakeActivity).toLocaleDateString()}</div>
-                      <div>Message: {h.message_variant || 'not sent'}</div>
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Sample Messages */}
-        <div className="border border-gray-700/30 bg-black/40">
-          <div className="border-b border-gray-700/30 px-4 py-3">
-            <span className="text-[10px] font-mono font-bold text-gray-300 tracking-widest uppercase">
-              Message Samples — All Variants
-            </span>
-          </div>
-          {data.messages.control.sample.map((msg, i) => (
-            <MessagePreview key={`c-${i}`} msg={msg} color="border-[#00f0ff]/40 text-[#00f0ff]" />
-          ))}
-          {data.messages.treatment.sample.map((msg, i) => (
-            <MessagePreview key={`b-${i}`} msg={msg} color="border-[#f59e0b]/40 text-[#f59e0b]" />
-          ))}
-          {data.messages.vip.sample.map((msg, i) => (
-            <MessagePreview key={`v-${i}`} msg={msg} color="border-[#ff6b6b]/40 text-[#ff6b6b]" />
-          ))}
-          <div className="px-4 py-2 border-t border-gray-700/30 flex gap-4">
-            <span className="text-[9px] font-mono text-gray-600">
-              Control: {data.messages.control.total} | Treatment: {data.messages.treatment.total} | VIP: {data.messages.vip.total}
-            </span>
-          </div>
-        </div>
-
-        {/* Metadata */}
+        {/* Footer */}
         <footer className="border-t border-gray-800 pt-4 pb-8">
           <div className="text-[9px] font-mono text-gray-700 space-y-1">
-            <div>source: {data.metadata.source}</div>
-            <div>minBalance: {data.metadata.minBalanceRIF} RIF | minDaysInactive: {data.metadata.minDaysInactive}</div>
-            <div>generatedAt: {data.metadata.generatedAt}</div>
-            <div className="text-gray-600">{data.metadata.note}</div>
+            <div>Rootstock FES Pilot — Funding Efficiency Score</div>
+            <div>Data source: Rewards Subgraph (backerStakingHistories)</div>
+            <div className="text-gray-600">
+              {lang === 'en'
+                ? 'Your wallet address is hashed and never stored in plaintext.'
+                : 'Tu dirección de wallet es hasheada y nunca se almacena en texto plano.'}
+            </div>
           </div>
         </footer>
 
