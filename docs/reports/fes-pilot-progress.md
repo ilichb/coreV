@@ -1,7 +1,7 @@
 # FES Pilot — Progreso General
 
 > Generado: 29 de junio de 2026
-> Último commit: `553ce92` — `feat: monitor de atribucion de stakes (eventos Staked cada hora)`
+> Último commit: `96f2c00` — `feat: script generate-pilot-report.ts para reporte final del FES Pilot`
 
 ---
 
@@ -67,13 +67,13 @@
 
 ---
 
-## ❌ Semanas 3-4 — Observación y reporte (NO INICIADO)
+## ⏳ Semanas 3-4 — Observación y reporte (EN PROGRESO)
 
 | Item | Estado |
 |---|---|
 | Mantener monitoreo durante 4 semanas | ❌ |
 | Documentar incidencias técnicas | ❌ |
-| Crear scripts/generate-pilot-report.ts | ❌ |
+| Crear scripts/generate-pilot-report.ts | ✅ |
 | Publicar informe en foro antes del 11 de julio | ❌ |
 | Decisión: votación on-chain o cierre | ❌ |
 
@@ -109,6 +109,10 @@ Commit 553ce92 (Monitor de atribución):
   src/lib/services/rootstock/fes-attribution-monitor.service.ts | 375 ++++++++++
   vercel.json                                        |   1 +
   4 files changed, 481 insertions(+), 1 deletion(-)
+
+Commit 96f2c00 (Script de reporte final):
+  scripts/generate-pilot-report.ts                   | 384 ++++++++++
+  1 file changed, 384 insertions(+)
 ```
 
 ---
