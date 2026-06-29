@@ -1,7 +1,7 @@
 # FES Pilot — Progreso General
 
 > Generado: 29 de junio de 2026
-> Último commit: `2919198` — `feat: logging de vistas a MongoDB + publicacion diaria a IPFS`
+> Último commit: `553ce92` — `feat: monitor de atribucion de stakes (eventos Staked cada hora)`
 
 ---
 
@@ -49,12 +49,15 @@
 | Endpoint /api/fes/view-stats | `src/app/api/fes/view-stats/route.ts` | ✅ |
 | vercel.json con crons configurados | `vercel.json` | ✅ |
 
-### Monitor de atribución (eventos Staked)
+### Monitor de atribución (eventos Staked) — commit `553ce92`
 
-| Item | Estado |
-|---|---|
-| Script que consulta eventos Staked cada hora | ❌ PENDIENTE |
-| Cruce con walletHash registrados | ❌ PENDIENTE |
+| Item | Archivo | Estado |
+|---|---|---|
+| FESAttributionMonitorService (eventos Staked vía RPC) | `src/lib/services/rootstock/fes-attribution-monitor.service.ts` | ✅ |
+| Cruce con walletHash de MongoDB + registro en Supabase | `src/lib/services/rootstock/fes-attribution-monitor.service.ts` | ✅ |
+| Cron horario fes-attribution | `src/app/api/cron/fes-attribution/route.ts` | ✅ |
+| Endpoint /api/fes/attributions (resumen + detalle) | `src/app/api/fes/attributions/route.ts` | ✅ |
+| vercel.json con cron configurado | `vercel.json` | ✅ |
 
 ### Publicación de enlace
 
@@ -99,12 +102,19 @@ Commit 2919198 (Logging MongoDB + IPFS):
   src/app/api/fes/check-wallet/route.ts              |  12 +-
   vercel.json                                        |  14 +-
   6 files changed, 447 insertions(+), 3 deletions(-)
+
+Commit 553ce92 (Monitor de atribución):
+  src/app/api/cron/fes-attribution/route.ts          |  56 ++
+  src/app/api/fes/attributions/route.ts              |  50 ++
+  src/lib/services/rootstock/fes-attribution-monitor.service.ts | 375 ++++++++++
+  vercel.json                                        |   1 +
+  4 files changed, 481 insertions(+), 1 deletion(-)
 ```
 
 ---
 
 ## Próximos pasos
 
-1. **Monitor de atribución** — Crear script que consulte eventos `Staked` en el contrato de staking de Rootstock cada hora y cruce con walletHash registrados en MongoDB
-2. **Publicar enlace** — Compartir `https://rootstock.vercel.app/preview` en Discord/foro del Collective
-3. **Semanas 3-4** — Monitorear, documentar incidencias, generar reporte final
+1. ✅ **Monitor de atribución** — Creado e implementado (commit `553ce92`)
+2. ⏳ **Publicar enlace** — Compartir `https://rootstock.vercel.app/preview` en Discord/foro del Collective (manual)
+3. ⏳ **Semanas 3-4** — Monitorear, documentar incidencias, generar reporte final
