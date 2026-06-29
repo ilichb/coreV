@@ -16,6 +16,7 @@ import { cohortAssignmentService } from '@/lib/services/rootstock/cohort-assignm
 import { buildMessage, type MessageVariant } from '@/lib/services/rootstock/message-templates';
 import { yieldProjectionService } from '@/lib/services/rootstock/yield-projection.service';
 import { fesStorage } from '@/lib/services/rootstock/fes-storage.service';
+import { fesViewLogger } from '@/lib/services/rootstock/fes-view-logger.service';
 import { walletHashService } from '@/lib/services/security/wallet-hash.service';
 
 function toDateStr(v: Date | string): string {
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest) {
             'en' // Default language, could be extended with Accept-Language header
         );
 
-        // 5. Loguear la vista en fes_events
+        // 5. Loguear la vista en fes_events (Supabase)
         await fesStorage.recordEvent({
             wallet,
             event_type: 'preview_view',
@@ -101,7 +102,18 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        // 6. Respuesta — solo datos de esta wallet, hasheada
+        // 6. Loguear la vista en MongoDB (para reportes diarios + IPFS)
+        // Fire-and-forget: no bloquea la respuesta
+        fesViewLogger.logView({
+            wallet,
+            cohort: cohortInfo.cohort,
+            messageVariant: variant,
+            balance: activity.balance,
+            daysInactive: activity.daysInactive,
+            projectedYield: yieldProjection.projectedYieldRIF,
+        }).catch(err => console.error('[FES View Logger] Background log failed:', err));
+
+        // 7. Respuesta — solo datos de esta wallet, hasheada
         return NextResponse.json({
             found: true,
             wallet: walletHashService.hashWallet(wallet).walletHash,
