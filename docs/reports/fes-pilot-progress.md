@@ -1,7 +1,7 @@
 # FES Pilot — Progreso General
 
-> Generado: 29 de junio de 2026
-> Último commit: `96f2c00` — `feat: script generate-pilot-report.ts para reporte final del FES Pilot`
+> Generado: 30 de junio de 2026
+> Último commit: `3079051` — `docs: actualizar progreso con script de reporte final (commit 96f2c00)`
 
 ---
 
