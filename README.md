@@ -61,6 +61,69 @@ Andromeda Core has **~7,200 lines of 100% functional TypeScript code**, of which
 
 ---
 
+## 🧪 FES Pilot — Funding Efficiency Score Experiment
+
+The **FES (Funding Efficiency Score) Pilot** is a live A/B experiment on Rootstock Mainnet designed to test whether personalized staking yield projections can reactivate inactive RIF holders. Built on top of Andromeda Core's existing infrastructure.
+
+### 🔍 Detection & Assignment Pipeline
+
+| Component | Lines | Status | Function |
+|-----------|--------|--------|---------|
+| `inactive-holder.service.ts` | — | ✅ **100% Functional** | Scans Rewards Subgraph for backers with >500 RIF, >30 days inactive, pre-June 2026. Batches 20 RPC calls in parallel with Redis caching. |
+| `cohort-assignment.service.ts` | — | ✅ **100% Functional** | Deterministic stratified A/B assignment. Whales (≥1M RIF) → VIP cohort. Remaining pool split via alternate-pair swap (deviation <0.5%). |
+| `yield-projection.service.ts` | 177 | ✅ **100% Functional** | Calculates projected RIF yield based on wallet balance and average APR from active builders in the Rewards Subgraph. |
+| `message-templates.ts` | 182 | ✅ **100% Functional** | Bilingual (EN/ES) templates: **Cohort A** (control — informational), **Cohort B** (treatment — personalized yield + builder recommendations), **VIP** (team outreach). |
+| `reactivation-tracker.service.ts` | — | ✅ **100% Functional** | Queries subgraph `lastBlockNumber` delta >10 blocks from checkpoint to detect reactivations. |
+
+### 🗄️ Storage & Persistence
+
+| Component | Lines | Status | Function |
+|-----------|--------|--------|---------|
+| `fes-storage.service.ts` | 208 | ✅ **100% Functional** | Supabase PostgreSQL: `fes_participants` (wallet, cohort, balance, status) + `fes_events` (timeline tracking). |
+| `fes-view-logger.service.ts` | 304 | ✅ **100% Functional** | Logs each /preview visit to MongoDB Atlas with walletHash (SHA-256 salted — never raw addresses). Publishes daily summaries to IPFS via Pinata. |
+| `fes-attribution-monitor.service.ts` | 375 | ✅ **100% Functional** | Scans `Staked` events on the Rootstock staking contract via RPC every hour. Cross-references walletHash from MongoDB to attribute stakes to the experiment. |
+
+### 🌐 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/fes/metrics` | Aggregated pilot metrics (participants, cohorts, reactivations) |
+| `GET` | `/api/fes/participants` | List all participants with cohort and status |
+| `POST` | `/api/fes/track` | Run checking cycle for a wallet or all participants |
+| `POST` | `/api/fes/check-wallet` | Verify a wallet: detect, assign cohort, return message |
+| `GET` | `/api/fes/view-stats` | View statistics from MongoDB (total, unique, by cohort) |
+| `GET` | `/api/fes/attributions` | Stake attribution summary and detail |
+| `GET` | `/api/cron/fes-track` | ⏱ Cron: periodic reactivation checking (every hour) |
+| `GET` | `/api/cron/fes-publish-views` | ⏱ Cron: daily view report to IPFS (00:30 UTC) |
+| `GET` | `/api/cron/fes-attribution` | ⏱ Cron: hourly stake event scanning |
+
+### 🖥️ Public & Internal Views
+
+| Page | Route | Description |
+|------|-------|-------------|
+| **Wallet Verifier** | `/preview` | Public page — enter your wallet address to see your cohort message and projected yield. Logs the view anonymously. |
+| **Pilot Dashboard** | `/internal/fes` | Internal dashboard (protected by `X-Internal-Key`) — shows detected holders, cohort breakdown, whales, sample messages, and manual tracking buttons. |
+
+### 📊 Pilot Results (Week 1 — Live on Mainnet)
+
+| Metric | Value |
+|--------|-------|
+| Backers scanned | 289 |
+| Inactive holders detected | 21 |
+| Cohort A / B / VIP | 10 / 10 / 1 |
+| Largest inactive holder | 9.35M RIF (481 days inactive → VIP) |
+| Cohort deviation | 0.41% |
+
+### 📋 Scripts
+
+| Script | Function |
+|--------|----------|
+| `scripts/generate-pilot-report.ts` | Generates final pilot report consolidating Supabase, MongoDB, and IPFS data. Supports `--publish` for IPFS. |
+
+> 📖 **Full documentation:** `docs/reports/fes-pilot-fixes.md` (gap analysis) and `docs/reports/fes-pilot-progress.md` (weekly progress).
+
+---
+
 ## 🎯 Alignment with Rootstock Collective
 
 ### 1. Co-Powering the FES (Funding Efficiency Score)
