@@ -1,7 +1,7 @@
 import { solanaClient } from '../../clients/solana-client';
 import { logger } from '../../utils/logger';
 import { achievementWebhookService } from '../notifications/achievement-webhook.service';
-import { v4 as uuidv4 } from 'uuid';
+import * as crypto from 'crypto';
 
 export interface ScorecardAnchor {
     merkle_root: string;
@@ -20,7 +20,7 @@ export class SolanaBatchAdapter {
     }
 
     private generateNewBatchId() {
-        const shortId = uuidv4().split('-')[0].toUpperCase();
+        const shortId = crypto.randomUUID().split('-')[0].toUpperCase();
         this.currentBatchId = `AND-BCH-${shortId}`;
     }
 
