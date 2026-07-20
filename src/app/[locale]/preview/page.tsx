@@ -154,10 +154,10 @@ export default function PreviewPage() {
                       {lang === 'en' ? 'Wallet' : 'Wallet'}
                     </span>
                     <span className={`text-[9px] font-mono font-bold px-2 py-1 border ${result.cohort === 'VIP'
-                        ? 'border-[#ff6b6b]/40 text-[#ff6b6b]'
-                        : result.cohort === 'B'
-                          ? 'border-[#f59e0b]/40 text-[#f59e0b]'
-                          : 'border-[#00f0ff]/40 text-[#00f0ff]'
+                      ? 'border-[#ff6b6b]/40 text-[#ff6b6b]'
+                      : result.cohort === 'B'
+                        ? 'border-[#f59e0b]/40 text-[#f59e0b]'
+                        : 'border-[#00f0ff]/40 text-[#00f0ff]'
                       }`}>
                       {result.cohort === 'VIP' ? 'VIP' : `COHORT ${result.cohort}`}
                     </span>
@@ -229,10 +229,10 @@ export default function PreviewPage() {
                   <div className="border border-gray-700/30 bg-black/40">
                     <div className="border-b border-gray-700/30 px-4 py-3 flex items-center gap-2">
                       <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 border ${result.message.variant === 'vip'
-                          ? 'border-[#ff6b6b]/40 text-[#ff6b6b]'
-                          : result.message.variant === 'treatment'
-                            ? 'border-[#f59e0b]/40 text-[#f59e0b]'
-                            : 'border-[#00f0ff]/40 text-[#00f0ff]'
+                        ? 'border-[#ff6b6b]/40 text-[#ff6b6b]'
+                        : result.message.variant === 'treatment'
+                          ? 'border-[#f59e0b]/40 text-[#f59e0b]'
+                          : 'border-[#00f0ff]/40 text-[#00f0ff]'
                         }`}>
                         {result.message.variant.toUpperCase()}
                       </span>
@@ -260,9 +260,11 @@ export default function PreviewPage() {
               /* Not found */
               <div className="border border-gray-700/30 bg-black/40 p-6 text-center">
                 <div className="text-[10px] font-mono text-gray-500">
-                  {result.message || (lang === 'en'
-                    ? 'No inactive staking position found.'
-                    : 'No se encontró posición de staking inactiva.')}
+                  {typeof result.message === 'string'
+                    ? result.message
+                    : result.message?.body || (lang === 'en'
+                      ? 'No inactive staking position found.'
+                      : 'No se encontró posición de staking inactiva.')}
                 </div>
                 <div className="text-[9px] font-mono text-gray-700 mt-3">
                   {shortenHash(result.wallet)}
