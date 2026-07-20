@@ -7,14 +7,6 @@
     {
       "path": "/api/cron/fes-track",
       "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/cron/fes-publish-views",
-      "schedule": "30 0 * * *"
-    },
-    {
-      "path": "/api/cron/fes-attribution",
-      "schedule": "0 * * * *"
     }
   ],
   "functions": {
@@ -29,12 +21,6 @@
     },
     "src/app/api/cron/fes-track/route.ts": {
       "maxDuration": 120
-    },
-    "src/app/api/cron/fes-publish-views/route.ts": {
-      "maxDuration": 30
-    },
-    "src/app/api/cron/fes-attribution/route.ts": {
-      "maxDuration": 120
     }
-  ]
+  }
 }
