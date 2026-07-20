@@ -392,3 +392,4 @@ MIT © 2026 Andromeda Computer. Public good infrastructure.
   <a href="https://dev.andromedacomputer.net/rootstock-paper.html">📄 Paper</a> ·
   <a href="http://core.andromedacomputer.net/verify.html">🛡️ Verifier</a>
 </p>
+// Deploy trigger lun 20 jul 2026 11:01:03 -04
