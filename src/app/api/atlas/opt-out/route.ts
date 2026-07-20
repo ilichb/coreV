@@ -285,7 +285,7 @@ async function applyIndividualOptOut(
   targets: IndividualTargets,
   reason?: string
 ): Promise<any> {
-  const results = [];
+  const results: any[] = [];
   
   // 1. Marcar perfil como opt-out
   const { error: profileError } = await supabase
@@ -354,7 +354,7 @@ async function applyDAOMemberOptOut(
   reason?: string
 ): Promise<any> {
   const { daoAddress } = targets;
-  const results = [];
+  const results: any[] = [];
   
   // 1. Registrar relación DAO-member opt-out
   const { error: relationError } = await supabase
@@ -421,7 +421,7 @@ async function applyDAOWideOptOut(
   reason?: string
 ): Promise<any> {
   const { daoAddress } = targets;
-  const results = [];
+  const results: any[] = [];
   
   // 1. Registrar DAO-wide opt-out (requiere verificación de múltiples firmas en producción)
   const { error: daoOptOutError } = await supabase
