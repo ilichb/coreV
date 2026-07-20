@@ -90,3 +90,4 @@ curl http://localhost:3000/api/fes/participants | jq '.participants[] | select(.
 | `Supabase usando URL placeholder` | `NEXT_PUBLIC_SUPABASE_URL` no disponible en build | FES storage no funciona |
 | `getaddrinfo ENOTFOUND redis-11662...` | Redis cloud no accesible | Caché Redis no disponible (fallback a Map en memoria) |
 | `PERMISSION_DENIED unknown_token` | Token Yellowstone inválido | Solo Solana streaming, no afecta FES |
+# Deploy trigger lun 20 jul 2026 12:55:09 -04
