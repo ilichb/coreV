@@ -80,7 +80,9 @@
     "tweetnacl": "^1.0.3",
     "viem": "^2.44.4",
     "wagmi": "^2.19.5",
-    "zod": "^3.24.1"
+    "zod": "^3.24.1",
+    "minimatch": "^10.2.5",
+    "@types/minimatch": "^6.0.0"
   },
   "devDependencies": {
     "@chainlink/contracts": "^1.5.0",
