@@ -226,7 +226,7 @@ export class MongoDBOptimizationService {
    * Consultas de ejemplo para probar los índices
    */
   public async runBenchmarkQueries(): Promise<any[]> {
-    const benchmarks = [];
+    const benchmarks: any[] = [];
 
     // Query 1: Top hitos de un builder específico
     logger.info('🔍 Running benchmark: Top milestones by builder...');
