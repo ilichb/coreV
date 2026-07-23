@@ -1,11 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '../../utils/logger';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+let _supabaseAdmin: any = null;
+function getSupabaseAdmin() {
+  if (!_supabaseAdmin) {
+    _supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-key',
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+  }
+  return _supabaseAdmin;
+}
 
 export interface ApiKeyValidation {
   valid: boolean;
@@ -24,7 +30,7 @@ export async function validateApiKey(
   }
 
   try {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await getSupabaseAdmin()
       .from('api_keys')
       .select('id, client_name, plan, requests_per_month, requests_used, is_active, allowed_endpoints')
       .eq('key', key)
@@ -46,8 +52,7 @@ export async function validateApiKey(
       return { valid: false, error: `Endpoint not allowed for plan ${data.plan}` };
     }
 
-    // Incrementar contador de uso
-    await supabaseAdmin
+    await getSupabaseAdmin()
       .from('api_keys')
       .update({ 
         requests_used: data.requests_used + 1,

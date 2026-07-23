@@ -50,6 +50,9 @@
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-react": "^5.18.0",
     "@upstash/redis": "^1.36.1",
+    "@x402/core": "^2.19.0",
+    "@x402/evm": "^2.19.0",
+    "@x402/svm": "^2.19.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "algosdk": "^2.7.0",
@@ -77,7 +80,9 @@
     "tweetnacl": "^1.0.3",
     "viem": "^2.44.4",
     "wagmi": "^2.19.5",
-    "zod": "^3.24.1"
+    "zod": "^3.24.1",
+    "minimatch": "^10.2.5",
+    "@types/minimatch": "^6.0.0"
   },
   "devDependencies": {
     "@chainlink/contracts": "^1.5.0",

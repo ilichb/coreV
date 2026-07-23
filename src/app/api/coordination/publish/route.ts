@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
           signature,
           chain: didParts.chain,
           nonce,
-          signatureType: didParts.chain === 'sol' ? 'Ed25519' : 'EIP-712' as 'EIP-712' | 'Ed25519' | 'none'
+          signatureType: didParts.chain === 'sol' ? 'Ed25519' : 'EIP-712'
         };
 
         // 4.4 Marcar nonce como usado
