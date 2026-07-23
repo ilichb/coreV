@@ -546,7 +546,7 @@
       "displayed": "{count} BUILDERS DISPLAYED",
       "avgImpact": "AVG IMPACT",
       "avgReputation": "AVG REPUTATION",
-      "viewFull": "VIEW FULL RANKING →"
+      "viewFull": "VIEW FULL RANKING \u2192"
     },
     "ProjectRanking": {
       "impact": "IMPACT",
@@ -569,7 +569,7 @@
       "avgImpact": "AVG IMPACT",
       "avgClarity": "AVG CLARITY",
       "totalFunding": "TOTAL FUNDING",
-      "viewFull": "VIEW FULL RANKING →"
+      "viewFull": "VIEW FULL RANKING \u2192"
     },
     "MilestoneFeed": {
       "filters": {
@@ -587,11 +587,11 @@
       "attestations": "ATTESTATIONS",
       "files": "{count} files",
       "signers": "{count} signers",
-      "viewDetails": "VIEW DETAILS →",
+      "viewDetails": "VIEW DETAILS \u2192",
       "displayed": "{count} MILESTONES DISPLAYED",
       "avgImpact": "AVG IMPACT",
       "avgVerification": "AVG VERIFICATION",
-      "loadMore": "LOAD MORE →",
+      "loadMore": "LOAD MORE \u2192",
       "verificationLevels": {
         "0": "Self-Attestation",
         "1": "Peer Review",
@@ -1021,7 +1021,7 @@
       "noResults": "No milestones found at this verification level"
     },
     "Footer": {
-      "paper": "ATLAS PAPER §2.3",
+      "paper": "ATLAS PAPER \u00a72.3",
       "protocol": "Stratified Verification Protocol",
       "clearFilter": "CLEAR FILTER",
       "refreshData": "REFRESH DATA"
@@ -1103,7 +1103,7 @@
         "clear": "Purge buffer"
       },
       "status": {
-        "header": "ANDROMEDA CORE — KERNEL STATUS v2.4.1",
+        "header": "ANDROMEDA CORE \u2014 KERNEL STATUS v2.4.1",
         "infra": "INFRASTRUCTURE:",
         "ready": "READY",
         "stable": "STABLE",
@@ -1187,7 +1187,7 @@
     "payWithPaypal": "Pay with PayPal",
     "payWithAlgorand": "Pay with Algorand",
     "afterPayment": "After payment, email api@andromeda.computer to receive your API key within 24h.",
-    "freeTitle": "Get started for free — no payment required.",
+    "freeTitle": "Get started for free \u2014 no payment required.",
     "requestFreeKey": "Request Free API Key",
     "paymentConfirmed": "Payment confirmed on Algorand",
     "contactActivate": "Contact api@andromeda.computer with your TX ID to activate your key."
@@ -1200,7 +1200,7 @@
       "launchApp": "Launch App"
     },
     "Hero": {
-      "tagline": "AVIP v2.0 — Andromeda Verifiable Immutable Proof",
+      "tagline": "AVIP v2.0 \u2014 Andromeda Verifiable Immutable Proof",
       "title1": "Reputation",
       "title2": "you can verify.",
       "title3": "On any chain.",
@@ -1256,7 +1256,7 @@
       "tagline": "Enterprise API",
       "title1": "Verify reputation",
       "title2": "in one call.",
-      "desc": "Integrate AVIP scores into any platform. LinkedIn, Upwork, Fiverr — or your own DAO tooling. From $0/month.",
+      "desc": "Integrate AVIP scores into any platform. LinkedIn, Upwork, Fiverr \u2014 or your own DAO tooling. From $0/month.",
       "viewDocs": "View Docs",
       "pricing": "Pricing"
     },
@@ -1267,7 +1267,7 @@
       "launchApp": "Launch Andromeda Core"
     },
     "Footer": {
-      "copyright": "© 2026 ANDROMEDA_COMPUTER",
+      "copyright": "\u00a9 2026 ANDROMEDA_COMPUTER",
       "app": "App"
     }
   },
@@ -1903,65 +1903,74 @@
     "initializing": "INITIALIZING PIPELINE MONITOR..."
   },
   "RootstockBuilderScorecard": {
-      "Badges": {
-        "rootstockBuilder": "Rootstock Builder",
-        "anomalyDetected": "⚠ ANOMALY DETECTED"
-      },
-      "Tiers": {
-        "elite": "ELITE",
-        "verified": "VERIFIED",
-        "active": "ACTIVE",
-        "emerging": "EMERGING"
-      },
-      "Loading": {
-        "consulting": "Consulting Rootstock Subgraphs and Snapshot..."
-      },
-      "Error": {
-        "notFound": "Builder not found in Rootstock Collective",
-        "noActivity": "This address does not have on-chain activity in the Rootstock Rewards or Governance subgraphs."
-      },
-      "ReputationBar": {
-        "label": "Reputation Score"
-      },
-      "Stats": {
-        "proposalsLabel": "Governance Proposals",
-        "proposalsNone": "No proposals authored",
-        "proposalsActive": "On Snapshot",
-        "votesLabel": "Votes Cast",
-        "votesActive": "Governance participation",
-        "votesNone": "No votes recorded",
-        "stakingLabel": "Staked Allocation",
-        "stakingSub": "From Rewards Subgraph",
-        "daysLabel": "Days in Ecosystem",
-        "daysSub": "Calculated from staking history",
-        "daysNone": "N/A"
-      },
-      "Governance": {
-        "title": "Governance Activity",
-        "externalLink": "ROOTSTOCK GOVERNOR",
-        "emptyTitle": "No on-chain proposals found for this address in the Rootstock Governor contract.",
-        "emptyDetail": "This builder may have activity on the Rootstock Discourse forum (pre-governance phase) or participate in governance through staking without formal proposals."
-      },
-      "Staking": {
-        "title": "Rewards & Staking",
-        "source": "ROOTSTOCK SUBGRAPH",
-        "allocationLabel": "Total Allocation",
-        "gaugesLabel": "Active Gauge Addresses",
-        "gaugesEmpty": "No gauge allocations found. Builder may only hold tokens without staking."
-      },
-      "Formula": {
-        "title": "Reputation Formula (AVIP v2.0)",
-        "confidence": "confidence",
-        "technical": "Technical Score",
-        "governance": "Governance Score",
-        "community": "Community Score",
-        "avipScore": "AVIP Score (0–100)",
-        "scaleFactor": "Scale factor",
-        "finalScore": "Final Score (0–999)"
-      },
-      "Banner": {
-        "title": "Andromeda AVIP Score — What It Means",
-        "description": "This scorecard is generated in real time from on-chain data (Rootstock Rewards Subgraph) and off-chain governance activity (Snapshot). The AVIP v2.0 engine applies Shannon entropy anomaly detection and asymmetric temporal decay to produce a mathematically verifiable reputation score — anchored to Andromeda's open standard and consistent across all supported ecosystems."
-      }
+    "Badges": {
+      "rootstockBuilder": "Rootstock Builder",
+      "anomalyDetected": "\u26a0 ANOMALY DETECTED"
+    },
+    "Tiers": {
+      "elite": "ELITE",
+      "verified": "VERIFIED",
+      "active": "ACTIVE",
+      "emerging": "EMERGING"
+    },
+    "Loading": {
+      "consulting": "Consulting Rootstock Subgraphs and Snapshot..."
+    },
+    "Error": {
+      "notFound": "Builder not found in Rootstock Collective",
+      "noActivity": "This address does not have on-chain activity in the Rootstock Rewards or Governance subgraphs."
+    },
+    "ReputationBar": {
+      "label": "Reputation Score"
+    },
+    "Stats": {
+      "proposalsLabel": "Governance Proposals",
+      "proposalsNone": "No proposals authored",
+      "proposalsActive": "On Snapshot",
+      "votesLabel": "Votes Cast",
+      "votesActive": "Governance participation",
+      "votesNone": "No votes recorded",
+      "stakingLabel": "Staked Allocation",
+      "stakingSub": "From Rewards Subgraph",
+      "daysLabel": "Days in Ecosystem",
+      "daysSub": "Calculated from staking history",
+      "daysNone": "N/A"
+    },
+    "Governance": {
+      "title": "Governance Activity",
+      "externalLink": "ROOTSTOCK GOVERNOR",
+      "emptyTitle": "No on-chain proposals found for this address in the Rootstock Governor contract.",
+      "emptyDetail": "This builder may have activity on the Rootstock Discourse forum (pre-governance phase) or participate in governance through staking without formal proposals."
+    },
+    "Staking": {
+      "title": "Rewards & Staking",
+      "source": "ROOTSTOCK SUBGRAPH",
+      "allocationLabel": "Total Allocation",
+      "gaugesLabel": "Active Gauge Addresses",
+      "gaugesEmpty": "No gauge allocations found. Builder may only hold tokens without staking."
+    },
+    "Formula": {
+      "title": "Reputation Formula (AVIP v2.0)",
+      "confidence": "confidence",
+      "technical": "Technical Score",
+      "governance": "Governance Score",
+      "community": "Community Score",
+      "avipScore": "AVIP Score (0\u2013100)",
+      "scaleFactor": "Scale factor",
+      "finalScore": "Final Score (0\u2013999)"
+    },
+    "Banner": {
+      "title": "Andromeda AVIP Score \u2014 What It Means",
+      "description": "This scorecard is generated in real time from on-chain data (Rootstock Rewards Subgraph) and off-chain governance activity (Snapshot). The AVIP v2.0 engine applies Shannon entropy anomaly detection and asymmetric temporal decay to produce a mathematically verifiable reputation score \u2014 anchored to Andromeda's open standard and consistent across all supported ecosystems."
     }
+  },
+  "FESDashboardLogin": {
+    "title": "Restricted Access",
+    "subtitle": "FES Pilot Monitoring Dashboard",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Password",
+    "submitButton": "Enter",
+    "errorInvalid": "Invalid credentials",
+    "errorBlocked": "Too many attempts. Please wait 15 minutes."
   }
+}

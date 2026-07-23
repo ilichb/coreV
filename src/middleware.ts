@@ -2,10 +2,12 @@
  * Middleware unificado — i18n (next-intl) + protección de rutas internas FES
  *
  * Estrategia de ejecución:
- * 1. Rutas internas (/api/fes/metrics, /internal/*):
- *    - En desarrollo: pasar siempre
- *    - En producción: requerir header X-Internal-Key
- * 2. Resto de rutas: delegado a next-intl para manejo de locale
+ * 1. APIs internas (/api/fes/*, excepto check-wallet y dashboard-login) → header X-Internal-Key
+ * 2. Dashboard interno (/internal/fes, excepto login) → cookie fes_dashboard_session
+ * 3. Resto de rutas → delegado a next-intl para manejo de locale
+ *
+ * Las rutas con locale (/en/... /es/... /pt/...) se normalizan quitando el prefijo
+ * antes de aplicar las reglas de protección.
  */
 
 import createMiddleware from 'next-intl/middleware';
@@ -15,38 +17,73 @@ import type { NextRequest } from 'next/server';
 
 const intlMiddleware = createMiddleware(routing);
 
-const INTERNAL_PATHS = ['/api/fes/metrics', '/internal'];
 const INTERNAL_KEY = process.env.FES_INTERNAL_KEY || '';
+const LOCALES = routing.locales; // ['en', 'es', 'pt']
+
+function stripLocale(pathname: string): string {
+  for (const locale of LOCALES) {
+    const prefix = `/${locale}`;
+    if (pathname === prefix) return '/';
+    if (pathname.startsWith(`${prefix}/`)) {
+      return pathname.slice(prefix.length) || '/';
+    }
+  }
+  return pathname;
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isDev = process.env.NODE_ENV === 'development';
 
-  // ── Protección de rutas internas FES ─────────────────────────────────────
-  const needsProtection = INTERNAL_PATHS.some(p => pathname.startsWith(p));
+  // ── Normalizar ruta quitando locale ──────────────────────────────────────
+  const cleanPath = stripLocale(pathname);
+  const localePrefix = LOCALES.find(l => pathname.startsWith(`/${l}/`)) || 'es';
 
-  if (needsProtection) {
-    if (isDev) return NextResponse.next();
+  // ── En desarrollo, siempre pasar ──────────────────────────────────────────
+  if (isDev) return intlMiddleware(request);
 
-    const key = request.headers.get('x-internal-key');
-    if (INTERNAL_KEY && key === INTERNAL_KEY) return NextResponse.next();
-
-    return new NextResponse(
-      JSON.stringify({ error: 'Unauthorized', message: 'Internal endpoint. Access restricted.' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } }
-    );
+  // ── 1. APIs internas protegidas con X-Internal-Key ───────────────────────
+  //    /api/fes/* excepto check-wallet y dashboard-login
+  if (cleanPath.startsWith('/api/fes/') && pathname.startsWith('/api/fes/')) {
+    const isPublic = cleanPath.includes('/check-wallet') || cleanPath.includes('/dashboard-login');
+    if (!isPublic) {
+      const key = request.headers.get('x-internal-key');
+      if (INTERNAL_KEY && key !== INTERNAL_KEY) {
+        return new NextResponse(
+          JSON.stringify({ error: 'Unauthorized', message: 'Internal endpoint. Access restricted.' }),
+          { status: 401, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+    return intlMiddleware(request);
   }
 
-  // ── i18n para el resto de rutas ───────────────────────────────────────────
+  // ── 2. Página de login del dashboard → permitir acceso público ───────────
+  if (cleanPath.startsWith('/internal/fes/login')) {
+    return intlMiddleware(request);
+  }
+
+  // ── 3. Dashboard interno → verificar cookie fes_dashboard_session ─────────
+  if (cleanPath.startsWith('/internal/fes')) {
+    const sessionCookie = request.cookies.get('fes_dashboard_session');
+    if (!sessionCookie?.value) {
+      const loginUrl = new URL(`/${localePrefix}/internal/fes/login`, request.url);
+      return NextResponse.redirect(loginUrl);
+    }
+    return intlMiddleware(request);
+  }
+
+  // ── 4. Resto: i18n ────────────────────────────────────────────────────────
   return intlMiddleware(request);
 }
 
 export const config = {
   matcher: [
-    // Rutas internas protegidas
-    '/api/fes/metrics',
+    // Rutas API de FES
+    '/api/fes/:path*',
+    // Dashboard interno
     '/internal/:path*',
-    // Rutas i18n: todo excepto api, _next, archivos estáticos
+    // Rutas i18n: todo excepto api, _next, _vercel, archivos estáticos
     '/((?!api|_next|_vercel|.*\\..*).*)',
   ],
 };

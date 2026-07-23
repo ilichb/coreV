@@ -1,14 +1,14 @@
 {
   "common": {
-    "andromeda": "ANDRÔMEDA",
+    "andromeda": "ANDR\u00d4MEDA",
     "computer": "COMPUTADOR",
     "system": "SISTEMA",
     "protocol": "PROTOCOLO",
     "layer": "CAMADA",
-    "validation": "VALIDAÇÃO",
+    "validation": "VALIDA\u00c7\u00c3O",
     "registry": "REGISTRO",
-    "coordination": "COORDENAÇÃO",
-    "intelligence": "INTELIGÊNCIA",
+    "coordination": "COORDENA\u00c7\u00c3O",
+    "intelligence": "INTELIG\u00caNCIA",
     "status": "STATUS",
     "active": "ATIVO",
     "operational": "OPERACIONAL",
@@ -18,7 +18,7 @@
     "warning": "AVISO",
     "submit": "ENVIAR",
     "cancel": "CANCELAR",
-    "next": "PRÓXIMO",
+    "next": "PR\u00d3XIMO",
     "previous": "ANTERIOR",
     "save": "SALVAR",
     "delete": "EXCLUIR",
@@ -33,32 +33,32 @@
     "sign": "ASSINAR",
     "verify": "VERIFICAR",
     "publish": "PUBLICAR",
-    "metrics": "MÉTRICAS",
+    "metrics": "M\u00c9TRICAS",
     "dashboard": "PAINEL",
-    "settings": "CONFIGURAÇÕES",
+    "settings": "CONFIGURA\u00c7\u00d5ES",
     "help": "AJUDA",
     "about": "SOBRE",
     "contact": "CONTATO",
-    "documentation": "DOCUMENTAÇÃO",
+    "documentation": "DOCUMENTA\u00c7\u00c3O",
     "language": "IDIOMA",
     "theme": "TEMA",
     "dark": "ESCURO",
     "light": "CLARO",
     "industrial": "INDUSTRIAL",
     "optional": "OPCIONAL",
-    "selectIndustry": "SELECIONAR_CATEGORIA_DE_INDÚSTRIA"
+    "selectIndustry": "SELECIONAR_CATEGORIA_DE_IND\u00daSTRIA"
   },
   "navigation": {
-    "home": "INÍCIO",
+    "home": "IN\u00cdCIO",
     "scorecard": "SCORECARD",
     "registry": "REGISTRO",
     "validate": "VALIDAR",
     "audit": "AUDITORIA",
-    "intelligence": "INTELIGÊNCIA",
+    "intelligence": "INTELIG\u00caNCIA",
     "rootstock": "ROOTSTOCK",
     "debug": "DEBUG",
     "desarrollo": "DESENVOLVIMENTO",
-    "coordination": "COORDENAÇÃO",
+    "coordination": "COORDENA\u00c7\u00c3O",
     "atlas": "ATLAS",
     "explore": "EXPLORAR",
     "ranking": "RANKING",
@@ -71,11 +71,11 @@
     "submit": "[MISSING]"
   },
   "validation": {
-    "title": "VALIDAÇÃO_CORE",
+    "title": "VALIDA\u00c7\u00c3O_CORE",
     "subtitle": "// CLARITY_DELTA_IS_THE_METRIC",
     "scorecard": "SCORECARD",
     "clarity": "CLAREZA",
-    "coherence": "COERÊNCIA",
+    "coherence": "COER\u00caNCIA",
     "completeness": "COMPLETUDE",
     "integrity": "INTEGRIDADE",
     "schema": "ESQUEMA",
@@ -95,24 +95,24 @@
     "processing": "PROCESSANDO",
     "complete": "COMPLETO",
     "incomplete": "INCOMPLETO",
-    "valid": "VÁLIDO",
-    "invalid": "INVÁLIDO",
-    "review": "REVISÃO",
+    "valid": "V\u00c1LIDO",
+    "invalid": "INV\u00c1LIDO",
+    "review": "REVIS\u00c3O",
     "approve": "APROVAR",
     "reject": "REJEITAR"
   },
   "registry": {
     "title": "REGISTRO_ON_CHAIN",
-    "subtitle": "// IMUTABILIDADE_É_LIBERDADE",
+    "subtitle": "// IMUTABILIDADE_\u00c9_LIBERDADE",
     "records": "REGISTROS",
     "total": "TOTAL",
-    "sync": "SINCRONIZAÇÃO",
-    "strength": "FORÇA",
+    "sync": "SINCRONIZA\u00c7\u00c3O",
+    "strength": "FOR\u00c7A",
     "integrity": "INTEGRIDADE",
-    "nodes": "NÓS",
+    "nodes": "N\u00d3S",
     "ipfs": "IPFS",
     "blockchain": "BLOCKCHAIN",
-    "transaction": "TRANSAÇÃO",
+    "transaction": "TRANSA\u00c7\u00c3O",
     "hash": "HASH",
     "cid": "CID",
     "metadata": "METADADOS",
@@ -133,34 +133,34 @@
     "archive": "ARQUIVO"
   },
   "intelligence": {
-    "title": "INTELIGÊNCIA_DE_ECOSSISTEMA",
-    "subtitle": "// DECISÃO_BASEADA_EM_DADOS",
+    "title": "INTELIG\u00caNCIA_DE_ECOSSISTEMA",
+    "subtitle": "// DECIS\u00c3O_BASEADA_EM_DADOS",
     "ecosystem": "ECOSSISTEMA",
-    "metrics": "MÉTRICAS",
-    "analytics": "ANÁLISE",
+    "metrics": "M\u00c9TRICAS",
+    "analytics": "AN\u00c1LISE",
     "insights": "INSIGHTS",
-    "trends": "TENDÊNCIAS",
-    "patterns": "PADRÕES",
-    "correlations": "CORRELAÇÕES",
-    "predictions": "PREVISÕES",
-    "recommendations": "RECOMENDAÇÕES",
+    "trends": "TEND\u00caNCIAS",
+    "patterns": "PADR\u00d5ES",
+    "correlations": "CORRELA\u00c7\u00d5ES",
+    "predictions": "PREVIS\u00d5ES",
+    "recommendations": "RECOMENDA\u00c7\u00d5ES",
     "alerts": "ALERTAS",
     "monitoring": "MONITORAMENTO",
     "tracking": "ACOMPANHAMENTO",
-    "reporting": "RELATÓRIOS",
+    "reporting": "RELAT\u00d3RIOS",
     "dashboard": "PAINEL",
-    "visualization": "VISUALIZAÇÃO",
-    "graphs": "GRÁFICOS",
-    "charts": "GRÁFICOS",
+    "visualization": "VISUALIZA\u00c7\u00c3O",
+    "graphs": "GR\u00c1FICOS",
+    "charts": "GR\u00c1FICOS",
     "tables": "TABELAS",
     "filters": "FILTROS",
-    "parameters": "PARÂMETROS",
-    "dimensions": "DIMENSÕES",
+    "parameters": "PAR\u00c2METROS",
+    "dimensions": "DIMENS\u00d5ES",
     "measures": "MEDIDAS",
     "kpis": "KPIS",
     "goals": "OBJETIVOS",
     "performance": "DESEMPENHO",
-    "efficiency": "EFICIÊNCIA",
+    "efficiency": "EFICI\u00caNCIA",
     "productivity": "PRODUTIVIDADE",
     "quality": "QUALIDADE"
   },
@@ -168,22 +168,22 @@
     "generic": "ERRO_DO_SISTEMA",
     "network": "ERRO_DE_REDE",
     "timeout": "TEMPO_ESGOTADO",
-    "unauthorized": "NÃO_AUTORIZADO",
+    "unauthorized": "N\u00c3O_AUTORIZADO",
     "forbidden": "PROIBIDO",
-    "notFound": "NÃO_ENCONTRADO",
+    "notFound": "N\u00c3O_ENCONTRADO",
     "server": "ERRO_DO_SERVIDOR",
-    "validation": "ERRO_DE_VALIDAÇÃO",
+    "validation": "ERRO_DE_VALIDA\u00c7\u00c3O",
     "format": "ERRO_DE_FORMATO",
-    "required": "CAMPO_OBRIGATÓRIO",
-    "invalid": "VALOR_INVÁLIDO",
+    "required": "CAMPO_OBRIGAT\u00d3RIO",
+    "invalid": "VALOR_INV\u00c1LIDO",
     "duplicate": "DUPLICADO",
     "conflict": "CONFLITO",
     "limit": "LIMITE_EXCEDIDO",
     "quota": "COTA_EXCEDIDA",
-    "maintenance": "EM_MANUTENÇÃO",
-    "upgrade": "ATUALIZAÇÃO_NECESSÁRIA",
+    "maintenance": "EM_MANUTEN\u00c7\u00c3O",
+    "upgrade": "ATUALIZA\u00c7\u00c3O_NECESS\u00c1RIA",
     "deprecated": "OBSOLETO",
-    "unsupported": "NÃO_SUPORTADO",
+    "unsupported": "N\u00c3O_SUPORTADO",
     "unknown": "DESCONHECIDO",
     "retry": "TENTAR_NOVAMENTE",
     "contactSupport": "CONTATAR_SUPORTE",
@@ -191,22 +191,22 @@
   },
   "scorecard": {
     "title": "ANDROMEDA_SCORECARD_ENTRY",
-    "subtitle": "Decompondo intenção coletiva em especificações técnicas verificáveis",
+    "subtitle": "Decompondo inten\u00e7\u00e3o coletiva em especifica\u00e7\u00f5es t\u00e9cnicas verific\u00e1veis",
     "problem": "PROBLEMA",
     "boundaries": "LIMITES",
-    "technical": "TÉCNICO",
-    "effort": "ESFORÇO",
-    "industry": "INDÚSTRIA",
+    "technical": "T\u00c9CNICO",
+    "effort": "ESFOR\u00c7O",
+    "industry": "IND\u00daSTRIA",
     "notify": "NOTIFICAR",
     "step": "PASSO",
-    "definition": "DEFINIÇÃO",
-    "affectedUsers": "USUÁRIOS_AFETADOS",
-    "painPoints": "PONTOS_CRÍTICOS",
-    "currentSituation": "SITUAÇÃO_ATUAL",
+    "definition": "DEFINI\u00c7\u00c3O",
+    "affectedUsers": "USU\u00c1RIOS_AFETADOS",
+    "painPoints": "PONTOS_CR\u00cdTICOS",
+    "currentSituation": "SITUA\u00c7\u00c3O_ATUAL",
     "includes": "INCLUI",
     "excludes": "EXCLUI",
-    "assumptions": "SUPOSIÇÕES",
-    "dependencies": "DEPENDÊNCIAS",
+    "assumptions": "SUPOSI\u00c7\u00d5ES",
+    "dependencies": "DEPEND\u00caNCIAS",
     "risks": "RISCOS",
     "complexity": "COMPLEXIDADE",
     "teamType": "TIPO_DE_EQUIPE",
@@ -219,7 +219,7 @@
     "category": "CATEGORIA",
     "sector": "SETOR",
     "subsector": "SUBSETOR",
-    "industryType": "TIPO_DE_INDÚSTRIA",
+    "industryType": "TIPO_DE_IND\u00daSTRIA",
     "transversal": "TRANSVERSAL"
   },
   "phrases": {
@@ -246,7 +246,7 @@
   "DashboardUnified": {
     "Navigation": {
       "global": "GLOBAL",
-      "coordination": "COORDENAÇÃO",
+      "coordination": "COORDENA\u00c7\u00c3O",
       "registry": "REGISTRO",
       "audit": "AUDITORIA",
       "devtools": "DEVTOOLS"
@@ -254,18 +254,18 @@
     "Status": {
       "systemOnline": "SISTEMA ATIVO",
       "uptime": "TEMPO_ATIVIDADE",
-      "latency": "LATÊNCIA",
-      "memory": "MEMÓRIA",
-      "secureConnection": "CONEXÃO SEGURA // TLS 1.3",
-      "sessionId": "ID: SESSÃO"
+      "latency": "LAT\u00caNCIA",
+      "memory": "MEM\u00d3RIA",
+      "secureConnection": "CONEX\u00c3O SEGURA // TLS 1.3",
+      "sessionId": "ID: SESS\u00c3O"
     },
     "Sidebar": {
       "language": "IDIOMA"
     },
     "Header": {
-      "title": "ANDRÔMEDA",
+      "title": "ANDR\u00d4MEDA",
       "core": "CORE",
-      "version": "v2.1.0-ESTÁVEL",
+      "version": "v2.1.0-EST\u00c1VEL",
       "systemOnline": "SISTEMA ATIVO"
     }
   },
@@ -275,32 +275,32 @@
     },
     "Logs": {
       "initializing": "Iniciando protocolo de handshake seguro...",
-      "established": "Conexão estabelecida (Nó Rootstock)",
-      "latencySpike": "Pico de latência detectado na ponte Arbitrum",
+      "established": "Conex\u00e3o estabelecida (N\u00f3 Rootstock)",
+      "latencySpike": "Pico de lat\u00eancia detectado na ponte Arbitrum",
       "batchSealed": "Lote #{num} selado na Vara Network",
-      "validationCompleted": "Validação cross-chain concluída",
+      "validationCompleted": "Valida\u00e7\u00e3o cross-chain conclu\u00edda",
       "newProposal": "Nova proposta detectada na Rootstock",
-      "checkpointReached": "Ponto de controle de sincronização atingido",
-      "latencyNormalized": "Latência de rede normalizada",
-      "integrityPassed": "Verificação de integridade de dados aprovada",
-      "bridgeConfirmed": "Transação de ponte confirmada"
+      "checkpointReached": "Ponto de controle de sincroniza\u00e7\u00e3o atingido",
+      "latencyNormalized": "Lat\u00eancia de rede normalizada",
+      "integrityPassed": "Verifica\u00e7\u00e3o de integridade de dados aprovada",
+      "bridgeConfirmed": "Transa\u00e7\u00e3o de ponte confirmada"
     },
     "Titles": {
       "telemetry": "TELEMETRIA GLOBAL DO SISTEMA",
-      "bridge": "PONTE DE SINCRONIZAÇÃO CROSS-DAO",
+      "bridge": "PONTE DE SINCRONIZA\u00c7\u00c3O CROSS-DAO",
       "monitor": "MONITOR DE ATIVIDADE DE RECURSOS",
       "status": "ESTADO DO SISTEMA",
       "scorecards": "SCORECARDS DE PROJETO DETECTADOS",
       "connectivity": "FONTES DE DADOS E CONECTIVIDADE"
     },
     "SystemStatus": {
-      "coreServices": "Serviços Core",
+      "coreServices": "Servi\u00e7os Core",
       "database": "Cluster de Banco de Dados",
       "apiGateway": "Gateway de API",
       "realDataFlow": "Fluxo de Dados Real",
       "operational": "OPERACIONAL",
       "syncing": "SINCRONIZANDO",
-      "healthy": "SAUDÁVEL",
+      "healthy": "SAUD\u00c1VEL",
       "active": "ATIVO"
     },
     "DataSources": {
@@ -312,40 +312,40 @@
       "milestonesStored": "MILESTONES ARMAZENADOS",
       "buildersNetwork": "REDE DE CONSTRUTORES",
       "atlasNetwork": "REDE ATLAS",
-      "apiHealth": "SAÚDE DA API",
+      "apiHealth": "SA\u00daDE DA API",
       "uptime": "TEMPO DE ATIVIDADE",
       "liveData": "DADOS EM TEMPO REAL",
       "pendingEcosystems": "ECOSSISTEMAS PENDENTES",
       "apisConnected": "APIS CONECTADAS",
-      "lastUpdate": "ÚLTIMA ATUALIZAÇÃO",
+      "lastUpdate": "\u00daLTIMA ATUALIZA\u00c7\u00c3O",
       "fetching": "OBTENDO",
       "pinataConnected": "PINATA CONECTADO",
       "arbitrum": "DAOs da Arbitrum",
       "optimism": "DAOs da Optimism",
-      "snapshot": "Espaços do Snapshot",
+      "snapshot": "Espa\u00e7os do Snapshot",
       "proposals": "Propostas Reais",
       "connectedTally": "Conectado via Tally",
       "monitored": "Monitorado",
-      "last24h": "Últimas 24h",
-      "activeConnections": "Conexões ativas com fontes de dados blockchain reais",
-      "networkGraphNote": "O Gráfico de Rede agora mostra relações reais entre construtores e projetos"
+      "last24h": "\u00daltimas 24h",
+      "activeConnections": "Conex\u00f5es ativas com fontes de dados blockchain reais",
+      "networkGraphNote": "O Gr\u00e1fico de Rede agora mostra rela\u00e7\u00f5es reais entre construtores e projetos"
     },
     "LiveStatus": {
       "title": "STATUS EM TEMPO REAL",
-      "lastSync": "ÚLTIMA SINCRONIZAÇÃO",
-      "activeConnections": "CONEXÕES ATIVAS",
+      "lastSync": "\u00daLTIMA SINCRONIZA\u00c7\u00c3O",
+      "activeConnections": "CONEX\u00d5ES ATIVAS",
       "api": "API",
       "data": "DADOS",
-      "sync": "SINCRONIZAÇÃO",
+      "sync": "SINCRONIZA\u00c7\u00c3O",
       "idle": "INATIVO"
     },
     "Ecosystems": {
       "title": "ECOSSISTEMAS",
       "scrollHint": "ROLE PARA MAIS",
-      "connectionPending": "CONEXÃO PENDENTE",
-      "connectionError": "ERRO DE CONEXÃO",
+      "connectionPending": "CONEX\u00c3O PENDENTE",
+      "connectionError": "ERRO DE CONEX\u00c3O",
       "monitoringActive": "MONITORAMENTO ATIVO",
-      "notConfigured": "NÃO CONFIGURADO",
+      "notConfigured": "N\u00c3O CONFIGURADO",
       "connected": "CONECTADO",
       "pending": "PENDENTE",
       "offline": "DESCONECTADO",
@@ -362,21 +362,21 @@
       "connected": "CONECTADO",
       "dataFreshness": "FRESCURA DOS DADOS",
       "unknown": "DESCONHECIDO",
-      "lastSyncLabel": "ÚLTIMA SINCRONIZAÇÃO",
-      "minAgo": "min atrás"
+      "lastSyncLabel": "\u00daLTIMA SINCRONIZA\u00c7\u00c3O",
+      "minAgo": "min atr\u00e1s"
     }
   },
   "CoordinationPage": {
     "Header": {
-      "phase": "FASE_01: PROTOCOLOS_DE_COORDENAÇÃO",
-      "title": "CAMADA DE COORDENAÇÃO",
+      "phase": "FASE_01: PROTOCOLOS_DE_COORDENA\u00c7\u00c3O",
+      "title": "CAMADA DE COORDENA\u00c7\u00c3O",
       "layer": "CAMADA",
-      "subtitle": "Transformação da intenção coletiva em artefatos tecnicamente comparáveis.",
+      "subtitle": "Transforma\u00e7\u00e3o da inten\u00e7\u00e3o coletiva em artefatos tecnicamente compar\u00e1veis.",
       "protocolFee": "Taxa de Protocolo",
-      "reimburse": "REEMBOLSO_80%_EM_CASO_DE_REJEIÇÃO"
+      "reimburse": "REEMBOLSO_80%_EM_CASO_DE_REJEI\u00c7\u00c3O"
     },
     "Loading": {
-      "initializing": "INICIALIZANDO_CAMADA_DE_COORDENAÇÃO..."
+      "initializing": "INICIALIZANDO_CAMADA_DE_COORDENA\u00c7\u00c3O..."
     },
     "Nav": {
       "scorecard": "SCORECARD",
@@ -386,17 +386,17 @@
     "Flow": {
       "title": "Fluxo_Andromeda",
       "step1": "DEFINIR_SCORECARD",
-      "step1Desc": "Decomposição técnica",
-      "step2": "VALIDAÇÃO",
+      "step1Desc": "Decomposi\u00e7\u00e3o t\u00e9cnica",
+      "step2": "VALIDA\u00c7\u00c3O",
       "step2Desc": "Delta de Clareza > 0.7",
       "step3": "ASSINAR_DESAFIO",
-      "step3Desc": "Atestação EIP-712",
+      "step3Desc": "Atesta\u00e7\u00e3o EIP-712",
       "step4": "PUBLICAR_IPFS",
-      "step4Desc": "Sincronização de registro",
+      "step4Desc": "Sincroniza\u00e7\u00e3o de registro",
       "supportedNetworks": "Redes Suportadas:"
     },
     "Api": {
-      "title": "API_de_Acesso_Rápido",
+      "title": "API_de_Acesso_R\u00e1pido",
       "validate": "VALIDAR",
       "publish": "PUBLICAR"
     },
@@ -405,19 +405,19 @@
       "submitRegistry": "ENVIAR_AO_REGISTRO"
     },
     "phrases": {
-      "allProcessesOnChainVerifiable": "Todos os processos são verificáveis na cadeia (On-chain)"
+      "allProcessesOnChainVerifiable": "Todos os processos s\u00e3o verific\u00e1veis na cadeia (On-chain)"
     },
     "Footer": {
       "originStatus": "Status_Origem",
-      "foundational": "Documentação Fundacional",
+      "foundational": "Documenta\u00e7\u00e3o Fundacional",
       "status": "Status: Fase_Alpha_Prod",
-      "coreMetric": "Métrica_Core",
+      "coreMetric": "M\u00e9trica_Core",
       "clarityDelta": "Delta de Clareza",
-      "validationStandard": "Padrão único de validação",
-      "nextDirectives": "Próximas_Diretrizes",
-      "governance": "Integração de Governança DAO",
-      "multisig": "Verificação Multisig",
-      "orchestration": "Orquestração Cross-Chain"
+      "validationStandard": "Padr\u00e3o \u00fanico de valida\u00e7\u00e3o",
+      "nextDirectives": "Pr\u00f3ximas_Diretrizes",
+      "governance": "Integra\u00e7\u00e3o de Governan\u00e7a DAO",
+      "multisig": "Verifica\u00e7\u00e3o Multisig",
+      "orchestration": "Orquestra\u00e7\u00e3o Cross-Chain"
     }
   },
   "RegistryPage": {
@@ -425,11 +425,11 @@
       "phase": "FASE_02: REGISTRO_CORE",
       "title": "REGISTRO EM CADEIA",
       "registry": "REGISTRO",
-      "subtitle": "Fonte universal de verdade técnica. Scorecards verificáveis publicados no livro de contabilidade distribuído para co-coordenação do ecossistema.",
+      "subtitle": "Fonte universal de verdade t\u00e9cnica. Scorecards verific\u00e1veis publicados no livro de contabilidade distribu\u00eddo para co-coordena\u00e7\u00e3o do ecossistema.",
       "globalStatus": "Status Global",
       "operational": "OPERACIONAL",
       "syncing": "SINCRONIZANDO_COM_VARA_NETWORK",
-      "immutability": "// A_IMUTABILIDADE_É_LIBERDADE",
+      "immutability": "// A_IMUTABILIDADE_\u00c9_LIBERDADE",
       "onChain": "NA-CADEIA"
     },
     "Loading": {
@@ -437,9 +437,9 @@
     },
     "Metrics": {
       "totalRecords": "TOTAL_REGISTROS",
-      "syncStrength": "FORÇA_DE_SINC",
+      "syncStrength": "FOR\u00c7A_DE_SINC",
       "dataIntegrity": "INTEGRIDADE_DE_DADOS",
-      "ipfsNodes": "NÓS_IPFS",
+      "ipfsNodes": "N\u00d3S_IPFS",
       "verified": "VERIFICADO"
     },
     "Tabs": {
@@ -463,12 +463,12 @@
       "totalProjects": "TOTAL_PROJETOS",
       "verifiedInitiatives": "Iniciativas Verificadas",
       "milestones": "MILESTONES",
-      "immutableRecords": "Registros Imutáveis",
-      "avgImpact": "IMPACTO_MÉDIO",
-      "score100": "Pontuação / 100"
+      "immutableRecords": "Registros Imut\u00e1veis",
+      "avgImpact": "IMPACTO_M\u00c9DIO",
+      "score100": "Pontua\u00e7\u00e3o / 100"
     },
     "Control": {
-      "title": "CONTROLE_DE_EXPLORAÇÃO_ATLAS",
+      "title": "CONTROLE_DE_EXPLORA\u00c7\u00c3O_ATLAS",
       "searchPlaceholder": "BUSCAR CONSTRUTOR / PROJETO / MILESTONE...",
       "search": "BUSCAR",
       "refresh": "Atualizar dados",
@@ -485,15 +485,15 @@
       "topBuilders": "TOP CONSTRUTORES POR IMPACTO",
       "topProjects": "TOP PROJETOS POR IMPACTO",
       "recentActivity": "ATIVIDADE RECENTE DE MILESTONES",
-      "quickStats": "ESTATÍSTICAS RÁPIDAS",
+      "quickStats": "ESTAT\u00cdSTICAS R\u00c1PIDAS",
       "topCategories": "PRINCIPAIS CATEGORIAS",
       "systemStatus": "STATUS_DO_SISTEMA"
     },
     "QuickStats": {
       "buildersOnline": "Construtores Online",
       "projectsToday": "Projetos Hoje",
-      "avgImpactToday": "Impacto Médio Hoje",
-      "verificationRate": "Taxa de Verificação"
+      "avgImpactToday": "Impacto M\u00e9dio Hoje",
+      "verificationRate": "Taxa de Verifica\u00e7\u00e3o"
     },
     "Status": {
       "online": "ON-LINE",
@@ -505,7 +505,7 @@
     "Categories": {
       "all": "TODOS",
       "defi": "DEFI",
-      "governance": "GOVERNANÇA",
+      "governance": "GOVERNAN\u00c7A",
       "infrastructure": "INFRAESTRUTURA",
       "refi": "REFI",
       "social": "SOCIAL",
@@ -515,7 +515,7 @@
       "Rootstock": "ROOTSTOCK",
       "solana": "Solana",
       "Wallet": "Carteira",
-      "Governance": "Governança",
+      "Governance": "Governan\u00e7a",
       "Bridge": "Bridge",
       "Social": "Social",
       "Infrastructure": "Infraestrutura",
@@ -524,7 +524,7 @@
     },
     "BuilderRanking": {
       "impact": "IMPACTO",
-      "reputation": "REPUTAÇÃO",
+      "reputation": "REPUTA\u00c7\u00c3O",
       "projects": "PROJETOS",
       "buildersCount": "{count} CONSTRUTORES",
       "noBuilders": "NENHUM CONSTRUTOR ENCONTRADO",
@@ -532,16 +532,16 @@
         "rank": "RANK",
         "builder": "CONSTRUTOR",
         "impact": "IMPACTO",
-        "reputation": "REPUTAÇÃO",
+        "reputation": "REPUTA\u00c7\u00c3O",
         "projects": "PROJETOS",
         "ecosystem": "ECOSSISTEMA",
         "activity": "ATIVIDADE"
       },
       "chains": "{count} redes",
       "displayed": "{count} CONSTRUTORES EXIBIDOS",
-      "avgImpact": "IMPACTO MÉDIO",
-      "avgReputation": "REPUTAÇÃO MÉDIA",
-      "viewFull": "VER RANKING COMPLETO →"
+      "avgImpact": "IMPACTO M\u00c9DIO",
+      "avgReputation": "REPUTA\u00c7\u00c3O M\u00c9DIA",
+      "viewFull": "VER RANKING COMPLETO \u2192"
     },
     "ProjectRanking": {
       "impact": "IMPACTO",
@@ -558,79 +558,79 @@
         "status": "STATUS",
         "funding": "FINANCIAMIENTO"
       },
-      "approval": "{rate}% de aprovação",
+      "approval": "{rate}% de aprova\u00e7\u00e3o",
       "milestones": "{count} milestones",
       "displayed": "{count} PROJETOS EXIBIDOS",
-      "avgImpact": "IMPACTO MÉDIO",
-      "avgClarity": "CLAREZA MÉDIA",
+      "avgImpact": "IMPACTO M\u00c9DIO",
+      "avgClarity": "CLAREZA M\u00c9DIA",
       "totalFunding": "FINANCIAMENTO TOTAL",
-      "viewFull": "VER RANKING COMPLETO →"
+      "viewFull": "VER RANKING COMPLETO \u2192"
     },
     "MilestoneFeed": {
       "filters": {
         "all": "TODOS",
         "verified": "VERIFICADOS",
         "pending": "PENDENTES",
-        "immutable": "IMUTÁVEIS"
+        "immutable": "IMUT\u00c1VEIS"
       },
       "milestonesCount": "{count} MILESTONES",
       "noMilestones": "NENHUM MILESTONE ENCONTRADO",
       "impact": "IMPACTO",
       "builder": "CONSTRUTOR",
-      "verification": "VERIFICAÇÃO",
-      "evidence": "EVIDÊNCIA",
+      "verification": "VERIFICA\u00c7\u00c3O",
+      "evidence": "EVID\u00caNCIA",
       "attestations": "ATESTADOS",
       "files": "{count} arquivos",
-      "signers": "{count} signatários",
-      "viewDetails": "VER DETALHES →",
+      "signers": "{count} signat\u00e1rios",
+      "viewDetails": "VER DETALHES \u2192",
       "displayed": "{count} MILESTONES EXIBIDOS",
-      "avgImpact": "IMPACTO MÉDIO",
-      "avgVerification": "VERIFICAÇÃO MÉDIA",
-      "loadMore": "CARREGAR MAIS →",
+      "avgImpact": "IMPACTO M\u00c9DIO",
+      "avgVerification": "VERIFICA\u00c7\u00c3O M\u00c9DIA",
+      "loadMore": "CARREGAR MAIS \u2192",
       "verificationLevels": {
-        "0": "Auto-Atestação",
-        "1": "Revisão por Pares",
+        "0": "Auto-Atesta\u00e7\u00e3o",
+        "1": "Revis\u00e3o por Pares",
         "2": "Consenso de Protocolo",
-        "3": "Prova Matemática",
+        "3": "Prova Matem\u00e1tica",
         "unknown": "Desconhecido"
       }
     },
-    "Footer": "ATLAS EXPLORE v1.0 • ÍNDICE DE REPUTAÇÃO EM TEMPO REAL • ALIMENTADO POR ANDROMEDA CORE"
+    "Footer": "ATLAS EXPLORE v1.0 \u2022 \u00cdNDICE DE REPUTA\u00c7\u00c3O EM TEMPO REAL \u2022 ALIMENTADO POR ANDROMEDA CORE"
   },
   "AuditPage": {
     "Loading": {
       "initializing": "ESCANEANDO_VULNERABILIDADES_DO_SISTEMA..."
     },
     "Header": {
-      "phase": "FASE 03: AUDITORIA DE SEGURANÇA E QUALIDADE",
-      "title": "SEGURANÇA E QUALIDADE",
-      "titlePart1": "SEGURANÇA",
+      "phase": "FASE 03: AUDITORIA DE SEGURAN\u00c7A E QUALIDADE",
+      "title": "SEGURAN\u00c7A E QUALIDADE",
+      "titlePart1": "SEGURAN\u00c7A",
       "titlePart2": "QUALIDADE",
       "titlePart3": "AUDITORIA",
       "tagline": "CONFIAR_MAS_VERIFICAR",
-      "subtitle": "Avaliação contínua da integridade do protocolo e conformidade com padrões técnicos.",
-      "riskLevel": "Nível de Risco",
+      "subtitle": "Avalia\u00e7\u00e3o cont\u00ednua da integridade do protocolo e conformidade com padr\u00f5es t\u00e9cnicos.",
+      "riskLevel": "N\u00edvel de Risco",
       "elevated": "ELEVADO",
-      "triggerScan": "INICIAR VERIFICAÇÃO",
-      "runningScan": "EXECUTANDO VERIFICAÇÃO...",
+      "triggerScan": "INICIAR VERIFICA\u00c7\u00c3O",
+      "runningScan": "EXECUTANDO VERIFICA\u00c7\u00c3O...",
       "cooldownActive": "COOLDOWN ATIVADO",
       "restoringIn": "restaurando em"
     },
     "Nav": {
-      "overview": "VISÃO_GERAL",
+      "overview": "VIS\u00c3O_GERAL",
       "logs": "LOGS_DE_AUDITORIA",
       "vulnerabilities": "VULNERABILIDADES",
-      "history": "HISTÓRICO_DE_RELATÓRIOS"
+      "history": "HIST\u00d3RICO_DE_RELAT\u00d3RIOS"
     },
     "Diagnostics": {
       "supabase": "STATUS_SUPABASE_RLS",
-      "redis": "LATÊNCIA_REDIS_UPSTASH",
+      "redis": "LAT\u00caNCIA_REDIS_UPSTASH",
       "firewall": "FIREWALL_ANDROMEDA_CORE",
       "active": "ATIVO",
-      "healthy": "SAUDÁVEL",
+      "healthy": "SAUD\u00c1VEL",
       "shielded": "PROTEGIDO",
       "monitoring": "MONITORAMENTO_ATIVO",
-      "unverified": "NÃO VERIFICADO",
+      "unverified": "N\u00c3O VERIFICADO",
       "auditing": "AUDITANDO",
       "nominal": "NOMINAL",
       "bypassed": "IGNORADO",
@@ -638,7 +638,7 @@
       "low": "BAIXA",
       "elevated": "ELEVADA",
       "secure": "SEGURO",
-      "enforced": "REFORÇADO",
+      "enforced": "REFOR\u00c7ADO",
       "warning": "AVISO",
       "moderate": "MODERADO",
       "ms": "MS"
@@ -650,108 +650,108 @@
     },
     "AuditReport": {
       "Matrix": {
-        "critical": "VULNERABILIDADE CRÍTICA",
+        "critical": "VULNERABILIDADE CR\u00cdTICA",
         "activeExploits": "Exploits Ativos",
-        "medium": "RISCO MÉDIO",
+        "medium": "RISCO M\u00c9DIO",
         "systemLeaks": "Vazamentos de Sistema (Leaks)",
         "low": "BAIXO IMPACTO",
-        "codeInconsistencies": "Inconsistências de Código",
+        "codeInconsistencies": "Inconsist\u00eancias de C\u00f3digo",
         "mitigated": "MITIGADO",
         "remediatedIssues": "Problemas Remediados"
       },
       "Manifest": {
         "title": "MANIFESTO DE VULNERABILIDADE V2.0",
-        "lastScan": "Última varredura do sistema",
-        "exportPdf": "EXPORTAR RELATÓRIO (.PDF)",
+        "lastScan": "\u00daltima varredura do sistema",
+        "exportPdf": "EXPORTAR RELAT\u00d3RIO (.PDF)",
         "id": "ID",
         "status": "STATUS",
         "severity": "SEVERIDADE",
-        "layer": "CAMADA DE SEGURANÇA",
+        "layer": "CAMADA DE SEGURAN\u00c7A",
         "details": "DETALHES",
-        "risk": "AVALIAÇÃO DE RISCO",
-        "remediation": "ESTRATÉGIA DE REMEDIAÇÃO"
+        "risk": "AVALIA\u00c7\u00c3O DE RISCO",
+        "remediation": "ESTRAT\u00c9GIA DE REMEDIA\u00c7\u00c3O"
       },
       "Finding": {
-        "observationDetails": "Detalhes de Observação",
+        "observationDetails": "Detalhes de Observa\u00e7\u00e3o",
         "operationalRisk": "Risco Operacional",
-        "remediationStrategy": "Estratégia de Remediação",
-        "remediationPending": "Estratégia de remediação pendente de análise profunda.",
+        "remediationStrategy": "Estrat\u00e9gia de Remedia\u00e7\u00e3o",
+        "remediationPending": "Estrat\u00e9gia de remedia\u00e7\u00e3o pendente de an\u00e1lise profunda.",
         "verifyPatch": "Verificar Patch"
       },
       "Readiness": {
-        "logicalTitle": "INDICADORES DE PRONTIDÃO DO SISTEMA",
-        "businessIntegrity": "Integridade da Lógica de Negócio",
-        "coordinationStability": "Estabilidade do Protocolo de Coordenação"
+        "logicalTitle": "INDICADORES DE PRONTID\u00c3O DO SISTEMA",
+        "businessIntegrity": "Integridade da L\u00f3gica de Neg\u00f3cio",
+        "coordinationStability": "Estabilidade do Protocolo de Coordena\u00e7\u00e3o"
       },
       "layers": {
-        "perimeter": "PERÍMETRO",
-        "application": "APLICAÇÃO",
+        "perimeter": "PER\u00cdMETRO",
+        "application": "APLICA\u00c7\u00c3O",
         "data": "DADOS",
         "infrastructure": "INFRAESTRUTURA"
       },
       "findings": {
         "L7-WAF": {
-          "title": "Ponto de Entrada de Tráfego Não Filtrado",
-          "detail": "Solicitações que ignoram as regras do firewall L7, expondo endpoints internos a tráfego não confiável.",
-          "risk": "Exploração direta de vulnerabilidades da aplicação através de padrões SQLi ou XSS.",
-          "remediation": "Ativar L7-Shielding e aplicar validação de rota rigorosa."
+          "title": "Ponto de Entrada de Tr\u00e1fego N\u00e3o Filtrado",
+          "detail": "Solicita\u00e7\u00f5es que ignoram as regras do firewall L7, expondo endpoints internos a tr\u00e1fego n\u00e3o confi\u00e1vel.",
+          "risk": "Explora\u00e7\u00e3o direta de vulnerabilidades da aplica\u00e7\u00e3o atrav\u00e9s de padr\u00f5es SQLi ou XSS.",
+          "remediation": "Ativar L7-Shielding e aplicar valida\u00e7\u00e3o de rota rigorosa."
         },
         "DB-RLS": {
-          "title": "Segurança de Linha (RLS) Incompleta",
-          "detail": "Tabelas de dados atualmente acessíveis através de chaves anônimas sem políticas RLS adequadas.",
-          "risk": "Exfiltração de dados não autorizada e potencial exposição de PII.",
-          "remediation": "Aplicar políticas RLS granulares a todas as tabelas base de produção."
+          "title": "Seguran\u00e7a de Linha (RLS) Incompleta",
+          "detail": "Tabelas de dados atualmente acess\u00edveis atrav\u00e9s de chaves an\u00f4nimas sem pol\u00edticas RLS adequadas.",
+          "risk": "Exfiltra\u00e7\u00e3o de dados n\u00e3o autorizada e potencial exposi\u00e7\u00e3o de PII.",
+          "remediation": "Aplicar pol\u00edticas RLS granulares a todas as tabelas base de produ\u00e7\u00e3o."
         },
         "SEC-HDR": {
-          "title": "Política de Cabeçalhos de Segurança Fraca",
-          "detail": "Ausência de cabeçalhos HSTS e CSP, aumentando o risco de ataques MITM e injeção.",
-          "risk": "Exploração do lado do cliente através de rebaixamento de protocolo e scripts não verificados.",
+          "title": "Pol\u00edtica de Cabe\u00e7alhos de Seguran\u00e7a Fraca",
+          "detail": "Aus\u00eancia de cabe\u00e7alhos HSTS e CSP, aumentando o risco de ataques MITM e inje\u00e7\u00e3o.",
+          "risk": "Explora\u00e7\u00e3o do lado do cliente atrav\u00e9s de rebaixamento de protocolo e scripts n\u00e3o verificados.",
           "remediation": "Injetar Strict-Transport-Security e Content-Security-Policy globalmente."
         },
         "C-01": {
-          "title": "Invariante de Lógica de Consenso Central",
-          "detail": "As verificações de consenso herdadas permitiam a execução fora de ordem em casos extremos.",
-          "risk": "Divergência de estado entre os nós concorrentes da rede.",
-          "remediation": "Ordenação atômica implementada no núcleo de coordenação."
+          "title": "Invariante de L\u00f3gica de Consenso Central",
+          "detail": "As verifica\u00e7\u00f5es de consenso herdadas permitiam a execu\u00e7\u00e3o fora de ordem em casos extremos.",
+          "risk": "Diverg\u00eancia de estado entre os n\u00f3s concorrentes da rede.",
+          "remediation": "Ordena\u00e7\u00e3o at\u00f4mica implementada no n\u00facleo de coordena\u00e7\u00e3o."
         },
         "C-02": {
-          "title": "Unificação de Estrutura de Contratos",
-          "detail": "Múltiplos pontos de entrada para contratos Vara e Rootstock criam sobrecarga de sincronização.",
-          "risk": "Aumento da superfície de ataque e complexidade de manutenção.",
-          "remediation": "Refatoração em um controlador de ponte multi-chain unificado."
+          "title": "Unifica\u00e7\u00e3o de Estrutura de Contratos",
+          "detail": "M\u00faltiplos pontos de entrada para contratos Vara e Rootstock criam sobrecarga de sincroniza\u00e7\u00e3o.",
+          "risk": "Aumento da superf\u00edcie de ataque e complexidade de manuten\u00e7\u00e3o.",
+          "remediation": "Refatora\u00e7\u00e3o em um controlador de ponte multi-chain unificado."
         },
         "M-01": {
-          "title": "Bypass de Limitação de Taxa",
-          "detail": "Configuração do middleware Redis permite picos além dos limites seguros.",
-          "risk": "Potencial exaustão de recursos (DoS) durante eventos de alto tráfego.",
-          "remediation": "Configurando limitação de taxa de janela deslizante no Upstash."
+          "title": "Bypass de Limita\u00e7\u00e3o de Taxa",
+          "detail": "Configura\u00e7\u00e3o do middleware Redis permite picos al\u00e9m dos limites seguros.",
+          "risk": "Potencial exaust\u00e3o de recursos (DoS) durante eventos de alto tr\u00e1fego.",
+          "remediation": "Configurando limita\u00e7\u00e3o de taxa de janela deslizante no Upstash."
         },
         "M-02": {
           "title": "Vazamento do Gerenciador de Segredos",
-          "detail": "Variáveis de ambiente registradas em logs durante as sequências de inicialização.",
-          "risk": "Exposição de chaves API sensíveis em logs de diagnóstico.",
+          "detail": "Vari\u00e1veis de ambiente registradas em logs durante as sequ\u00eancias de inicializa\u00e7\u00e3o.",
+          "risk": "Exposi\u00e7\u00e3o de chaves API sens\u00edveis em logs de diagn\u00f3stico.",
           "remediation": "Registro mascarado implementado para todos os segredos identificados."
         },
         "B-01": {
-          "title": "Depreciação de API Legada",
-          "detail": "Acesso público ainda ativo para endpoints v1.0 programados para remoção.",
-          "risk": "Usuários continuando a usar interfaces legadas inseguras.",
+          "title": "Deprecia\u00e7\u00e3o de API Legada",
+          "detail": "Acesso p\u00fablico ainda ativo para endpoints v1.0 programados para remo\u00e7\u00e3o.",
+          "risk": "Usu\u00e1rios continuando a usar interfaces legadas inseguras.",
           "remediation": "Aplicar redirecionamentos 301 para V2.0 e desativar rotas v1.0."
         },
         "B-02": {
-          "title": "Inconsistência no Rastro de Auditoria",
-          "detail": "Falta rotação de registros nos nós de infraestrutura de desenvolvimento.",
-          "risk": "Potencial pressão de disco e perda de contexto histórico de auditoria.",
-          "remediation": "Ativada a persistência automatizada no S3 e política de rotação."
+          "title": "Inconsist\u00eancia no Rastro de Auditoria",
+          "detail": "Falta rota\u00e7\u00e3o de registros nos n\u00f3s de infraestrutura de desenvolvimento.",
+          "risk": "Potencial press\u00e3o de disco e perda de contexto hist\u00f3rico de auditoria.",
+          "remediation": "Ativada a persist\u00eancia automatizada no S3 e pol\u00edtica de rota\u00e7\u00e3o."
         }
       }
     },
     "FooterLogs": {
-      "initialized": "NÚCLEO_INICIALIZADO",
+      "initialized": "N\u00daCLEO_INICIALIZADO",
       "heartbeat": "BATIMENTO_DO_SISTEMA_OK",
       "updated": "REGISTRO_ATUALIZADO",
-      "active": "CONEXÃO_VARA_ATIVA",
-      "surveillance": "VIGILÂNCIA_PERMANENTE"
+      "active": "CONEX\u00c3O_VARA_ATIVA",
+      "surveillance": "VIGIL\u00c2NCIA_PERMANENTE"
     }
   },
   "DesarrolloPage": {
@@ -760,12 +760,12 @@
       "system": "SISTEMA",
       "terminal": "TERMINAL",
       "debugger": "DEPURADOR",
-      "subtitle": "Acesso a buffers do núcleo, simulações de segurança dry-run e validação de invariantes JSON. Ponte direta ao kernel com visualização de diagnósticos em tempo real.",
-      "compilerHealth": "Saúde_do_Compilador",
+      "subtitle": "Acesso a buffers do n\u00facleo, simula\u00e7\u00f5es de seguran\u00e7a dry-run e valida\u00e7\u00e3o de invariantes JSON. Ponte direta ao kernel com visualiza\u00e7\u00e3o de diagn\u00f3sticos em tempo real.",
+      "compilerHealth": "Sa\u00fade_do_Compilador",
       "nominal": "NOMINAL",
       "uptime": "UPTIME: 99.99%",
       "fatalErr": "0 ERR_FATAIS",
-      "codeIsLaw": "// O_CÓDIGO_É_A_LEI"
+      "codeIsLaw": "// O_C\u00d3DIGO_\u00c9_A_LEI"
     },
     "Loading": {
       "booting": "INICIANDO_KERNEL_DE_DESENVOLVIMENTO..."
@@ -773,11 +773,11 @@
     "Nav": {
       "terminal": "TERMINAL",
       "inspect": "INSPECIONAR",
-      "simulations": "SIMULAÇÕES",
-      "documentation": "DOCUMENTAÇÃO"
+      "simulations": "SIMULA\u00c7\u00d5ES",
+      "documentation": "DOCUMENTA\u00c7\u00c3O"
     },
     "Sections": {
-      "diagnosticSuite": "SUITE_DE_DIAGNÓSTICO_SCORECARD",
+      "diagnosticSuite": "SUITE_DE_DIAGN\u00d3STICO_SCORECARD",
       "toolkit": "Toolkit_de_Desenvolvimento",
       "generateIpfs": "GERAR_HASH_IPFS",
       "mintProof": "MINTAR_PROVA_DE_REGISTRO",
@@ -789,7 +789,7 @@
       "kernelReady": "[KERNEL_PRONTO]",
       "buffer": "BUFFER_ALOCADO_2GB",
       "compiler": "COMPILADOR_ATIVO_TS5.3",
-      "debug": "SESSÃO_DE_DEPURAÇÃO_ESTABELECIDA",
+      "debug": "SESS\u00c3O_DE_DEPURA\u00c7\u00c3O_ESTABELECIDA",
       "bypass": "BYPASS_PRONTO",
       "pooling": "POOLING_ATIVO"
     }
@@ -801,11 +801,11 @@
     "filterPending": "PENDENTE",
     "activeRecords": "Registros_Ativos",
     "syncFailure": "Falha_no_Sincronizador_de_Dados",
-    "retry": "REINTENTAR_CONEXÃO",
+    "retry": "REINTENTAR_CONEX\u00c3O",
     "noResults": "Nenhum_resultado_encontrado_no_Registry_Core",
     "proposer": "PROPONENTE",
-    "anonymous": "ANÔNIMO",
-    "clarityScore": "PONTUAÇÃO_DE_CLAREZA",
+    "anonymous": "AN\u00d4NIMO",
+    "clarityScore": "PONTUA\u00c7\u00c3O_DE_CLAREZA",
     "status": "STATUS",
     "unknown": "DESCONHECIDO",
     "stamp": "CARIMBO",
@@ -815,178 +815,178 @@
     "steps": {
       "problem": "PROBLEMA",
       "boundaries": "LIMITES",
-      "technical": "TÉCNICO",
-      "effort": "ESFORÇO",
-      "industry": "INDÚSTRIA",
+      "technical": "T\u00c9CNICO",
+      "effort": "ESFOR\u00c7O",
+      "industry": "IND\u00daSTRIA",
       "notify": "NOTIFICAR"
     },
     "sections": {
-      "problemLabel": "A. ESPECIFICAÇÃO_DO_PROBLEMA",
+      "problemLabel": "A. ESPECIFICA\u00c7\u00c3O_DO_PROBLEMA",
       "problemPlaceholder": "DEFINA O PROBLEMA CENTRAL EM UMA FRASE PRECISA...",
       "boundariesLabel": "B. LIMITES_DE_ESCOPO",
-      "boundariesPlaceholder": "ESPECIFIQUE PARÂMETROS DE INCLUSÃO...",
-      "technicalLabel": "C. ESPECIFICAÇÃO_TÉCNICA",
-      "technicalPlaceholder": "RISCOS TÉCNICOS E RESTRIÇÕES IDENTIFICADOS...",
-      "effortLabel": "D. ESTIMATIVA_DE_RECURSOS_E_ESFORÇO",
-      "minDuration": "DURAÇÃO_MÍN (SEMANAS)",
-      "maxDuration": "DURAÇÃO_MÁX (SEMANAS)",
-      "industryLabel": "E. TAXONOMIA_DA_INDÚSTRIA",
-      "industryDescription": "Classifique esta iniciativa usando o Índice Mestre Andromeda ATLAS",
-      "notifyLabel": "F. CONFIGURAÇÃO_DE_NOTIFICAÇÕES",
-      "notifyDescription": "Mantenha alinhamento técnico via vigilância automatizada",
-      "telegramLabel": "USUÁRIO_TELEGRAM",
-      "telegramRequired": "@OBRIGATÓRIO_PARA_SESSÕES",
-      "usernamePlaceholder": "USUÁRIO",
-      "emailLabel": "ENDEREÇO_DE_EMAIL",
+      "boundariesPlaceholder": "ESPECIFIQUE PAR\u00c2METROS DE INCLUS\u00c3O...",
+      "technicalLabel": "C. ESPECIFICA\u00c7\u00c3O_T\u00c9CNICA",
+      "technicalPlaceholder": "RISCOS T\u00c9CNICOS E RESTRI\u00c7\u00d5ES IDENTIFICADOS...",
+      "effortLabel": "D. ESTIMATIVA_DE_RECURSOS_E_ESFOR\u00c7O",
+      "minDuration": "DURA\u00c7\u00c3O_M\u00cdN (SEMANAS)",
+      "maxDuration": "DURA\u00c7\u00c3O_M\u00c1X (SEMANAS)",
+      "industryLabel": "E. TAXONOMIA_DA_IND\u00daSTRIA",
+      "industryDescription": "Classifique esta iniciativa usando o \u00cdndice Mestre Andromeda ATLAS",
+      "notifyLabel": "F. CONFIGURA\u00c7\u00c3O_DE_NOTIFICA\u00c7\u00d5ES",
+      "notifyDescription": "Mantenha alinhamento t\u00e9cnico via vigil\u00e2ncia automatizada",
+      "telegramLabel": "USU\u00c1RIO_TELEGRAM",
+      "telegramRequired": "@OBRIGAT\u00d3RIO_PARA_SESS\u00d5ES",
+      "usernamePlaceholder": "USU\u00c1RIO",
+      "emailLabel": "ENDERE\u00c7O_DE_EMAIL",
       "emailPlaceholder": "ENVIADO@DOMINIO.COM",
-      "systemUpdates": "O sistema transmitirá atualizações automáticas sobre:",
+      "systemUpdates": "O sistema transmitir\u00e1 atualiza\u00e7\u00f5es autom\u00e1ticas sobre:",
       "update1": "Status de ancoragem na Vara Network",
-      "update2": "Verificação CID IPFS",
-      "update3": "Mudanças no Delta de Reputação",
-      "update4": "Atualizações de classificação da indústria ATLAS"
+      "update2": "Verifica\u00e7\u00e3o CID IPFS",
+      "update3": "Mudan\u00e7as no Delta de Reputa\u00e7\u00e3o",
+      "update4": "Atualiza\u00e7\u00f5es de classifica\u00e7\u00e3o da ind\u00fastria ATLAS"
     },
     "navigation": {
       "prev": "PASSO_ANTERIOR",
       "validate": "VALIDAR_DESAFIO",
-      "next": "PRÓXIMA_FASE",
+      "next": "PR\u00d3XIMA_FASE",
       "submit": "ENVIAR_AO_REGISTRO",
       "processing": "PROCESSANDO..."
     },
     "proof": {
       "title": "PROVA_DE_REGISTRO_GERADA",
-      "settlement": "LIQUIDAÇÃO_ETHEREUM_MAINNET",
-      "locked": "ID_CANÔNICO_BLOQUEADO",
+      "settlement": "LIQUIDA\u00c7\u00c3O_ETHEREUM_MAINNET",
+      "locked": "ID_CAN\u00d4NICO_BLOQUEADO",
       "registrationId": "ID_DE_REGISTRO",
-      "signature": "ASSINATURA_CRIPTOGRÁFICA",
+      "signature": "ASSINATURA_CRIPTOGR\u00c1FICA",
       "verifiedBy": "Verificado pelo Validador Funcional Andromeda Core v1.0",
-      "hash": "HASH_DE_TRANSAÇÃO_/_CID",
+      "hash": "HASH_DE_TRANSA\u00c7\u00c3O_/_CID",
       "viewIpfs": "Ver no Explorador IPFS",
       "consensus": "CONSENSO_ATINGIDO",
       "metadata": "METADADOS_EM_CACHE",
-      "signatureValid": "ASSINATURA_VÁLIDA"
+      "signatureValid": "ASSINATURA_V\u00c1LIDA"
     },
     "report": {
-      "title": "RELATÓRIO_DE_CORE_DE_VALIDAÇÃO",
+      "title": "RELAT\u00d3RIO_DE_CORE_DE_VALIDA\u00c7\u00c3O",
       "passed": "APROBADO",
       "failed": "FALHOU",
-      "score": "PONTUAÇÃO_DE_CLAREZA",
-      "errors": "ERROS_CRÍTICOS"
+      "score": "PONTUA\u00c7\u00c3O_DE_CLAREZA",
+      "errors": "ERROS_CR\u00cdTICOS"
     },
     "alerts": {
-      "requiredIdentity": "IDENTIDADE_NECESSÁRIA: Conecte sua carteira para assinar esta entrada de registro.",
-      "publishError": "ERRO_DE_PUBLICAÇÃO: "
+      "requiredIdentity": "IDENTIDADE_NECESS\u00c1RIA: Conecte sua carteira para assinar esta entrada de registro.",
+      "publishError": "ERRO_DE_PUBLICA\u00c7\u00c3O: "
     }
   },
   "AuditReport": {
     "Matrix": {
-      "critical": "VULN_CRÍTICA",
-      "medium": "RISCO_MÉDIO",
+      "critical": "VULN_CR\u00cdTICA",
+      "medium": "RISCO_M\u00c9DIO",
       "low": "BAIXO_IMPACTO",
       "mitigated": "MITIGADO",
       "activeExploits": "Exploits_Ativos",
       "systemLeaks": "Leaks_de_Sistema",
-      "codeInconsistencies": "Inconsistências_de_Código",
+      "codeInconsistencies": "Inconsist\u00eancias_de_C\u00f3digo",
       "remediatedIssues": "Problemas_Corrigidos"
     },
     "Manifest": {
       "title": "MANIFESTO_DE_VULNERABILIDADE_V2.0",
-      "lastScan": "Última_Varredura",
+      "lastScan": "\u00daltima_Varredura",
       "exportPdf": "Exportar_PDF_de_Auditoria"
     },
     "Finding": {
       "target": "ALVO",
-      "observationDetails": "Detalhes_da_Observação",
+      "observationDetails": "Detalhes_da_Observa\u00e7\u00e3o",
       "operationalRisk": "Risco_Operacional",
-      "remediationStrategy": "Estratégia_de_Correção",
-      "remediationPending": "Estratégia de correção pendente de revisão da arquitetura do sistema.",
+      "remediationStrategy": "Estrat\u00e9gia_de_Corre\u00e7\u00e3o",
+      "remediationPending": "Estrat\u00e9gia de corre\u00e7\u00e3o pendente de revis\u00e3o da arquitetura do sistema.",
       "verifyPatch": "Verificar_Patch_em_Staging"
     },
     "Readiness": {
-      "logicalTitle": "PREPARAÇÃO DE ARQUITETURA LÓGICA",
-      "operationalTitle": "PREPARAÇÃO DE SEGURIDAD OPERACIONAL",
-      "businessIntegrity": "INTEGRIDADE DE INVARIANTES LÓGICOS",
-      "coordinationStability": "ESTABILIDADE DE CAMADA DE COORDENAÇÃO",
-      "secretManagement": "GESTÃO DE SECRETOS E AMBIENTE",
+      "logicalTitle": "PREPARA\u00c7\u00c3O DE ARQUITETURA L\u00d3GICA",
+      "operationalTitle": "PREPARA\u00c7\u00c3O DE SEGURIDAD OPERACIONAL",
+      "businessIntegrity": "INTEGRIDADE DE INVARIANTES L\u00d3GICOS",
+      "coordinationStability": "ESTABILIDADE DE CAMADA DE COORDENA\u00c7\u00c3O",
+      "secretManagement": "GEST\u00c3O DE SECRETOS E AMBIENTE",
       "blockchainRealism": "SINCRONIA DE CONSENSO VARA"
     },
     "layers": {
-      "perimeter": "PERÍMETRO",
-      "application": "APLICAÇÃO",
+      "perimeter": "PER\u00cdMETRO",
+      "application": "APLICA\u00c7\u00c3O",
       "data": "DADOS",
       "infrastructure": "INFRAESTRUTURA"
     },
     "findings": {
       "L7-WAF": {
-        "title": "Integração do Firewall de Camada 7 (WAF)",
-        "detail": "A lógica do Andromeda Shield monitora o tráfego L7 em busca de assinaturas SQLi/XSS.",
-        "risk": "Exposição a ataques de injeção se as defesas perimetrais forem ignoradas.",
-        "remediation": "Regras estritas de WAF aplicadas e monitoramento de ameaças em tempo real."
+        "title": "Integra\u00e7\u00e3o do Firewall de Camada 7 (WAF)",
+        "detail": "A l\u00f3gica do Andromeda Shield monitora o tr\u00e1fego L7 em busca de assinaturas SQLi/XSS.",
+        "risk": "Exposi\u00e7\u00e3o a ataques de inje\u00e7\u00e3o se as defesas perimetrais forem ignoradas.",
+        "remediation": "Regras estritas de WAF aplicadas e monitoramento de amea\u00e7as em tempo real."
       },
       "DB-RLS": {
-        "title": "Segurança de Nível de Linha (RLS) no BD",
-        "detail": "Integridade da camada de acesso a dados via políticas RLS do Supabase.",
-        "risk": "Exposição não autorizada de dados se o RLS estiver desativado em esquemas públicos.",
-        "remediation": "Validação de todas as tabelas com políticas de acesso apenas autenticado."
+        "title": "Seguran\u00e7a de N\u00edvel de Linha (RLS) no BD",
+        "detail": "Integridade da camada de acesso a dados via pol\u00edticas RLS do Supabase.",
+        "risk": "Exposi\u00e7\u00e3o n\u00e3o autorizada de dados se o RLS estiver desativado em esquemas p\u00fablicos.",
+        "remediation": "Valida\u00e7\u00e3o de todas as tabelas com pol\u00edticas de acesso apenas autenticado."
       },
       "SEC-HDR": {
-        "title": "Cabeçalhos de Segurança Perimetral",
-        "detail": "Cabeçalhos de segurança HTTP modernos (HSTS, CSP, XFO, XCTO).",
+        "title": "Cabe\u00e7alhos de Seguran\u00e7a Perimetral",
+        "detail": "Cabe\u00e7alhos de seguran\u00e7a HTTP modernos (HSTS, CSP, XFO, XCTO).",
         "risk": "Vulnerabilidade a ataques MITM e scripting entre sites.",
-        "remediation": "Políticas de segurança estritas aplicadas no next.config.js."
+        "remediation": "Pol\u00edticas de seguran\u00e7a estritas aplicadas no next.config.js."
       },
       "C-01": {
-        "title": "Exposição de Credenciais de Produção no Repositório",
-        "detail": "O arquivo contém chaves com privilégios totais: SUPABASE_SERVICE_ROLE_KEY, PINATA_JWT, UPSTASH_REDIS_REST_TOKEN.",
+        "title": "Exposi\u00e7\u00e3o de Credenciais de Produ\u00e7\u00e3o no Reposit\u00f3rio",
+        "detail": "O arquivo cont\u00e9m chaves com privil\u00e9gios totais: SUPABASE_SERVICE_ROLE_KEY, PINATA_JWT, UPSTASH_REDIS_REST_TOKEN.",
         "risk": "Bypass de RLS, acesso total ao IPFS e controle total sobre cache/rate-limiting.",
-        "remediation": "As credenciais foram rotacionadas e um proxy de segurança foi habilitado para acessos sensíveis."
+        "remediation": "As credenciais foram rotacionadas e um proxy de seguran\u00e7a foi habilitado para acessos sens\u00edveis."
       },
       "C-02": {
-        "title": "Integração da Vara Network Simulada",
-        "detail": "O código usa blocos de simulação codificados e não faz chamadas reais para @gear-js/api.",
-        "risk": "Falsa sensação de imutabilidade on-chain. Os hashes gerados são artificiais.",
+        "title": "Integra\u00e7\u00e3o da Vara Network Simulada",
+        "detail": "O c\u00f3digo usa blocos de simula\u00e7\u00e3o codificados e n\u00e3o faz chamadas reais para @gear-js/api.",
+        "risk": "Falsa sensa\u00e7\u00e3o de imutabilidade on-chain. Os hashes gerados s\u00e3o artificiais.",
         "remediation": "Migrando para @gear-js/api real com suporte para Vara Mainnet."
       },
       "M-01": {
-        "title": "Redundância do Motor de Validação",
-        "detail": "O RegistryService usa uma versão simplificada do validador, ignorando o sistema de Invariantes externo.",
-        "risk": "Publicação de scorecards que violam invariantes lógicas já programadas.",
-        "remediation": "Unificando o motor de validação sob o pacote @andromeda/auto-validator."
+        "title": "Redund\u00e2ncia do Motor de Valida\u00e7\u00e3o",
+        "detail": "O RegistryService usa uma vers\u00e3o simplificada do validador, ignorando o sistema de Invariantes externo.",
+        "risk": "Publica\u00e7\u00e3o de scorecards que violam invariantes l\u00f3gicas j\u00e1 programadas.",
+        "remediation": "Unificando o motor de valida\u00e7\u00e3o sob o pacote @andromeda/auto-validator."
       },
       "M-02": {
-        "title": "Fraqueza na Lógica de Nonces",
-        "detail": "Falta de persistência para nonces usados. Risco de Replay Attacks em caso de falhas de rede.",
-        "risk": "Reutilização de assinaturas dentro de uma janela de 5 minutos.",
-        "remediation": "Implementado conjunto persistente de nonces queimados no Redis com replicação."
+        "title": "Fraqueza na L\u00f3gica de Nonces",
+        "detail": "Falta de persist\u00eancia para nonces usados. Risco de Replay Attacks em caso de falhas de rede.",
+        "risk": "Reutiliza\u00e7\u00e3o de assinaturas dentro de uma janela de 5 minutos.",
+        "remediation": "Implementado conjunto persistente de nonces queimados no Redis com replica\u00e7\u00e3o."
       },
       "B-01": {
-        "title": "Inconsistência na Estrutura de Contratos",
-        "detail": "Múltiplas pastas para contratos Vara podem causar confusão na compilação.",
-        "risk": "Implantação acidental de stubs em vez de contratos reais.",
+        "title": "Inconsist\u00eancia na Estrutura de Contratos",
+        "detail": "M\u00faltiplas pastas para contratos Vara podem causar confus\u00e3o na compila\u00e7\u00e3o.",
+        "risk": "Implanta\u00e7\u00e3o acidental de stubs em vez de contratos reais.",
         "remediation": "Pendente de unificar todos os contratos na raiz do workspace."
       },
       "B-02": {
-        "title": "Falta de Cobertura na Rota de Diagnóstico",
-        "detail": "Não verifica a conectividade com Pinata nem o status da Vara Network.",
-        "risk": "Falsos positivos na saúde do sistema.",
+        "title": "Falta de Cobertura na Rota de Diagn\u00f3stico",
+        "detail": "N\u00e3o verifica a conectividade com Pinata nem o status da Vara Network.",
+        "risk": "Falsos positivos na sa\u00fade do sistema.",
         "remediation": "Adicionados health-checks para IPFS (Pinata) y Gear API Gateway."
       }
     }
   },
   "VerificationDepth": {
     "Header": {
-      "title": "AUDITORIA DE ARQUITETURA LÓGICA",
-      "subtitle": "Escrutínio multinível da integridade de invariantes e consenso.",
+      "title": "AUDITORIA DE ARQUITETURA L\u00d3GICA",
+      "subtitle": "Escrut\u00ednio multin\u00edvel da integridade de invariantes e consenso.",
       "total": "TOTAL",
-      "avg": "MÉDIA"
+      "avg": "M\u00c9DIA"
     },
     "Levels": {
       "0": {
-        "name": "TIER 0: CONFIGURAÇÃO E IDL",
-        "description": "Integridade de variáveis de ambiente e esquemas de contrato Gear/Vara."
+        "name": "TIER 0: CONFIGURA\u00c7\u00c3O E IDL",
+        "description": "Integridade de vari\u00e1veis de ambiente e esquemas de contrato Gear/Vara."
       },
       "1": {
         "name": "TIER 1: CONFORMIDADE DE API",
-        "description": "Validação de tipos e segurança dos endpoints do sistema central."
+        "description": "Valida\u00e7\u00e3o de tipos e seguran\u00e7a dos endpoints do sistema central."
       },
       "2": {
         "name": "TIER 2: CONSENSO DE PROTOCOLO",
@@ -994,68 +994,68 @@
       },
       "3": {
         "name": "TIER 3: INTEGRIDADE DE INVARIANTES",
-        "description": "Verificação matemática formal e validação determinística da lógica."
+        "description": "Verifica\u00e7\u00e3o matem\u00e1tica formal e valida\u00e7\u00e3o determin\u00edstica da l\u00f3gica."
       }
     },
     "Distribution": {
-      "title": "DISTRIBUIÇÃO DA PROFUNDIDADE DE VERIFICAÇÃO",
-      "filtered": "FILTRADO: NÍVEL",
-      "allLevels": "TODOS OS NÍVEIS",
+      "title": "DISTRIBUI\u00c7\u00c3O DA PROFUNDIDADE DE VERIFICA\u00c7\u00c3O",
+      "filtered": "FILTRADO: N\u00cdVEL",
+      "allLevels": "TODOS OS N\u00cdVEIS",
       "milestones": "marcos"
     },
     "Stats": {
       "totalMilestones": "MARCOS TOTAIS",
-      "averageLevel": "NÍVEL MÉDIO",
-      "maxAttestations": "ASSINATURAS MÁXIMAS"
+      "averageLevel": "N\u00cdVEL M\u00c9DIO",
+      "maxAttestations": "ASSINATURAS M\u00c1XIMAS"
     },
     "Table": {
-      "levelMilestones": "MARCOS DO NÍVEL {level}",
+      "levelMilestones": "MARCOS DO N\u00cdVEL {level}",
       "recentMilestones": "MARCOS RECENTES",
       "of": "de",
       "attestations": "assinaturas",
-      "noResults": "Nenhum marco encontrado neste nível de verificação"
+      "noResults": "Nenhum marco encontrado neste n\u00edvel de verifica\u00e7\u00e3o"
     },
     "Footer": {
-      "paper": "DOCUMENTO ATLAS §2.3",
-      "protocol": "Protocolo de Verificação Estratificado",
+      "paper": "DOCUMENTO ATLAS \u00a72.3",
+      "protocol": "Protocolo de Verifica\u00e7\u00e3o Estratificado",
       "clearFilter": "LIMPAR FILTRO",
       "refreshData": "ATUALIZAR DADOS"
     },
     "About": {
-      "title": "Sobre os Níveis de Verificação ATLAS",
-      "description": "O Documento ATLAS define 4 níveis de certeza de verificação. Níveis mais altos representam garantias criptográficas e de consenso mais fortes. O Nível 3 (Prova Matemática) fornece imutabilidade máxima através de verificação algorítmica, enquanto o Nivel 0 (Auto-Atestação) serve como ponto de entrada para novas contribuições."
+      "title": "Sobre os N\u00edveis de Verifica\u00e7\u00e3o ATLAS",
+      "description": "O Documento ATLAS define 4 n\u00edveis de certeza de verifica\u00e7\u00e3o. N\u00edveis mais altos representam garantias criptogr\u00e1ficas e de consenso mais fortes. O N\u00edvel 3 (Prova Matem\u00e1tica) fornece imutabilidade m\u00e1xima atrav\u00e9s de verifica\u00e7\u00e3o algor\u00edtmica, enquanto o Nivel 0 (Auto-Atesta\u00e7\u00e3o) serve como ponto de entrada para novas contribui\u00e7\u00f5es."
     },
     "DemoData": {
-      "implementAction": "Implementação do sistema de persistência dual ATLAS com MongoDB Atlas e Supabase",
-      "designAction": "Design do sistema de taxonomia de indústrias multi-camadas",
-      "auditAction": "Auditoria de segurança do módulo de coordenação cross-DAO",
-      "researchAction": "Pesquisa sobre sistemas de reputação descentralizados",
-      "specAction": "Especificação técnica do motor de invariantes da Andromeda",
-      "uiuxAction": "Design da interface de rede ATLAS com visualização de relações"
+      "implementAction": "Implementa\u00e7\u00e3o do sistema de persist\u00eancia dual ATLAS com MongoDB Atlas e Supabase",
+      "designAction": "Design do sistema de taxonomia de ind\u00fastrias multi-camadas",
+      "auditAction": "Auditoria de seguran\u00e7a do m\u00f3dulo de coordena\u00e7\u00e3o cross-DAO",
+      "researchAction": "Pesquisa sobre sistemas de reputa\u00e7\u00e3o descentralizados",
+      "specAction": "Especifica\u00e7\u00e3o t\u00e9cnica do motor de invariantes da Andromeda",
+      "uiuxAction": "Design da interface de rede ATLAS com visualiza\u00e7\u00e3o de rela\u00e7\u00f5es"
     }
   },
   "TerminalValidator": {
     "title": "ESCRUTINADOR_DE_INTEGRIDADE_JSON",
     "connected": "Conectado: @andromeda/functional-validator_v1.2",
-    "loadTemplate": "CARGAR_MODELO_CANÔNICO",
-    "rawCodeInjector": "INJETOR_DE_CÓDIGO_RAW",
+    "loadTemplate": "CARGAR_MODELO_CAN\u00d4NICO",
+    "rawCodeInjector": "INJETOR_DE_C\u00d3DIGO_RAW",
     "placeholder": "COLE_O_BLOB_JSON_DA_SCORECARD_AQUI...",
-    "validating": "INICIANDO_VALIDAÇÃO_PROFUNDA...",
+    "validating": "INICIANDO_VALIDA\u00c7\u00c3O_PROFUNDA...",
     "scrutinize": "ESCRUTINAR_INVARIANTES_DA_SCORECARD",
-    "passed": "VALIDAÇÃO_APROVADA",
-    "failed": "VERIFICAÇÃO_FALHOU",
+    "passed": "VALIDA\u00c7\u00c3O_APROVADA",
+    "failed": "VERIFICA\u00c7\u00c3O_FALHOU",
     "systemBlockers": "BLOQUEADORES_DE_SISTEMA_DETECTADOS",
-    "anomalies": "ANOMALIAS_NÃO_BLOQUEANTES",
-    "proofGenerated": "Prova de Validação Determinística Gerada",
+    "anomalies": "ANOMALIAS_N\u00c3O_BLOQUEANTES",
+    "proofGenerated": "Prova de Valida\u00e7\u00e3o Determin\u00edstica Gerada",
     "timestamp": "MARCO_TEMPORAL",
     "clarityDelta": "DELTA_DE_CLARIDADE"
   },
   "SystemDiagnostics": {
-    "title": "VIGILÂNCIA_DE_SISTEMA_v1",
+    "title": "VIGIL\u00c2NCIA_DE_SISTEMA_v1",
     "envLock": "Bloqueio_de_Ambiente",
     "prodSynced": "PROD_SINCRONIZADO",
-    "debugVerbosity": "Verbosidade_de_Depuração",
-    "level3Ext": "NÍVEL_3_EXT",
+    "debugVerbosity": "Verbosidade_de_Depura\u00e7\u00e3o",
+    "level3Ext": "N\u00cdVEL_3_EXT",
     "services": {
       "supabase": {
         "name": "SUPABASE_SQL",
@@ -1063,7 +1063,7 @@
       },
       "redis": {
         "name": "REDIS_UPSTASH",
-        "details": "Nó de Cache Global"
+        "details": "N\u00f3 de Cache Global"
       },
       "pinata": {
         "name": "PINATA_IPFS",
@@ -1083,67 +1083,67 @@
     "header": "SISTEMA_DE_BUFFER_V1.0",
     "init": "// INICIALIZANDO SURVEILLANCE_OS...",
     "connected": "// CONECTADO AO CORE.STABLE.0x21F",
-    "typeHelp": "// DIGITE 'HELP' PARA O DIRETÓRIO DO SISTEMA",
+    "typeHelp": "// DIGITE 'HELP' PARA O DIRET\u00d3RIO DO SISTEMA",
     "buffSize": "TAM_BUFFER: 65KB",
     "mode": "MODO: RAW_TELNET",
     "txActive": "TX_ATIVO",
     "commands": {
       "help": {
-        "header": "SISTEMAS DISPONÍVEIS:",
-        "status": "Integridade operacional do núcleo",
+        "header": "SISTEMAS DISPON\u00cdVEIS:",
+        "status": "Integridade operacional do n\u00facleo",
         "inspect": "Varredura profunda de entidade",
-        "simulate": "Executar simulações de lógica",
-        "ethics": "Restrições do protocolo",
-        "atlasQuery": "Consultar profundidade de verificação ATLAS",
+        "simulate": "Executar simula\u00e7\u00f5es de l\u00f3gica",
+        "ethics": "Restri\u00e7\u00f5es do protocolo",
+        "atlasQuery": "Consultar profundidade de verifica\u00e7\u00e3o ATLAS",
         "clear": "Limpar buffer"
       },
       "status": {
-        "header": "ANDROMEDA CORE — STATUS DO KERNEL v2.4.1",
+        "header": "ANDROMEDA CORE \u2014 STATUS DO KERNEL v2.4.1",
         "infra": "INFRAESTRUTURA:",
         "ready": "PRONTO",
-        "stable": "ESTÁVEL",
+        "stable": "EST\u00c1VEL",
         "uptime": "Tempo de atividade",
-        "latency": "LATÊNCIA ELEVADA",
+        "latency": "LAT\u00caNCIA ELEVADA",
         "sync": "SINC_EM_ANDAMENTO",
         "active": "ATIVO",
         "standby": "EM_ESPERA",
-        "auth": "NÍVEL_AUT: BYPASS_DESENVOLVEDOR_ATIVO"
+        "auth": "N\u00cdVEL_AUT: BYPASS_DESENVOLVEDOR_ATIVO"
       },
       "inspect": {
-        "header": "RESUMO DA INSPEÇÃO DO ECOSSISTEMA",
+        "header": "RESUMO DA INSPE\u00c7\u00c3O DO ECOSSISTEMA",
         "projects": "Projetos",
         "active": "Ativos",
         "invariants": "Invariantes",
         "verified": "Verificados",
         "state": "Estado",
         "consistent": "Consistente",
-        "health": "Saúde",
+        "health": "Sa\u00fade",
         "operational": "Operacional"
       },
       "ethics": {
-        "header": "ÉTICA CANÔNICA v1",
-        "rule1": "1. SEM EXTRAÇÃO SEM VALOR",
-        "rule2": "2. SEM GOVERNANÇA SEM RESPONSABILIDADE",
-        "rule3": "3. SEM AUTOMAÇÃO SEM SUPERVISÃO",
-        "enforced": "[APLICADO EM TEMPO DE EXECUÇÃO]"
+        "header": "\u00c9TICA CAN\u00d4NICA v1",
+        "rule1": "1. SEM EXTRA\u00c7\u00c3O SEM VALOR",
+        "rule2": "2. SEM GOVERNAN\u00c7A SEM RESPONSABILIDADE",
+        "rule3": "3. SEM AUTOMA\u00c7\u00c3O SEM SUPERVIS\u00c3O",
+        "enforced": "[APLICADO EM TEMPO DE EXECU\u00c7\u00c3O]"
       },
       "atlasQuery": {
-        "header": "RESULTADOS DA CONSULTA DE VERIFICAÇÃO ATLAS",
+        "header": "RESULTADOS DA CONSULTA DE VERIFICA\u00c7\u00c3O ATLAS",
         "totalMilestones": "Milestones Totais",
-        "avgLevel": "Nível Médio de Verificação",
-        "distribution": "Distribuição",
-        "level0": "NÍVEL 0 (Auto-Atestação)",
-        "level1": "NÍVEL 1 (Revisão por Pares)",
-        "level2": "NÍVEL 2 (Consenso do Protocolo)",
-        "level3": "NÍVEL 3 (Prova Matemática)",
-        "topProjects": "Principais Projetos por Profundidade de Verificação",
-        "attestations": "Atestações",
-        "useFilter": "Uso: atlas-query <filtro> para consultas avançadas",
+        "avgLevel": "N\u00edvel M\u00e9dio de Verifica\u00e7\u00e3o",
+        "distribution": "Distribui\u00e7\u00e3o",
+        "level0": "N\u00cdVEL 0 (Auto-Atesta\u00e7\u00e3o)",
+        "level1": "N\u00cdVEL 1 (Revis\u00e3o por Pares)",
+        "level2": "N\u00cdVEL 2 (Consenso do Protocolo)",
+        "level3": "N\u00cdVEL 3 (Prova Matem\u00e1tica)",
+        "topProjects": "Principais Projetos por Profundidade de Verifica\u00e7\u00e3o",
+        "attestations": "Atesta\u00e7\u00f5es",
+        "useFilter": "Uso: atlas-query <filtro> para consultas avan\u00e7adas",
         "examples": "Exemplos"
       },
       "simulate": {
-        "running": "EXECUTANDO SIMULAÇÃO: SUCESSO",
-        "noChanges": "NENHUMA MUDANÇA DE ESTADO DETECTADA."
+        "running": "EXECUTANDO SIMULA\u00c7\u00c3O: SUCESSO",
+        "noChanges": "NENHUMA MUDAN\u00c7A DE ESTADO DETECTADA."
       },
       "errors": {
         "unknown": "ERR: CMD_DESCONHECIDO_0x"
@@ -1151,10 +1151,10 @@
     }
   },
   "PricingPage": {
-    "title": "Preços simples e transparentes",
-    "subtitle": "Infraestrutura de reputação verificável para plataformas que valorizam a confiança. Pague com PayPal ou crypto.",
+    "title": "Pre\u00e7os simples e transparentes",
+    "subtitle": "Infraestrutura de reputa\u00e7\u00e3o verific\u00e1vel para plataformas que valorizam a confian\u00e7a. Pague com PayPal ou crypto.",
     "selectPlan": "1. Selecione seu plano",
-    "paymentMethod": "2. Método de pagamento",
+    "paymentMethod": "2. M\u00e9todo de pagamento",
     "recommended": "Recomendado",
     "contactUs": "Contate-nos",
     "orderSummary": "Resumo do pedido",
@@ -1162,96 +1162,96 @@
     "processingPayment": "Processando pagamento...",
     "payWithPaypal": "Pagar com PayPal",
     "payWithAlgorand": "Pagar com Algorand",
-    "afterPayment": "Após o pagamento, envie um email para api@andromeda.computer com seu TX ID para ativar sua chave em 24h.",
-    "freeTitle": "Comece gratuitamente — sem pagamento necessário.",
+    "afterPayment": "Ap\u00f3s o pagamento, envie um email para api@andromeda.computer com seu TX ID para ativar sua chave em 24h.",
+    "freeTitle": "Comece gratuitamente \u2014 sem pagamento necess\u00e1rio.",
     "requestFreeKey": "Solicitar API Key Gratuita",
     "paymentConfirmed": "Pagamento confirmado na Algorand",
     "contactActivate": "Contate api@andromeda.computer com seu TX ID para ativar sua chave."
   },
   "BlockedPage": {
     "title": "ANDROMEDA SHIELD // ACESSO SUSPENSO",
-    "subtitle": "AMEAÇA_DETECTADA",
-    "description": "Nosso Firewall de Camada 7 (Andromeda Shield) detectou atividade anômala de sua assinatura. Sua solicitação foi mitigada para segurança do protocolo.",
+    "subtitle": "AMEA\u00c7A_DETECTADA",
+    "description": "Nosso Firewall de Camada 7 (Andromeda Shield) detectou atividade an\u00f4mala de sua assinatura. Sua solicita\u00e7\u00e3o foi mitigada para seguran\u00e7a do protocolo.",
     "protocol": "Integridade do PROTOCOLO // SEC-WAF-01",
-    "remediation": "Se você acredita que isso é um falso positivo, entre em contato com a administração do sistema.",
+    "remediation": "Se voc\u00ea acredita que isso \u00e9 um falso positivo, entre em contato com a administra\u00e7\u00e3o do sistema.",
     "back": "VOLTAR AO SISTEMA"
   },
   "LandingPage": {
     "Nav": {
       "docs": "Docs",
-      "pricing": "Preços",
+      "pricing": "Pre\u00e7os",
       "registry": "Registro",
       "launchApp": "Abrir App"
     },
     "Hero": {
-      "tagline": "AVIP v2.0 — Prova Imutável Verificável da Andromeda",
-      "title1": "Reputação",
-      "title2": "que você pode verificar.",
+      "tagline": "AVIP v2.0 \u2014 Prova Imut\u00e1vel Verific\u00e1vel da Andromeda",
+      "title1": "Reputa\u00e7\u00e3o",
+      "title2": "que voc\u00ea pode verificar.",
       "title3": "Em qualquer cadeia.",
-      "subtitle": "Andromeda Core é a camada de infraestrutura para reputação de construtores portátil e criptograficamente verificada em DAOs, marketplaces e ecossistemas Web3.",
-      "liveDemo": "Ver Demonstração",
-      "apiReference": "Referência da API"
+      "subtitle": "Andromeda Core \u00e9 a camada de infraestrutura para reputa\u00e7\u00e3o de construtores port\u00e1til e criptograficamente verificada em DAOs, marketplaces e ecossistemas Web3.",
+      "liveDemo": "Ver Demonstra\u00e7\u00e3o",
+      "apiReference": "Refer\u00eancia da API"
     },
     "Stats": {
       "milestones": "Marcos Verificados",
       "builders": "Construtores Ativos",
       "chains": "Redes Integradas",
-      "verification": "Taxa de Verificação"
+      "verification": "Taxa de Verifica\u00e7\u00e3o"
     },
     "HowItWorks": {
       "tagline": "Como funciona",
-      "title1": "De dados brutos à",
-      "title2": "prova imutável",
+      "title1": "De dados brutos \u00e0",
+      "title2": "prova imut\u00e1vel",
       "step1": {
-        "title": "Ingestão",
-        "desc": "O motor Atlas extrai dados de governança da Rootstock, Arbitrum, Optimism, Snapshot e mais."
+        "title": "Ingest\u00e3o",
+        "desc": "O motor Atlas extrai dados de governan\u00e7a da Rootstock, Arbitrum, Optimism, Snapshot e mais."
       },
       "step2": {
         "title": "Verificar",
-        "desc": "AVIP v2.0 aplica entropia de Shannon, decaimento assimétrico e pontuação multicadeia a cada marco."
+        "desc": "AVIP v2.0 aplica entropia de Shannon, decaimento assim\u00e9trico e pontua\u00e7\u00e3o multicadeia a cada marco."
       },
       "step3": {
         "title": "Ancorar",
-        "desc": "As provas são armazenadas imutavelmente na Vara Network e IPFS. Portáteis, verificáveis, para sempre."
+        "desc": "As provas s\u00e3o armazenadas imutavelmente na Vara Network e IPFS. Port\u00e1teis, verific\u00e1veis, para sempre."
       }
     },
     "Audiences": {
       "tagline": "Feito para todos",
       "title1": "Um protocolo.",
-      "title2": "Três pontos de entrada.",
+      "title2": "Tr\u00eas pontos de entrada.",
       "mostPopular": "Mais Popular",
       "aud1": {
-        "title": "DAOs e Organizações Web3",
-        "desc": "Verifique a reputação dos contribuidores antes de comprometer recursos. Saiba quem constrói, quem entrega.",
+        "title": "DAOs e Organiza\u00e7\u00f5es Web3",
+        "desc": "Verifique a reputa\u00e7\u00e3o dos contribuidores antes de comprometer recursos. Saiba quem constr\u00f3i, quem entrega.",
         "cta": "Explorar Registro"
       },
       "aud2": {
         "title": "Plataformas e Marketplaces",
-        "desc": "Integre as pontuações AVIP no LinkedIn, Upwork ou na sua própria plataforma via API REST.",
-        "cta": "Obter Acesso à API"
+        "desc": "Integre as pontua\u00e7\u00f5es AVIP no LinkedIn, Upwork ou na sua pr\u00f3pria plataforma via API REST.",
+        "cta": "Obter Acesso \u00e0 API"
       },
       "aud3": {
         "title": "Construtores e Contribuidores",
-        "desc": "Publique seu trabalho on-chain. Construa uma reputação portátil que o acompanha entre ecossistemas.",
+        "desc": "Publique seu trabalho on-chain. Construa uma reputa\u00e7\u00e3o port\u00e1til que o acompanha entre ecossistemas.",
         "cta": "Publicar Scorecard"
       }
     },
     "ApiPreview": {
       "tagline": "API Empresarial",
-      "title1": "Verifique a reputação",
+      "title1": "Verifique a reputa\u00e7\u00e3o",
       "title2": "em uma chamada.",
-      "desc": "Integre as pontuações AVIP em qualquer plataforma. LinkedIn, Upwork, Fiverr — ou nas suas próprias ferramentas DAO. A partir de $0/mês.",
-      "viewDocs": "Ver Documentação",
-      "pricing": "Preços"
+      "desc": "Integre as pontua\u00e7\u00f5es AVIP em qualquer plataforma. LinkedIn, Upwork, Fiverr \u2014 ou nas suas pr\u00f3prias ferramentas DAO. A partir de $0/m\u00eas.",
+      "viewDocs": "Ver Documenta\u00e7\u00e3o",
+      "pricing": "Pre\u00e7os"
     },
     "FinalCTA": {
-      "title1": "A confiança é a nova",
+      "title1": "A confian\u00e7a \u00e9 a nova",
       "title2": "infraestrutura.",
-      "desc": "Comece a verificar a reputação dos construtores entre cadeias hoje mesmo.",
+      "desc": "Comece a verificar a reputa\u00e7\u00e3o dos construtores entre cadeias hoje mesmo.",
       "launchApp": "Iniciar Andromeda Core"
     },
     "Footer": {
-      "copyright": "© 2026 ANDROMEDA_COMPUTER",
+      "copyright": "\u00a9 2026 ANDROMEDA_COMPUTER",
       "app": "App"
     }
   },
@@ -1855,14 +1855,14 @@
   "viewDetails": "[MISSING]",
   "viewFull": "[MISSING]",
   "SolanaReputationFlow": {
-    "title": "PIPELINE DE REPUTAÇÃO SOLANA",
+    "title": "PIPELINE DE REPUTA\u00c7\u00c3O SOLANA",
     "live": "AO VIVO",
     "nodes": {
       "solanaDevnet": "Solana Devnet",
       "yellowstone": "Yellowstone gRPC",
       "avipEngine": "Motor AVIP",
       "arbitrumSepolia": "Arbitrum Sepolia",
-      "atlasIndex": "Índice ATLAS"
+      "atlasIndex": "\u00cdndice ATLAS"
     },
     "labels": {
       "slot": "Slot",
@@ -1887,65 +1887,74 @@
     "initializing": "INICIALIZANDO MONITOR DE PIPELINE..."
   },
   "RootstockBuilderScorecard": {
-      "Badges": {
-        "rootstockBuilder": "Construtor Rootstock",
-        "anomalyDetected": "⚠ ANOMALIA DETECTADA"
-      },
-      "Tiers": {
-        "elite": "ELITE",
-        "verified": "VERIFICADO",
-        "active": "ATIVO",
-        "emerging": "EMERGENTE"
-      },
-      "Loading": {
-        "consulting": "Consultando Subgraphs da Rootstock e Snapshot..."
-      },
-      "Error": {
-        "notFound": "Construtor não encontrado no Rootstock Collective",
-        "noActivity": "Este endereço não possui atividade on-chain nos subgraphs de Rewards ou Governança da Rootstock."
-      },
-      "ReputationBar": {
-        "label": "Pontuação de Reputação"
-      },
-      "Stats": {
-        "proposalsLabel": "Propostas de Governança",
-        "proposalsNone": "Sem propostas criadas",
-        "proposalsActive": "No Snapshot",
-        "votesLabel": "Votos Emitidos",
-        "votesActive": "Participação em governança",
-        "votesNone": "Sem votos registrados",
-        "stakingLabel": "Alocação em Staking",
-        "stakingSub": "Do Subgraph de Rewards",
-        "daysLabel": "Dias no Ecossistema",
-        "daysSub": "Calculado a partir do histórico de staking",
-        "daysNone": "N/D"
-      },
-      "Governance": {
-        "title": "Atividade de Governança",
-        "externalLink": "ROOTSTOCK GOVERNOR",
-        "emptyTitle": "Nenhuma proposta on-chain encontrada para este endereço no contrato Rootstock Governor.",
-        "emptyDetail": "Este construtor pode ter atividade no fórum Rootstock Discourse (fase pré-governança) ou participar da governança via staking sem propostas formais."
-      },
-      "Staking": {
-        "title": "Rewards e Staking",
-        "source": "ROOTSTOCK SUBGRAPH",
-        "allocationLabel": "Alocação Total",
-        "gaugesLabel": "Endereços de Gauges Activos",
-        "gaugesEmpty": "Nenhuma alocação em gauges encontrada. O construtor pode apenas deter tokens sem fazer staking."
-      },
-      "Formula": {
-        "title": "Fórmula de Reputación (AVIP v2.0)",
-        "confidence": "confiança",
-        "technical": "Pontuação Técnica",
-        "governance": "Pontuação de Governança",
-        "community": "Pontuação de Comunidade",
-        "avipScore": "Pontuação AVIP (0–100)",
-        "scaleFactor": "Fator de escala",
-        "finalScore": "Pontuação Final (0–999)"
-      },
-      "Banner": {
-        "title": "Pontuação AVIP da Andromeda — O Que Significa",
-        "description": "Este scorecard é gerado em tempo real a partir de dados on-chain (Subgraph de Rewards da Rootstock) e atividade de governança off-chain (Snapshot). O motor AVIP v2.0 aplica detecção de anomalias por entropia de Shannon e decaimento temporal assimétrico para produzir uma pontuação de reputação matematicamente verificável — ancorada ao padrão aberto da Andromeda e consistente em todos os ecossistemas suportados."
-      }
+    "Badges": {
+      "rootstockBuilder": "Construtor Rootstock",
+      "anomalyDetected": "\u26a0 ANOMALIA DETECTADA"
+    },
+    "Tiers": {
+      "elite": "ELITE",
+      "verified": "VERIFICADO",
+      "active": "ATIVO",
+      "emerging": "EMERGENTE"
+    },
+    "Loading": {
+      "consulting": "Consultando Subgraphs da Rootstock e Snapshot..."
+    },
+    "Error": {
+      "notFound": "Construtor n\u00e3o encontrado no Rootstock Collective",
+      "noActivity": "Este endere\u00e7o n\u00e3o possui atividade on-chain nos subgraphs de Rewards ou Governan\u00e7a da Rootstock."
+    },
+    "ReputationBar": {
+      "label": "Pontua\u00e7\u00e3o de Reputa\u00e7\u00e3o"
+    },
+    "Stats": {
+      "proposalsLabel": "Propostas de Governan\u00e7a",
+      "proposalsNone": "Sem propostas criadas",
+      "proposalsActive": "No Snapshot",
+      "votesLabel": "Votos Emitidos",
+      "votesActive": "Participa\u00e7\u00e3o em governan\u00e7a",
+      "votesNone": "Sem votos registrados",
+      "stakingLabel": "Aloca\u00e7\u00e3o em Staking",
+      "stakingSub": "Do Subgraph de Rewards",
+      "daysLabel": "Dias no Ecossistema",
+      "daysSub": "Calculado a partir do hist\u00f3rico de staking",
+      "daysNone": "N/D"
+    },
+    "Governance": {
+      "title": "Atividade de Governan\u00e7a",
+      "externalLink": "ROOTSTOCK GOVERNOR",
+      "emptyTitle": "Nenhuma proposta on-chain encontrada para este endere\u00e7o no contrato Rootstock Governor.",
+      "emptyDetail": "Este construtor pode ter atividade no f\u00f3rum Rootstock Discourse (fase pr\u00e9-governan\u00e7a) ou participar da governan\u00e7a via staking sem propostas formais."
+    },
+    "Staking": {
+      "title": "Rewards e Staking",
+      "source": "ROOTSTOCK SUBGRAPH",
+      "allocationLabel": "Aloca\u00e7\u00e3o Total",
+      "gaugesLabel": "Endere\u00e7os de Gauges Activos",
+      "gaugesEmpty": "Nenhuma aloca\u00e7\u00e3o em gauges encontrada. O construtor pode apenas deter tokens sem fazer staking."
+    },
+    "Formula": {
+      "title": "F\u00f3rmula de Reputaci\u00f3n (AVIP v2.0)",
+      "confidence": "confian\u00e7a",
+      "technical": "Pontua\u00e7\u00e3o T\u00e9cnica",
+      "governance": "Pontua\u00e7\u00e3o de Governan\u00e7a",
+      "community": "Pontua\u00e7\u00e3o de Comunidade",
+      "avipScore": "Pontua\u00e7\u00e3o AVIP (0\u2013100)",
+      "scaleFactor": "Fator de escala",
+      "finalScore": "Pontua\u00e7\u00e3o Final (0\u2013999)"
+    },
+    "Banner": {
+      "title": "Pontua\u00e7\u00e3o AVIP da Andromeda \u2014 O Que Significa",
+      "description": "Este scorecard \u00e9 gerado em tempo real a partir de dados on-chain (Subgraph de Rewards da Rootstock) e atividade de governan\u00e7a off-chain (Snapshot). O motor AVIP v2.0 aplica detec\u00e7\u00e3o de anomalias por entropia de Shannon e decaimento temporal assim\u00e9trico para produzir uma pontua\u00e7\u00e3o de reputa\u00e7\u00e3o matematicamente verific\u00e1vel \u2014 ancorada ao padr\u00e3o aberto da Andromeda e consistente em todos os ecossistemas suportados."
     }
+  },
+  "FESDashboardLogin": {
+    "title": "Acesso Restrito",
+    "subtitle": "Painel de Monitoramento do FES Pilot",
+    "passwordLabel": "Senha",
+    "passwordPlaceholder": "Senha",
+    "submitButton": "Entrar",
+    "errorInvalid": "Credenciais inv\u00e1lidas",
+    "errorBlocked": "Muitas tentativas. Aguarde 15 minutos."
   }
+}
