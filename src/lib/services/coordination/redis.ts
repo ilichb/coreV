@@ -2,7 +2,14 @@ import Redis from 'ioredis';
 import { logger } from '../../utils/logger';
 
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-export const redis = new Redis(redisUrl);
+export const redis = new Redis(redisUrl, {
+  maxRetriesPerRequest: 1,
+  connectTimeout: 5000,
+  retryStrategy: (times) => {
+    if (times > 3) return null;
+    return Math.min(times * 200, 1000);
+  },
+});
 
 export const redisService = {
   async get(key: string): Promise<string | null> {
