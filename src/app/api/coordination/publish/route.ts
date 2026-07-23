@@ -92,7 +92,13 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Verificar firma (Fase 4 crítica)
-    let signatureData = null;
+    let signatureData: {
+      signerDid: string;
+      signature: string;
+      chain: string;
+      nonce: string;
+      signatureType: 'EIP-712' | 'Ed25519' | 'none';
+    } | null = null;
     if (signature && nonce) {
       logger.info('Verifying cryptographic signature', { chain: didParts.chain });
 

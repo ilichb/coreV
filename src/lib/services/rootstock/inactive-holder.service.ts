@@ -44,7 +44,7 @@ const RIF_TOKEN_ADDRESS = process.env.RIF_TOKEN_ADDRESS || '0x2AcC95758f8b5F5834
 const MIN_BALANCE = BigInt(process.env.RIF_MIN_BALANCE || '500') * BigInt(10) ** BigInt(18);
 const MIN_DAYS_INACTIVE = parseInt(process.env.RIF_MIN_DAYS_INACTIVE || '30');
 const CUTOFF_DATE = new Date('2026-06-01T00:00:00Z');
-const CACHE_TTL = 600;
+const CACHE_TTL = 1800; // subido de 600 a 1800 (30 min) como colchón ante retrasos de GitHub Actions
 const SUBGRAPH_PAGE_SIZE = 1000;
 const RPC_BATCH_SIZE = 20;
 
@@ -81,6 +81,11 @@ class InactiveHolderService {
     if (cached) {
       return JSON.parse(cached);
     }
+    return this.emptyResult('Cache not yet populated — waiting for background refresh');
+  }
+
+  async refreshInactiveHoldersCache(): Promise<InactiveHoldersResult> {
+    const cacheKey = 'rootstock:inactive:holders:v1';
 
     if (!REWARDS_SUBGRAPH_URL) {
       return this.emptyResult('THEGRAPH_API_KEY not configured');
@@ -94,7 +99,6 @@ class InactiveHolderService {
     const currentBlockHex = await rpcBalancer.call<string>({ method: 'eth_blockNumber', params: [] });
     const currentBlockNum = parseInt(currentBlockHex, 16);
 
-    // Stage A+B: Filter wallets that pass block-level checks
     const candidates = backers
       .map(b => ({
         wallet: b.id.toLowerCase(),
@@ -103,7 +107,6 @@ class InactiveHolderService {
       .filter(c => c.lastBlock > 0)
       .filter(c => (currentBlockNum - c.lastBlock) >= 100);
 
-    // Stage C: Batch convert unique blocks to dates
     const uniqueBlocks = [...new Set(candidates.map(c => c.lastBlock))];
     const blockDates = await this.batchBlockToDate(uniqueBlocks);
 
@@ -114,14 +117,12 @@ class InactiveHolderService {
       return daysInactive > MIN_DAYS_INACTIVE && date < CUTOFF_DATE;
     });
 
-    // Pre-populate daysInactive for matched wallets
     const dateFilteredWithDays = dateFiltered.map(c => ({
       ...c,
       daysInactive: Math.floor((Date.now() - blockDates.get(c.lastBlock)!.getTime()) / (1000 * 60 * 60 * 24)),
       lastStakeActivity: blockDates.get(c.lastBlock)!,
     }));
 
-    // Stage D: Batch verify RIF balances
     const balances = await this.batchGetRIFBalances(dateFilteredWithDays.map(c => c.wallet));
 
     const holders: InactiveHolder[] = [];
