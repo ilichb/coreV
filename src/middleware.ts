@@ -44,7 +44,7 @@ export function middleware(request: NextRequest) {
 
   // ── 1. APIs internas protegidas con X-Internal-Key ───────────────────────
   //    /api/fes/* excepto check-wallet y dashboard-login
-  if (cleanPath.startsWith('/api/fes/') && pathname.startsWith('/api/fes/')) {
+  if (cleanPath.startsWith('/api/fes/')) {
     const isPublic = cleanPath.includes('/check-wallet') || cleanPath.includes('/dashboard-login');
     if (!isPublic) {
       const key = request.headers.get('x-internal-key');
@@ -55,7 +55,13 @@ export function middleware(request: NextRequest) {
         );
       }
     }
-    return intlMiddleware(request);
+    // Las APIs no pasan por intlMiddleware (evita redirect con locale)
+    return NextResponse.next();
+  }
+
+  // ── Para otras APIs: no pasar por intlMiddleware ──────────────────────────
+  if (cleanPath.startsWith('/api/')) {
+    return NextResponse.next();
   }
 
   // ── 2. Página de login del dashboard → permitir acceso público ───────────
