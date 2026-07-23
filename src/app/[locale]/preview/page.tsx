@@ -15,7 +15,7 @@ interface CheckResult {
   balance?: number;
   daysInactive?: number;
   lastStakeActivity?: string;
-  message?: {
+  message?: string | {
     subject: string;
     body: string;
     variant: string;
@@ -153,14 +153,16 @@ export default function PreviewPage() {
                     <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest">
                       {lang === 'en' ? 'Wallet' : 'Wallet'}
                     </span>
-                    <span className={`text-[9px] font-mono font-bold px-2 py-1 border ${result.cohort === 'VIP'
-                      ? 'border-[#ff6b6b]/40 text-[#ff6b6b]'
-                      : result.cohort === 'B'
-                        ? 'border-[#f59e0b]/40 text-[#f59e0b]'
-                        : 'border-[#00f0ff]/40 text-[#00f0ff]'
-                      }`}>
-                      {result.cohort === 'VIP' ? 'VIP' : `COHORT ${result.cohort}`}
-                    </span>
+                    {result.cohort && (
+                      <span className={`text-[9px] font-mono font-bold px-2 py-1 border ${result.cohort === 'VIP'
+                        ? 'border-[#ff6b6b]/40 text-[#ff6b6b]'
+                        : result.cohort === 'B'
+                          ? 'border-[#f59e0b]/40 text-[#f59e0b]'
+                          : 'border-[#00f0ff]/40 text-[#00f0ff]'
+                        }`}>
+                        {result.cohort === 'VIP' ? 'VIP' : `COHORT ${result.cohort}`}
+                      </span>
+                    )}
                   </div>
                   <div className="text-[10px] font-mono text-gray-400 break-all">
                     {shortenHash(result.wallet)}
@@ -225,7 +227,7 @@ export default function PreviewPage() {
                 )}
 
                 {/* Message */}
-                {result.message && (
+                {result.message && typeof result.message === 'object' && (
                   <div className="border border-gray-700/30 bg-black/40">
                     <div className="border-b border-gray-700/30 px-4 py-3 flex items-center gap-2">
                       <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 border ${result.message.variant === 'vip'
@@ -252,6 +254,14 @@ export default function PreviewPage() {
                       <span className="text-[8px] font-mono text-gray-700">
                         {lang === 'en' ? 'View logged' : 'Vista registrada'} — {new Date().toISOString()}
                       </span>
+                    </div>
+                  </div>
+                )}
+
+                {result.message && typeof result.message === 'string' && (
+                  <div className="border border-gray-700/30 bg-black/40 p-4 text-center">
+                    <div className="text-[10px] font-mono text-gray-500">
+                      {result.message}
                     </div>
                   </div>
                 )}
