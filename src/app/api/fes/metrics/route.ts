@@ -17,9 +17,17 @@ export async function GET() {
     if (inactive.count === 0) {
       return NextResponse.json({
         count: 0,
-        cohorts: null,
-        whales: null,
-        messages: null,
+        holders: [],
+        cohorts: {
+          A: { count: 0, avgBalance: 0, avgDaysInactive: 0, totalBalance: 0 },
+          B: { count: 0, avgBalance: 0, avgDaysInactive: 0, totalBalance: 0 },
+        },
+        whales: [],
+        messages: {
+          control: { total: 0, sample: [] },
+          treatment: { total: 0, sample: [] },
+          vip: { total: 0, sample: [] },
+        },
         reactivation: null,
         metadata: {
           source: 'Rewards Subgraph',
