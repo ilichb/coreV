@@ -48,7 +48,14 @@ export function middleware(request: NextRequest) {
     const isPublic = cleanPath.includes('/check-wallet') || cleanPath.includes('/dashboard-login');
     if (!isPublic) {
       const key = request.headers.get('x-internal-key');
-      if (INTERNAL_KEY && key !== INTERNAL_KEY) {
+      const hasValidKey = INTERNAL_KEY && key === INTERNAL_KEY;
+
+      // El dashboard logueado (cookie de sesion) tambien puede llamar estas APIs,
+      // sin necesidad de exponer X-Internal-Key al frontend.
+      const sessionCookie = request.cookies.get('fes_dashboard_session');
+      const hasValidSession = !!sessionCookie?.value;
+
+      if (!hasValidKey && !hasValidSession) {
         return new NextResponse(
           JSON.stringify({ error: 'Unauthorized', message: 'Internal endpoint. Access restricted.' }),
           { status: 401, headers: { 'Content-Type': 'application/json' } }
