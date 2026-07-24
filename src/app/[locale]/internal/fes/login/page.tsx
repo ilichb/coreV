@@ -2,11 +2,10 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter, usePathname } from '@/i18n/routing';
+import { usePathname } from 'next/navigation';
 
 export default function FESLoginPage() {
   const t = useTranslations('FESDashboardLogin');
-  const router = useRouter();
   const pathname = usePathname();
 
   const [password, setPassword] = useState('');
@@ -28,9 +27,9 @@ export default function FESLoginPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        // Extraer locale del pathname actual
+        // Usar window.location.href para evitar duplicación de locale por next-intl
         const locale = pathname?.split('/')[1] || 'en';
-        router.push(`/${locale}/internal/fes`);
+        window.location.href = `/${locale}/internal/fes`;
       } else {
         setError(data.error === 'Too many attempts'
           ? t('errorBlocked')
