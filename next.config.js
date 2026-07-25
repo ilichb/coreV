@@ -4,6 +4,7 @@ const withNextIntl = require('next-intl/plugin')('./src/i18n/request.ts');
 const nextConfig = {
   output: 'standalone',
   productionBrowserSourceMaps: true, // TEMPORAL: para diagnosticar el crash de /internal/fes — revertir despues
+  productionBrowserSourceMaps: true, // TEMPORAL: para diagnosticar el crash de /internal/fes — revertir despues
   
   // En Next.js 15+, cuando usas el App Router y next-intl con middleware, 
   // es mejor NO definir el objeto i18n aquí si da problemas de redirección.
