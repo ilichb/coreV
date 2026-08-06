@@ -60,6 +60,8 @@ export default function PreviewPage() {
         body: JSON.stringify({ wallet: trimmed }),
       });
       const data = await res.json();
+      console.log('[Preview] API response:', JSON.stringify(data, null, 2));
+      console.log('[Preview] Has cohort?', !!data.cohort, '| Has message?', !!data.message, '| Has yieldProjection?', !!data.yieldProjection);
       if (data.error) throw new Error(data.error);
       setResult(data);
     } catch (e: any) {

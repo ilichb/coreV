@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
 
         // 1. Verificar si el holder está en la lista de inactivos
         const activity = await inactiveHolderService.getHolderActivity(wallet);
+        console.log('[API] activity:', activity ? `found (balance: ${activity.balance}, days: ${activity.daysInactive})` : 'null');
 
         if (!activity) {
             return NextResponse.json({
@@ -49,6 +50,7 @@ export async function POST(request: NextRequest) {
 
         // 2. Obtener cohorte (reutilizar activity ya fetched)
         const cohortInfo = await cohortAssignmentService.getCohort(wallet, activity);
+        console.log('[API] cohortInfo:', cohortInfo ? `cohort: ${cohortInfo.cohort}` : 'null - falling back');
 
         if (!cohortInfo) {
             return NextResponse.json({
@@ -65,6 +67,7 @@ export async function POST(request: NextRequest) {
             activity.balance,
             activity.daysInactive
         );
+        console.log('[API] yieldProjection:', yieldProjection ? `yield: ${yieldProjection.projectedYieldRIF} RIF, APR: ${yieldProjection.aprUsed}%` : 'null');
 
         // 4. Generar mensaje según cohorte
         const variantMap: Record<string, MessageVariant> = {
