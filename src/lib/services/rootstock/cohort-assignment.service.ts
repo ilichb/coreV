@@ -102,19 +102,32 @@ class CohortAssignmentService {
     };
   }
 
+  assignSingleHolder(holder: InactiveHolder): CohortAssignment {
+    if (holder.balance >= WHALE_BALANCE_THRESHOLD) {
+      return { ...holder, cohort: 'WHALE' };
+    }
+    const cohort: Cohort = holder.daysInactive % 2 === 0 ? 'A' : 'B';
+    return { ...holder, cohort };
+  }
+
   async getCohort(address: string, existingActivity?: InactiveHolder): Promise<{ cohort: Cohort; assignment: CohortAssignment } | null> {
     const activity = existingActivity || await inactiveHolderService.getHolderActivity(address);
     if (!activity) return null;
 
-    const holders = await inactiveHolderService.findInactiveHolders();
-    if (holders.count === 0) return null;
+    try {
+      const holders = await inactiveHolderService.findInactiveHolders();
+      if (holders.count > 0) {
+        const result = this.assign(holders.holders);
+        const all = [...result.cohorts.A, ...result.cohorts.B, ...result.whales];
+        const found = all.find(a => a.wallet === address.toLowerCase());
+        if (found) return { cohort: found.cohort, assignment: found };
+      }
+    } catch (err) {
+      console.error('[Cohort] findInactiveHolders failed, using direct assignment:', err);
+    }
 
-    const result = this.assign(holders.holders);
-    const all = [...result.cohorts.A, ...result.cohorts.B, ...result.whales];
-    const found = all.find(a => a.wallet === address.toLowerCase());
-    if (!found) return null;
-
-    return { cohort: found.cohort, assignment: found };
+    const assignment = this.assignSingleHolder(activity);
+    return { cohort: assignment.cohort, assignment };
   }
 }
 
