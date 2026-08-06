@@ -47,8 +47,8 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // 2. Obtener cohorte
-        const cohortInfo = await cohortAssignmentService.getCohort(wallet);
+        // 2. Obtener cohorte (reutilizar activity ya fetched)
+        const cohortInfo = await cohortAssignmentService.getCohort(wallet, activity);
 
         if (!cohortInfo) {
             return NextResponse.json({
@@ -89,18 +89,22 @@ export async function POST(request: NextRequest) {
         );
 
         // 5. Loguear la vista en fes_events (Supabase)
-        await fesStorage.recordEvent({
-            wallet,
-            event_type: 'preview_view',
-            payload: {
-                cohort: cohortInfo.cohort,
-                message_variant: variant,
-                balance: activity.balance,
-                daysInactive: activity.daysInactive,
-                projectedYield: yieldProjection.projectedYieldRIF,
-                timestamp: new Date().toISOString(),
-            },
-        });
+        try {
+            await fesStorage.recordEvent({
+                wallet,
+                event_type: 'preview_view',
+                payload: {
+                    cohort: cohortInfo.cohort,
+                    message_variant: variant,
+                    balance: activity.balance,
+                    daysInactive: activity.daysInactive,
+                    projectedYield: yieldProjection.projectedYieldRIF,
+                    timestamp: new Date().toISOString(),
+                },
+            });
+        } catch (err) {
+            console.error('[FES] recordEvent failed:', err);
+        }
 
         // 6. Loguear la vista en MongoDB (para reportes diarios + IPFS)
         // Fire-and-forget: no bloquea la respuesta

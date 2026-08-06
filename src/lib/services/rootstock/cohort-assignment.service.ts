@@ -102,8 +102,8 @@ class CohortAssignmentService {
     };
   }
 
-  async getCohort(address: string): Promise<{ cohort: Cohort; assignment: CohortAssignment } | null> {
-    const activity = await inactiveHolderService.getHolderActivity(address);
+  async getCohort(address: string, existingActivity?: InactiveHolder): Promise<{ cohort: Cohort; assignment: CohortAssignment } | null> {
+    const activity = existingActivity || await inactiveHolderService.getHolderActivity(address);
     if (!activity) return null;
 
     const holders = await inactiveHolderService.findInactiveHolders();

@@ -327,6 +327,7 @@ class InactiveHolderService {
         method: 'eth_getBlockByNumber',
         params: [hex, false],
         timeout: 10000,
+        retries: 2,
       });
 
       if (block && block.timestamp) {
@@ -398,6 +399,7 @@ class InactiveHolderService {
         method: 'eth_call',
         params: [{ to: RIF_TOKEN_ADDRESS, data }, 'latest'],
         timeout: 10000,
+        retries: 2,
       });
 
       const balance = BigInt(hex || '0');
