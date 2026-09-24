@@ -77,7 +77,13 @@ export async function GET() {
     return NextResponse.json({
       count: inactive.count,
       holders: holderDetails,
-      cohorts: cohortResult.summary,
+      cohorts: {
+        A: cohortResult.summary.cohortA,
+        B: cohortResult.summary.cohortB,
+        total: cohortResult.summary.total,
+        mainPool: cohortResult.summary.mainPool,
+        whales: cohortResult.summary.whales,
+      },
       whales: cohortResult.whales.map(w => ({
         ...w,
         walletHash: walletHashService.hashWallet(w.wallet).walletHash,
