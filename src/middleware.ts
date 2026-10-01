@@ -58,6 +58,8 @@ export async function middleware(request: NextRequest) {
   const isLoginApi =
     pathname === '/api/internal/login' || pathname === '/api/internal/logout';
   const isMetricsApi = pathname === '/api/fes/metrics';
+  // Escritura a fes_participants: mismo control que /api/fes/metrics.
+  const isSeedApi = pathname === '/api/fes/seed-participants';
   const isInternalPage =
     rest === '/internal' || rest.startsWith('/internal/');
 
@@ -68,8 +70,8 @@ export async function middleware(request: NextRequest) {
     return intlMiddleware(request);
   }
 
-  // ── API de métricas: cookie de sesión O X-Internal-Key ───────────────────
-  if (isMetricsApi) {
+  // ── API de métricas y seeding: cookie de sesión O X-Internal-Key ───────────
+  if (isMetricsApi || isSeedApi) {
     if (isDev) return NextResponse.next();
     if ((await hasValidCookie(request)) || hasValidInternalKey(request)) {
       return NextResponse.next();
@@ -100,6 +102,7 @@ export const config = {
     // APIs internas
     '/api/internal/:path*',
     '/api/fes/metrics',
+    '/api/fes/seed-participants',
     // Páginas internas (con y sin prefijo de locale)
     '/internal/:path*',
     '/en/internal/:path*',

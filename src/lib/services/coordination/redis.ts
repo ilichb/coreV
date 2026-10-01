@@ -5,7 +5,40 @@ const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 let client: Redis | null = null;
 let useInMemory = false;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-const store = new Map<string, string>();
+let connectPromise: Promise<void> | null = null;
+
+/**
+ * Cache in-memory de respaldo.
+ * Guarda `expiresAt` porque el Map no aplica TTL solo: sin esto, una entrada
+ * cacheada durante un corte de Redis sobrevive indefinidamente y el proceso
+ * sigue sirviendo datos viejos creyendo que están frescos.
+ */
+const store = new Map<string, { value: string; expiresAt: number | null }>();
+const STORE_SWEEP_THRESHOLD = 1000;
+
+function storeGet(key: string): string | null {
+  const entry = store.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt !== null && entry.expiresAt <= Date.now()) {
+    store.delete(key);
+    return null;
+  }
+  return entry.value;
+}
+
+function storeSet(key: string, value: string, ttlSeconds?: number): void {
+  store.set(key, {
+    value,
+    expiresAt: ttlSeconds ? Date.now() + ttlSeconds * 1000 : null,
+  });
+  // Barrido perezoso para que el Map no crezca sin limite en procesos largos.
+  if (store.size > STORE_SWEEP_THRESHOLD) {
+    const now = Date.now();
+    for (const [k, e] of store) {
+      if (e.expiresAt !== null && e.expiresAt <= now) store.delete(k);
+    }
+  }
+}
 
 function getClient(): Redis | null {
   if (useInMemory) return null;
@@ -47,11 +80,18 @@ function getClient(): Redis | null {
       useInMemory = false;
     });
 
-    client.connect().catch((err: any) => {
-      console.error(`[Redis] Initial connection failed: ${err.message}, using in-memory fallback`);
-      useInMemory = true;
-      scheduleReconnect();
-    });
+    // Se guarda la promesa para que las operaciones puedan esperar a que la
+    // conexion este lista. Sin esto, con lazyConnect el primer comando sale
+    // antes de que ioredis conecte y falla con "Stream isn't writeable".
+    connectPromise = client.connect().then(
+      () => { connectPromise = null; },
+      (err: any) => {
+        connectPromise = null;
+        console.error(`[Redis] Initial connection failed: ${err.message}, using in-memory fallback`);
+        useInMemory = true;
+        scheduleReconnect();
+      }
+    );
 
     return client;
   } catch (err: any) {
@@ -74,25 +114,43 @@ function scheduleReconnect() {
   }, 30000);
 }
 
+/** Helper aparte para que TS no estreche el tipo de `status` entre llamadas. */
+function isReady(c: Redis): boolean {
+  return (c as { status: string }).status === 'ready';
+}
+
+/**
+ * Devuelve un cliente listo para usar, esperando la conexion si esta en curso.
+ * Evita el falso negativo de healthCheck(): sin esto, la primera llamada
+ * dispara connect() y consulta antes de que el socket este listo.
+ */
+async function readyClient(): Promise<Redis | null> {
+  const c = getClient();
+  if (!c) return null;
+  if (isReady(c)) return c;
+  if (connectPromise) {
+    try { await connectPromise; } catch { /* el catch ya lo logueó */ }
+  }
+  if (useInMemory) return null;
+  return isReady(c) ? c : null;
+}
+
 export const redisService = {
   async get(key: string): Promise<string | null> {
-    const c = getClient();
-    if (!c) {
-      const val = store.get(key) || null;
-      return val;
-    }
+    const c = await readyClient();
+    if (!c) return storeGet(key);
     try {
       return await c.get(key);
     } catch (err: any) {
       console.error(`[Redis] GET error for key "${key}": ${err.message}`);
-      return store.get(key) || null;
+      return storeGet(key);
     }
   },
 
   async set(key: string, value: string, ttlSeconds?: number): Promise<void> {
-    const c = getClient();
+    const c = await readyClient();
     if (!c) {
-      store.set(key, value);
+      storeSet(key, value, ttlSeconds);
       return;
     }
     try {
@@ -103,7 +161,7 @@ export const redisService = {
       }
     } catch (err: any) {
       console.error(`[Redis] SET error for key "${key}": ${err.message}`);
-      store.set(key, value);
+      storeSet(key, value, ttlSeconds);
     }
   },
 
@@ -111,7 +169,7 @@ export const redisService = {
     const current = await this.get(key);
     const count = current ? parseInt(current) : 0;
     if (count >= limit) {
-      const c = getClient();
+      const c = await readyClient();
       let ttl = windowSeconds;
       if (c) {
         try {
@@ -125,7 +183,7 @@ export const redisService = {
   },
 
   async healthCheck(): Promise<boolean> {
-    const c = getClient();
+    const c = await readyClient();
     if (!c) return false;
     try {
       const res = await c.ping();

@@ -36,7 +36,7 @@
  *   CREATE INDEX idx_fes_participants_cohort ON fes_participants(cohort);
  */
 
-import { supabase } from '@/lib/services/coordination/supabase';
+import { getSupabaseAdmin, adminWrite } from '@/lib/services/coordination/supabase-admin';
 import { logger } from '@/lib/utils/logger';
 
 export type Cohort = 'A' | 'B' | 'VIP';
@@ -71,28 +71,34 @@ export interface FESEvent {
 class FESStorageService {
   // ── Participants ──────────────────────────────────────────────────────────
 
+  /**
+   * Inserta o actualiza un participante.
+   * Relanza el error: el comportamiento anterior (loggear y devolver void)
+   * impedía que los callers distinguiran éxito de fallo.
+   */
   async upsertParticipant(p: Omit<FESParticipant, 'created_at' | 'updated_at'>): Promise<void> {
     const now = new Date().toISOString();
-    const { error } = await supabase.from('fes_participants').upsert(
-      { ...p, updated_at: now },
-      { onConflict: 'wallet' }
+    await adminWrite('upsertParticipant', (c) =>
+      c.from('fes_participants').upsert(
+        { ...p, wallet: p.wallet.toLowerCase(), updated_at: now },
+        { onConflict: 'wallet' }
+      )
     );
-    if (error) {
-      logger.error('FES storage: upsertParticipant failed', error);
-    }
   }
 
+  /** Idempotente por `wallet` (PK). Re-ejecutarlo no duplica filas. */
   async batchUpsertParticipants(participants: Omit<FESParticipant, 'created_at' | 'updated_at'>[]): Promise<void> {
+    if (participants.length === 0) return;
     const now = new Date().toISOString();
-    const rows = participants.map(p => ({ ...p, updated_at: now }));
-    const { error } = await supabase.from('fes_participants').upsert(rows, { onConflict: 'wallet' });
-    if (error) {
-      logger.error('FES storage: batchUpsertParticipants failed', error);
-    }
+    const rows = participants.map(p => ({ ...p, wallet: p.wallet.toLowerCase(), updated_at: now }));
+    await adminWrite(`batchUpsertParticipants (${rows.length} filas)`, (c) =>
+      c.from('fes_participants').upsert(rows, { onConflict: 'wallet' })
+    );
+    logger.info(`FES storage: ${rows.length} participants upserted`);
   }
 
   async getParticipant(wallet: string): Promise<FESParticipant | null> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from('fes_participants')
       .select('*')
       .eq('wallet', wallet.toLowerCase())
@@ -106,7 +112,7 @@ class FESStorageService {
   }
 
   async listParticipants(cohort?: Cohort, reactivated?: boolean): Promise<FESParticipant[]> {
-    let query = supabase.from('fes_participants').select('*');
+    let query = getSupabaseAdmin().from('fes_participants').select('*');
     if (cohort) query = query.eq('cohort', cohort);
     if (reactivated !== undefined) query = query.eq('reactivated', reactivated);
     query = query.order('created_at', { ascending: false });
@@ -120,31 +126,48 @@ class FESStorageService {
   }
 
   async updateParticipantField(wallet: string, fields: Partial<FESParticipant>): Promise<void> {
-    const { error } = await supabase
+    const { error } = await getSupabaseAdmin()
       .from('fes_participants')
       .update({ ...fields, updated_at: new Date().toISOString() })
       .eq('wallet', wallet.toLowerCase());
-
     if (error) {
-      logger.error('FES storage: updateParticipantField failed', error);
+      throw new Error(`FES storage: updateParticipantField failed → ${error.code}: ${error.message}`);
     }
+  }
+
+  /**
+   * UPDATE sobre una fila existente. Relanza el error.
+   *
+   * OJO: un UPDATE sobre un `wallet` inexistente NO da error en PostgREST
+   * (devuelve 0 filas afectadas). Para detecting eso está `countUpdated`.
+   */
+  async countUpdated(wallet: string, fields: Partial<FESParticipant>): Promise<number> {
+    const now = new Date().toISOString();
+    const data = await adminWrite<unknown[]>('countUpdated', (c) =>
+      c
+        .from('fes_participants')
+        .update({ ...fields, updated_at: now })
+        .eq('wallet', wallet.toLowerCase())
+        .select('wallet')
+    );
+    return Array.isArray(data) ? data.length : 0;
   }
 
   // ── Events ────────────────────────────────────────────────────────────────
 
   async recordEvent(event: Omit<FESEvent, 'id' | 'created_at'>): Promise<void> {
-    const { error } = await supabase.from('fes_events').insert({
+    const { error } = await getSupabaseAdmin().from('fes_events').insert({
       wallet: event.wallet.toLowerCase(),
       event_type: event.event_type,
       payload: event.payload || null,
     });
     if (error) {
-      logger.error('FES storage: recordEvent failed', error);
+      throw new Error(`FES storage: recordEvent failed → ${error.code}: ${error.message}`);
     }
   }
 
   async getEvents(wallet?: string, eventType?: string, limit = 100): Promise<FESEvent[]> {
-    let query = supabase.from('fes_events').select('*');
+    let query = getSupabaseAdmin().from('fes_events').select('*');
     if (wallet) query = query.eq('wallet', wallet.toLowerCase());
     if (eventType) query = query.eq('event_type', eventType);
     query = query.order('created_at', { ascending: false }).limit(limit);

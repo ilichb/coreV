@@ -1,4 +1,9 @@
 # ─── Environment & Secrets ────────────────────────────────────────────────────
+# Semilla del snapshot FES + archivos con addresses en claro.
+# La semilla se PUBLICA, pero no va al repo: la custodian vos.
+# local-snapshots/ contiene el mapping wallet → hash y el balance exacto.
+.fes-snapshot-seed
+local-snapshots/
 .env
 .env.*
 .env.local

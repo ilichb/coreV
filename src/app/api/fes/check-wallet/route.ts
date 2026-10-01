@@ -91,7 +91,11 @@ export async function POST(request: NextRequest) {
             'en' // Default language, could be extended with Accept-Language header
         );
 
-        // 5. Loguear la vista en fes_events (Supabase)
+        // 5. Loguear la vista en fes_events (Supabase).
+        // El resultado se refleja en `viewLogged`: antes devolvía `true` fijo
+        // aunque el INSERT fuera rechazado por RLS, así que la UI reportaba
+        // éxito en un log que nunca ocurrió.
+        let viewLogged = false;
         try {
             await fesStorage.recordEvent({
                 wallet,
@@ -105,6 +109,7 @@ export async function POST(request: NextRequest) {
                     timestamp: new Date().toISOString(),
                 },
             });
+            viewLogged = true;
         } catch (err) {
             console.error('[FES] recordEvent failed:', err);
         }
@@ -138,7 +143,7 @@ export async function POST(request: NextRequest) {
                 aprUsed: yieldProjection.aprUsed,
                 recommendedBuilders: yieldProjection.recommendedBuilders,
             },
-            viewLogged: true,
+            viewLogged,
         });
     } catch (error: any) {
         return NextResponse.json(
