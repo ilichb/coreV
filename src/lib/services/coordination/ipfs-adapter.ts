@@ -12,16 +12,32 @@ async function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function uploadScorecardToIPFS(scorecard: any, retries = 3): Promise<IPFSUploadResult> {
+/**
+ * Sube un JSON a IPFS vía Pinata.
+ *
+ * @param scorecard contenido a pinear
+ * @param retries    reintentos ante fallo de red
+ * @param name       nombre del pin. Opcional para no romper los callers
+ *                  existentes; si se omite se mantiene el nombre histórico.
+ *                  OJO: el nombre forma parte del wrapper DAG-PB, así que
+ *                  cambiarlo produce un CID distinto para contenido idéntico.
+ */
+export async function uploadScorecardToIPFS(
+  scorecard: any,
+  retries = 3,
+  name?: string,
+): Promise<IPFSUploadResult> {
   const jwt = process.env.PINATA_JWT;
   if (!jwt) throw new Error('PINATA_JWT is not defined');
 
+  const pinName = name ?? `andromeda-scorecard-${Date.now()}.json`;
+
   const postData = JSON.stringify({
     pinataContent: scorecard,
-    pinataMetadata: { name: `andromeda-scorecard-${Date.now()}.json` }
+    pinataMetadata: { name: pinName }
   });
 
-  logger.info(`📤 Sending ${Buffer.byteLength(postData)} bytes to Pinata...`);
+  logger.info(`📤 Sending ${Buffer.byteLength(postData)} bytes to Pinata as "${pinName}"...`);
 
   const url = new URL('https://api.pinata.cloud/pinning/pinJSONToIPFS');
   const options = {

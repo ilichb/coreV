@@ -351,10 +351,13 @@ async function main() {
     process.exit(0);
   }
 
-  // Upload a IPFS: un solo JSON
+  // Upload a IPFS: un solo JSON, con nombre propio (queda visible en los
+  // exploradores de IPFS).
+  const PIN_NAME = 'fes-pilot-snapshot-v1.json';
   const { uploadScorecardToIPFS, getFromIPFS } = await import('../src/lib/services/coordination/ipfs-adapter');
-  const uploaded = await uploadScorecardToIPFS(snapshot);
-  console.log(`\nCID: ${uploaded.cid}`);
+  const uploaded = await uploadScorecardToIPFS(snapshot, 3, PIN_NAME);
+  console.log(`\nNombre pin: ${PIN_NAME}`);
+  console.log(`CID: ${uploaded.cid}`);
   console.log(`URL: ${uploaded.url}`);
   console.log(`Bytes: ${uploaded.size}`);
 
