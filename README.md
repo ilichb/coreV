@@ -9,6 +9,8 @@
 
 > 🎯 **Mission:** Convert the 97.7% idle RIF supply into productive capital through an activation dashboard, automated impact reports, and external data feeds for the **FES (Framework for Engagement & Staking)** developed by the Rootstock Lab.
 
+> 📌 **Note on naming:** An earlier version of this README used "Funding Efficiency Score" as the expansion of FES. That was incorrect. FES in this project stands for Framework for Engagement & Staking, which is the pilot's internal design name. The Funding Efficiency Score is a separate framework developed by the Rootstock Lab. Corrected on October 10, 2026.
+
 ---
 
 ## ⚡ What Already Exists for Rootstock (Live on Mainnet)
