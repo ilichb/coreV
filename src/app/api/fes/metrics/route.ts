@@ -74,6 +74,48 @@ export async function GET() {
 
     const reactivation = await fesStorage.getReactivationMetrics();
 
+    // Cohorte congelada (lista persistida en fes_participants vs. detección en vivo).
+    // La brecha frozen − stillInactive son las reactivaciones: es la métrica de éxito.
+    //
+    // IMPORTANTE: esto es la fuente de verdad del piloto. La detección en vivo de
+    // arriba re-asigna cohortes desde cero sobre lo que hoy califica, y va a
+    // divergir cada vez más (wallets que se des-stakean o reactivan salen del
+    // detector pero siguen en la cohorte congelada). El snapshot publicado en
+    // IPFS corresponde a ESTA lista, no a la de arriba.
+    const frozen = await fesStorage.listParticipants();
+
+    const frozenDistribution = frozen.reduce<Record<string, number>>((acc, p) => {
+      acc[p.cohort] = (acc[p.cohort] ?? 0) + 1;
+      return acc;
+    }, {});
+
+    const frozenCohort = {
+      total: frozen.length,
+      reactivated: frozen.filter(p => p.reactivated).length,
+      stillInactive: frozen.filter(p => !p.reactivated).length,
+      contacted: frozen.filter(p => p.message_sent_at !== null).length,
+      cohortDistribution: frozenDistribution,
+      participants: frozen.map(p => ({
+        wallet: p.wallet,
+        cohort: p.cohort,
+        messageVariant: p.message_variant,
+        balance: p.balance_at_detection,
+        daysInactiveAtDetection: p.days_inactive_at_detection,
+        messageSentAt: p.message_sent_at,
+        messageLanguage: p.message_language,
+        reactivated: p.reactivated,
+        reactivatedAt: p.reactivated_at,
+        lastBlockCheckpoint: p.last_block_checkpoint,
+        lastBlockCurrent: p.last_block_current,
+        daysToReactivate:
+          p.reactivated && p.message_sent_at && p.reactivated_at
+            ? Math.floor(
+                (new Date(p.reactivated_at).getTime() - new Date(p.message_sent_at).getTime()) / 86400000
+              )
+            : null,
+      })),
+    };
+
     return NextResponse.json({
       count: inactive.count,
       holders: holderDetails,
@@ -94,6 +136,7 @@ export async function GET() {
         vip: { total: messages.vip.length, sample: messages.vip.slice(0, 1) },
       },
       reactivation,
+      frozenCohort,
       metadata: {
         ...inactive.metadata,
         cohortStrategy: cohortResult.metadata.strategy,

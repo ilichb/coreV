@@ -31,7 +31,40 @@ interface FESMetrics {
         treatment: { total: number; sample: any[] };
         vip: { total: number; sample: any[] };
     };
-    reactivation: any;
+    reactivation: {
+        totalContacted: number;
+        totalReactivated: number;
+        conversionRate: number;
+        avgDaysToReactivate: number | null;
+        byCohort: Array<{
+            cohort: string;
+            contacted: number;
+            reactivated: number;
+            rate: number;
+            avgDaysToReactivate: number | null;
+        }>;
+    } | null;
+    frozenCohort?: {
+        total: number;
+        reactivated: number;
+        stillInactive: number;
+        contacted: number;
+        cohortDistribution: Record<string, number>;
+        participants: Array<{
+            wallet: string;
+            cohort: string;
+            messageVariant: string;
+            balance: number;
+            daysInactiveAtDetection: number;
+            messageSentAt: string | null;
+            messageLanguage: string | null;
+            reactivated: boolean;
+            reactivatedAt: string | null;
+            lastBlockCheckpoint: number | null;
+            lastBlockCurrent: number | null;
+            daysToReactivate: number | null;
+        }>;
+    };
     metadata: any;
 }
 
@@ -107,7 +140,7 @@ function FesLoadingSkeleton() {
 
                 {/* Summary cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {['TOTAL HOLDERS', 'COHORT A', 'COHORT B', 'WHALES (VIP)'].map(label => (
+                    {['TOTAL PILOTO', 'COHORT A', 'COHORT B', 'VIP'].map(label => (
                         <div key={label} className="border border-gray-800 bg-black/40 p-6 relative overflow-hidden">
                             <div className="text-xs font-mono text-gray-600 uppercase tracking-widest">{label}</div>
                             <div className="h-8 w-24 bg-gray-800/80 rounded-sm mt-3 animate-pulse" />
@@ -152,7 +185,7 @@ export default function InternalFESDashboard() {
     const [data, setData] = useState<FESMetrics | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [tab, setTab] = useState<'overview' | 'holders' | 'messages' | 'whales'>('overview');
+    const [tab, setTab] = useState<'overview' | 'frozen' | 'holders' | 'messages' | 'whales'>('overview');
 
     useEffect(() => {
         fetch('/api/fes/metrics', { credentials: 'include' })
@@ -185,8 +218,9 @@ export default function InternalFESDashboard() {
 
     const tabs = [
         { id: 'overview' as const, label: 'Overview' },
-        { id: 'holders' as const, label: `Holders (${data.count})` },
-        { id: 'whales' as const, label: `Whales (${data.whales.length})` },
+        { id: 'frozen' as const, label: `Frozen Cohort (${data.frozenCohort?.total ?? 0})` },
+        { id: 'holders' as const, label: `Live Holders (${data.count})` },
+        { id: 'whales' as const, label: `Live Whales (${data.whales.length})` },
         { id: 'messages' as const, label: 'Messages' },
     ];
 
@@ -241,26 +275,174 @@ export default function InternalFESDashboard() {
                 {/* Tab: Overview */}
                 {tab === 'overview' && (
                     <div className="space-y-8">
-                        {/* Summary cards */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {/* ── Cohorte congelada: es la del piloto y la del snapshot ──────── */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="text-xs font-mono font-medium text-[#4ade80] bg-[#4ade80]/10 border border-[#4ade80]/20 px-3 py-1 tracking-widest">
+                                    FROZEN COHORT — PILOT
+                                </span>
+                                <span className="text-xs font-mono text-gray-600">persistida en fes_participants · snapshot publicado en IPFS</span>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="border border-gray-800 bg-black/40 p-6">
+                                    <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">Total Piloto</div>
+                                    <div className="text-3xl font-mono font-bold text-gray-200 mt-2">{data.frozenCohort?.total ?? 0}</div>
+                                    <div className="text-xs font-mono text-gray-600 mt-1">wallets congeladas</div>
+                                </div>
+                                <div className="border border-gray-800 bg-black/40 p-6">
+                                    <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">Cohort A</div>
+                                    <div className="text-3xl font-mono font-bold text-[#00f0ff] mt-2">{data.frozenCohort?.cohortDistribution?.A ?? 0}</div>
+                                    <div className="text-xs font-mono text-gray-600 mt-1">control</div>
+                                </div>
+                                <div className="border border-gray-800 bg-black/40 p-6">
+                                    <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">Cohort B</div>
+                                    <div className="text-3xl font-mono font-bold text-[#f59e0b] mt-2">{data.frozenCohort?.cohortDistribution?.B ?? 0}</div>
+                                    <div className="text-xs font-mono text-gray-600 mt-1">treatment</div>
+                                </div>
+                                <div className="border border-gray-800 bg-black/40 p-6">
+                                    <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">VIP</div>
+                                    <div className="text-3xl font-mono font-bold text-[#ff6b6b] mt-2">{data.frozenCohort?.cohortDistribution?.VIP ?? 0}</div>
+                                    <div className="text-xs font-mono text-gray-600 mt-1">whale · outreach directo</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Estado del piloto */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             <div className="border border-gray-800 bg-black/40 p-6">
-                                <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">Total Holders</div>
-                                <div className="text-3xl font-mono font-bold text-gray-200 mt-2">{data.count}</div>
+                                <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">Contacted</div>
+                                <div className="text-3xl font-mono font-bold text-gray-200 mt-2">{data.frozenCohort?.contacted ?? 0}</div>
+                                <div className="text-xs font-mono text-gray-600 mt-1">mensajes enviados</div>
                             </div>
                             <div className="border border-gray-800 bg-black/40 p-6">
-                                <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">Cohort A</div>
-                                <div className="text-3xl font-mono font-bold text-[#00f0ff] mt-2">{data.cohorts?.A?.count || 0}</div>
-                                <div className="text-xs font-mono text-gray-500 mt-1">{data.cohorts?.A?.avgDaysInactive?.toFixed(1) || 0} avg days</div>
+                                <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">Reactivated</div>
+                                <div className="text-3xl font-mono font-bold text-[#4ade80] mt-2">{data.frozenCohort?.reactivated ?? 0}</div>
+                                <div className="text-xs font-mono text-gray-600 mt-1">
+                                    {data.frozenCohort && data.frozenCohort.total > 0
+                                        ? `${(data.frozenCohort.reactivated / data.frozenCohort.total * 100).toFixed(1)}% del piloto`
+                                        : '—'}
+                                </div>
                             </div>
                             <div className="border border-gray-800 bg-black/40 p-6">
-                                <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">Cohort B</div>
-                                <div className="text-3xl font-mono font-bold text-[#f59e0b] mt-2">{data.cohorts?.B?.count || 0}</div>
-                                <div className="text-xs font-mono text-gray-500 mt-1">{data.cohorts?.B?.avgDaysInactive?.toFixed(1) || 0} avg days</div>
+                                <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">Still Inactive</div>
+                                <div className="text-3xl font-mono font-bold text-[#f59e0b] mt-2">{data.frozenCohort?.stillInactive ?? 0}</div>
+                                <div className="text-xs font-mono text-gray-600 mt-1">sin reactivar</div>
                             </div>
-                            <div className="border border-gray-800 bg-black/40 p-6">
-                                <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">Whales (VIP)</div>
-                                <div className="text-3xl font-mono font-bold text-[#ff6b6b] mt-2">{data.whales.length}</div>
+                        </div>
+
+                        {/* ── Resultado A/B: la métrica primaria del experimento ───────── */}
+                        <div className="border border-gray-800 bg-black/40 p-6">
+                            <div className="flex flex-wrap items-center gap-2 mb-5">
+                                <span className="text-xs font-mono font-medium text-[#4ade80] bg-[#4ade80]/10 border border-[#4ade80]/20 px-3 py-1 tracking-widest">
+                                    CONVERSIÓN A/B
+                                </span>
+                                <span className="text-xs font-mono text-gray-600">métrica primaria · conversion_per_wallet</span>
                             </div>
+
+                            {data.reactivation && data.reactivation.totalContacted > 0 ? (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm font-mono">
+                                        <thead>
+                                            <tr className="border-b border-gray-800 text-gray-500 uppercase tracking-widest text-xs">
+                                                <th className="text-left p-3">Cohort</th>
+                                                <th className="text-right p-3">Contacted</th>
+                                                <th className="text-right p-3">Reactivated</th>
+                                                <th className="text-right p-3">Conversión</th>
+                                                <th className="text-right p-3">Días prom. react.</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {['A', 'B'].map(code => {
+                                                const c = data.reactivation!.byCohort.find(x => x.cohort === code);
+                                                const color = code === 'A' ? 'text-[#00f0ff]' : 'text-[#f59e0b]';
+                                                const label = code === 'A' ? 'A · control' : 'B · treatment';
+                                                return (
+                                                    <tr key={code} className="border-b border-gray-800/50">
+                                                        <td className={`p-3 font-bold ${color}`}>{label}</td>
+                                                        <td className="p-3 text-right text-gray-300">{c?.contacted ?? 0}</td>
+                                                        <td className="p-3 text-right text-gray-200">{c?.reactivated ?? 0}</td>
+                                                        <td className="p-3 text-right text-[#4ade80] font-bold">
+                                                            {c && c.contacted > 0 ? `${(c.rate * 100).toFixed(1)}%` : '—'}
+                                                        </td>
+                                                        <td className="p-3 text-right text-gray-300">
+                                                            {c?.avgDaysToReactivate != null ? `${c.avgDaysToReactivate.toFixed(1)}d` : '—'}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                            {data.reactivation.byCohort.filter(x => x.cohort === 'VIP').map(c => (
+                                                <tr key="VIP" className="border-t border-gray-800/50">
+                                                    <td className="p-3 font-bold text-[#ff6b6b]">VIP · n=1</td>
+                                                    <td className="p-3 text-right text-gray-400">{c.contacted}</td>
+                                                    <td className="p-3 text-right text-gray-400">{c.reactivated}</td>
+                                                    <td className="p-3 text-right text-gray-400">
+                                                        {c.contacted > 0 ? `${(c.rate * 100).toFixed(0)}%` : '—'}
+                                                    </td>
+                                                    <td className="p-3 text-right text-gray-400">
+                                                        {c.avgDaysToReactivate != null ? `${c.avgDaysToReactivate.toFixed(1)}d` : '—'}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="text-sm font-mono text-gray-500 leading-relaxed">
+                                    Sin datos todavía — {data.frozenCohort?.total ?? 0} wallets en el piloto,{' '}
+                                    <span className="text-gray-300">0 contactadas</span>.
+                                    <div className="text-xs font-mono text-gray-600 mt-2">
+                                        La ventana de observación arranca cuando se envíen los mensajes. La conversión
+                                        se calcula sobre contactadas, no sobre el total del piloto.
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="mt-5 pt-4 border-t border-gray-800 text-xs font-mono text-gray-600 leading-relaxed">
+                                La comparación válida es <span className="text-[#00f0ff]">A</span> contra{' '}
+                                <span className="text-[#f59e0b]">B</span>.{' '}
+                                <span className="text-[#ff6b6b]">VIP</span> recibe outreach directo y es n=1: queda
+                                listado por separado y no entra al test.
+                            </div>
+                        </div>
+
+                        {/* ── Detección en vivo: secundaria, y va a divergir ───────────── */}
+                        <div className="border border-gray-800 bg-black/40 p-6">
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="text-xs font-mono font-medium text-gray-500 bg-gray-800/40 border border-gray-700 px-3 py-1 tracking-widest">
+                                    LIVE DETECTION
+                                </span>
+                                <span className="text-xs font-mono text-gray-600">
+                                    re-asigna cohortes sobre lo que hoy califica — NO es el piloto
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div>
+                                    <div className="text-xs font-mono text-gray-600 uppercase tracking-widest">Holders hoy</div>
+                                    <div className="text-2xl font-mono font-bold text-gray-400 mt-1">{data.count}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs font-mono text-gray-600 uppercase tracking-widest">Cohort A</div>
+                                    <div className="text-2xl font-mono font-bold text-gray-400 mt-1">{data.cohorts?.A?.count || 0}</div>
+                                    <div className="text-xs font-mono text-gray-700 mt-1">{data.cohorts?.A?.avgDaysInactive?.toFixed(1) || 0} avg days</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs font-mono text-gray-600 uppercase tracking-widest">Cohort B</div>
+                                    <div className="text-2xl font-mono font-bold text-gray-400 mt-1">{data.cohorts?.B?.count || 0}</div>
+                                    <div className="text-xs font-mono text-gray-700 mt-1">{data.cohorts?.B?.avgDaysInactive?.toFixed(1) || 0} avg days</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs font-mono text-gray-600 uppercase tracking-widest">Whales</div>
+                                    <div className="text-2xl font-mono font-bold text-gray-400 mt-1">{data.whales.length}</div>
+                                </div>
+                            </div>
+                            {data.frozenCohort && data.count !== data.frozenCohort.total && (
+                                <div className="mt-4 pt-4 border-t border-gray-800 text-xs font-mono text-gray-600 leading-relaxed">
+                                    Difieren en {Math.abs(data.count - data.frozenCohort.total)} wallet(s).{' '}
+                                    {data.count < data.frozenCohort.total
+                                        ? 'Lo esperado: wallets del piloto que se des-stakearon o reactivaron salen del detector de elegibilidad, pero permanecen en la cohorte congelada, que es la que se evalúa.'
+                                        : 'Aparecieron wallets nuevas que no estaban en el snapshot. No entran al piloto: la lista estaba congelada antes de esto.'}
+                                </div>
+                            )}
                         </div>
 
                         {/* Cohort balance comparison */}
@@ -303,6 +485,67 @@ export default function InternalFESDashboard() {
                             <div className="text-xs font-mono text-gray-600 mt-3 leading-relaxed">
                                 {data.metadata?.note || ''}
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Tab: Frozen Cohort — la lista real del piloto */}
+                {tab === 'frozen' && (
+                    <div className="space-y-4">
+                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-mono text-gray-600">
+                            <span>congelada antes de la ventana · snapshot en IPFS</span>
+                            <span>A: {data.frozenCohort?.cohortDistribution?.A ?? 0} · B: {data.frozenCohort?.cohortDistribution?.B ?? 0} · VIP: {data.frozenCohort?.cohortDistribution?.VIP ?? 0}</span>
+                        </div>
+                        <div className="border border-gray-800 bg-black/40 overflow-x-auto">
+                            <table className="w-full text-sm font-mono">
+                                <thead>
+                                    <tr className="border-b border-gray-800 text-gray-500 uppercase tracking-widest">
+                                        <th className="text-left p-4">Wallet</th>
+                                        <th className="text-center p-4">Cohort</th>
+                                        <th className="text-center p-4">Variant</th>
+                                        <th className="text-right p-4">Balance (RIF)</th>
+                                        <th className="text-right p-4">Days Inactive</th>
+                                        <th className="text-center p-4">Contacted</th>
+                                        <th className="text-center p-4">Reactivated</th>
+                                        <th className="text-right p-4">Days to React.</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {[...(data.frozenCohort?.participants ?? [])]
+                                        .sort((a, b) => {
+                                            const order = { A: 0, B: 1, VIP: 2 } as Record<string, number>;
+                                            const c = (order[a.cohort] ?? 3) - (order[b.cohort] ?? 3);
+                                            return c !== 0 ? c : b.balance - a.balance;
+                                        })
+                                        .map((p, i) => (
+                                            <tr key={`${p.wallet}-${i}`} className="border-b border-gray-800/50 hover:bg-gray-900/30">
+                                                <td className="p-4 text-gray-400">{p.wallet.slice(0, 14)}…</td>
+                                                <td className="p-4 text-center">
+                                                    <span className={`text-xs font-bold px-2 py-1 border ${p.cohort === 'VIP' ? 'border-[#ff6b6b]/40 text-[#ff6b6b]'
+                                                            : p.cohort === 'B' ? 'border-[#f59e0b]/40 text-[#f59e0b]'
+                                                                : 'border-[#00f0ff]/40 text-[#00f0ff]'
+                                                        }`}>
+                                                        {p.cohort}
+                                                    </span>
+                                                </td>
+                                                <td className="p-4 text-center text-gray-500 text-xs">{p.messageVariant}</td>
+                                                <td className="p-4 text-right text-gray-200">{p.balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                                                <td className="p-4 text-right text-gray-400">{p.daysInactiveAtDetection}d</td>
+                                                <td className="p-4 text-center">
+                                                    {p.messageSentAt
+                                                        ? <span className="text-[#4ade80]">yes</span>
+                                                        : <span className="text-gray-700">no</span>}
+                                                </td>
+                                                <td className="p-4 text-center">
+                                                    {p.reactivated
+                                                        ? <span className="text-[#4ade80] font-bold">yes</span>
+                                                        : <span className="text-gray-700">no</span>}
+                                                </td>
+                                                <td className="p-4 text-right text-gray-400">{p.daysToReactivate ?? '—'}</td>
+                                            </tr>
+                                        ))}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 )}

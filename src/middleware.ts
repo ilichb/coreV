@@ -6,8 +6,10 @@
  *    - Páginas (/internal/*, /:locale/internal/*): requieren cookie de sesión
  *      (obtenida vía POST /api/internal/login con FES_ADMIN_PASSWORD).
  *      Sin cookie → redirect a /<locale>/internal/login.
- *    - API datos (/api/fes/metrics): acepta cookie de sesión O header
+ *    - APIs FES internas (/api/fes/metrics, /participants, /view-stats,
+ *      /attributions, /seed-participants): aceptan cookie de sesión O header
  *      X-Internal-Key (para crons/scripts). Sin ninguno → 401.
+ *      /api/fes/participants devuelve addresses en claro: sin auth es una fuga.
  *    - Login/logout siempre públicos.
  *    - En desarrollo: pasar siempre (sin fricción local).
  * 2. Resto de rutas: delegado a next-intl para manejo de locale
@@ -57,9 +59,25 @@ export async function middleware(request: NextRequest) {
   const isLoginPage = rest === '/internal/login' || rest.startsWith('/internal/login/');
   const isLoginApi =
     pathname === '/api/internal/login' || pathname === '/api/internal/logout';
-  const isMetricsApi = pathname === '/api/fes/metrics';
-  // Escritura a fes_participants: mismo control que /api/fes/metrics.
-  const isSeedApi = pathname === '/api/fes/seed-participants';
+
+  // Rutas FES internas: cookie de sesión O X-Internal-Key.
+  //
+  // OJO: el matcher termina en un catch-all que excluye `/api`, así que
+  // cualquier /api/fes/* que no esté listado acá queda PÚBLICO sin que se note.
+  // /api/fes/participants devolvía las 18 addresses en claro + balance exacto
+  // sin ninguna autenticación. Listar explícitamente es la defensa.
+  //
+  // Quedan públicas a propósito: /api/fes/check-wallet y /api/fes/track las
+  // usa la landing pública de /preview.
+  const INTERNAL_FES_APIS = new Set([
+    '/api/fes/metrics',
+    '/api/fes/seed-participants',
+    '/api/fes/participants',
+    '/api/fes/view-stats',
+    '/api/fes/attributions',
+  ]);
+  const isInternalFesApi = INTERNAL_FES_APIS.has(pathname);
+
   const isInternalPage =
     rest === '/internal' || rest.startsWith('/internal/');
 
@@ -70,8 +88,8 @@ export async function middleware(request: NextRequest) {
     return intlMiddleware(request);
   }
 
-  // ── API de métricas y seeding: cookie de sesión O X-Internal-Key ───────────
-  if (isMetricsApi || isSeedApi) {
+  // ── APIs FES internas: cookie de sesión O X-Internal-Key ──────────────────
+  if (isInternalFesApi) {
     if (isDev) return NextResponse.next();
     if ((await hasValidCookie(request)) || hasValidInternalKey(request)) {
       return NextResponse.next();
@@ -103,6 +121,9 @@ export const config = {
     '/api/internal/:path*',
     '/api/fes/metrics',
     '/api/fes/seed-participants',
+    '/api/fes/participants',
+    '/api/fes/view-stats',
+    '/api/fes/attributions',
     // Páginas internas (con y sin prefijo de locale)
     '/internal/:path*',
     '/en/internal/:path*',
