@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface YieldProjection {
   projectedYieldRIF: number;
@@ -41,6 +41,17 @@ export default function PreviewPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lang, setLang] = useState<'en' | 'es'>('en');
+  // Canal de origen: /preview?src=rootstock_official | forum | andromeda | direct
+  // Se lee del query string al montar, para no requerir Suspense. El referrer
+  // va crudo: la clasificación vive en el servidor (resolveChannel), para que
+  // el mapeo de dominios no se duplique en el cliente.
+  const [src, setSrc] = useState<string>('');
+  const [referrer, setReferrer] = useState<string>('');
+
+  useEffect(() => {
+    setSrc(new URLSearchParams(window.location.search).get('src') ?? '');
+    setReferrer(document.referrer ?? '');
+  }, []);
 
   const handleCheck = async () => {
     const trimmed = walletInput.trim();
@@ -57,7 +68,7 @@ export default function PreviewPage() {
       const res = await fetch('/api/fes/check-wallet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wallet: trimmed }),
+        body: JSON.stringify({ wallet: trimmed, src, referrer }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);

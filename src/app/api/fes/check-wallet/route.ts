@@ -17,6 +17,7 @@ import { buildMessage, type MessageVariant } from '@/lib/services/rootstock/mess
 import { yieldProjectionService } from '@/lib/services/rootstock/yield-projection.service';
 import { fesStorage } from '@/lib/services/rootstock/fes-storage.service';
 import { fesViewLogger } from '@/lib/services/rootstock/fes-view-logger.service';
+import { resolveChannel } from '@/lib/services/rootstock/fes-channels';
 import { walletHashService } from '@/lib/services/security/wallet-hash.service';
 
 function toDateStr(v: Date | string): string {
@@ -28,6 +29,10 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const wallet = (body.wallet || '').trim().toLowerCase();
+        // Canal por el que llegó. Prioridad: ?src= válido → dominio del
+        // referrer → direct. Se resuelve acá para que lo persistido ya sea un
+        // valor de la lista, y el cliente no tenga que conocer el mapeo.
+        const channel = resolveChannel(body.src, body.referrer);
 
         if (!wallet || !/^0x[a-f0-9]{40}$/.test(wallet)) {
             return NextResponse.json(
@@ -103,6 +108,7 @@ export async function POST(request: NextRequest) {
                 payload: {
                     cohort: cohortInfo.cohort,
                     message_variant: variant,
+                    channel,
                     balance: activity.balance,
                     daysInactive: activity.daysInactive,
                     projectedYield: yieldProjection.projectedYieldRIF,
@@ -123,6 +129,7 @@ export async function POST(request: NextRequest) {
             balance: activity.balance,
             daysInactive: activity.daysInactive,
             projectedYield: yieldProjection.projectedYieldRIF,
+            channel,
         }).catch(err => console.error('[FES View Logger] Background log failed:', err));
 
         // 7. Respuesta — solo datos de esta wallet, hasheada

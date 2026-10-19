@@ -29,6 +29,7 @@ import { mongoDBClient } from '@/lib/infrastructure/mongodb';
 import { pinata } from '@/lib/services/storage/pinata';
 import { logger } from '@/lib/utils/logger';
 import { walletHashService } from '@/lib/services/security/wallet-hash.service';
+import { normalizeChannel, type FESChannel } from '@/lib/services/rootstock/fes-channels';
 import { Collection, Db } from 'mongodb';
 
 export interface FESViewLog {
@@ -38,6 +39,8 @@ export interface FESViewLog {
     balance: number;
     daysInactive: number;
     projectedYield: number;
+    /** Canal por el que llegó el holder a /preview (?src=…). */
+    channel: FESChannel;
     timestamp: Date;
     date: string; // YYYY-MM-DD
 }
@@ -92,6 +95,8 @@ class FESViewLoggerService {
         balance: number;
         daysInactive: number;
         projectedYield: number;
+        /** Canal de origen (?src=…). Se normaliza; lo desconocido cae en 'direct'. */
+        channel?: unknown;
     }): Promise<void> {
         try {
             const walletHash = walletHashService.hashWallet(params.wallet).walletHash;
@@ -105,6 +110,7 @@ class FESViewLoggerService {
                 balance: params.balance,
                 daysInactive: params.daysInactive,
                 projectedYield: params.projectedYield,
+                channel: normalizeChannel(params.channel),
                 timestamp: now,
                 date: dateStr,
             };

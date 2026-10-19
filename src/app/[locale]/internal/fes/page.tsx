@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { CHANNEL_LABELS, FES_CHANNELS } from '@/lib/services/rootstock/fes-channels';
 
 interface FESMetrics {
     count: number;
@@ -46,24 +47,61 @@ interface FESMetrics {
     } | null;
     frozenCohort?: {
         total: number;
+        /** Embudo real del piloto: enlace público, sin mensajes */
+        viewed: number;
+        staked: number;
+        notViewed: number;
+        /** Staked / Viewed. null si viewed = 0 (indefinido, no 0%). */
+        conversionRate: number | null;
+        /** Contralibre: flag del tracker, sin confirmar en chain */
+        reactivatedCount: number;
+        reactivatedNotAttributed: number;
+        /** Compatibilidad con lo anterior */
         reactivated: number;
         stillInactive: number;
         contacted: number;
         cohortDistribution: Record<string, number>;
+        /** Vistas de /preview por canal de origen. 'unknown' = sin tracking (previo). */
+        viewsByChannel: Record<string, number>;
+        balanceByCohort: Array<{
+            cohort: string;
+            n: number;
+            total: number;
+            median: number;
+            mean: number;
+        }>;
         participants: Array<{
             wallet: string;
             cohort: string;
             messageVariant: string;
             balance: number;
             daysInactiveAtDetection: number;
-            messageSentAt: string | null;
-            messageLanguage: string | null;
+            viewed: boolean;
+            viewedAt: string | null;
+            staked: boolean;
+            stakedAt: string | null;
+            /** Contralibre del tracker, sin confirmar en chain */
             reactivated: boolean;
             reactivatedAt: string | null;
+            daysViewToStake: number | null;
             lastBlockCheckpoint: number | null;
             lastBlockCurrent: number | null;
-            daysToReactivate: number | null;
         }>;
+    };
+    pilotWindow?: {
+        start: string;
+        end: string;
+        totalDays: number;
+        currentDay: number;
+        daysRemaining: number;
+        status: 'upcoming' | 'active' | 'closed';
+    };
+    /** Verificación de la fuente de la conversión (Cambio #3) */
+    sourceAudit?: {
+        conversionSource: string;
+        conversionSourceCount: number;
+        liveDetectionCount: number;
+        note: string;
     };
     metadata: any;
 }
@@ -74,6 +112,12 @@ const LOADING_STAGES = [
     'ASSIGNING COHORTS A / B / WHALE…',
     'PROJECTING YIELDS…',
 ];
+
+function fmtDate(iso: string): string {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
+}
 
 function FesLoadingSkeleton() {
     const [stage, setStage] = useState(0);
@@ -216,6 +260,26 @@ export default function InternalFESDashboard() {
 
     if (!data) return null;
 
+    // Tasas por cohorte calculadas SOBRE LA COHORTE CONGELADA (fes_participants),
+    // no sobre la detección en vivo. Es lo que se publica en el foro.
+    const cohortStats = (['A', 'B', 'VIP'] as const).map(code => {
+        const rows = (data.frozenCohort?.participants ?? []).filter(p => p.cohort === code);
+        const viewed = rows.filter(p => p.viewed).length;
+        const staked = rows.filter(p => p.staked).length;
+        const days = rows
+            .map(p => p.daysViewToStake)
+            .filter((d): d is number => d != null);
+        return {
+            code,
+            n: rows.length,
+            viewed,
+            staked,
+            viewRate: rows.length > 0 ? viewed / rows.length : null,
+            convRate: viewed > 0 ? staked / viewed : null,
+            avgDays: days.length > 0 ? days.reduce((a, b) => a + b, 0) / days.length : null,
+        };
+    });
+
     const tabs = [
         { id: 'overview' as const, label: 'Overview' },
         { id: 'frozen' as const, label: `Frozen Cohort (${data.frozenCohort?.total ?? 0})` },
@@ -254,6 +318,36 @@ export default function InternalFESDashboard() {
                     <p className="text-xs font-mono text-gray-500 mt-2">
                         Internal use only. Generated: {data.metadata?.generatedAt ? new Date(data.metadata.generatedAt).toLocaleString() : 'N/A'}
                     </p>
+
+                    {/* Ventana de observación */}
+                    {data.pilotWindow && (
+                        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+                            <span className={`text-xs font-mono font-medium px-3 py-1 border tracking-widest ${
+                                data.pilotWindow.status === 'active'
+                                    ? 'text-[#4ade80] bg-[#4ade80]/10 border-[#4ade80]/20'
+                                    : data.pilotWindow.status === 'closed'
+                                        ? 'text-[#f59e0b] bg-[#f59e0b]/10 border-[#f59e0b]/20'
+                                        : 'text-gray-500 bg-gray-800/40 border-gray-700'
+                            }`}>
+                                {data.pilotWindow.status === 'active' ? 'VENTANA ACTIVA'
+                                    : data.pilotWindow.status === 'closed' ? 'VENTANA CERRADA'
+                                        : 'VENTANA PENDIENTE'}
+                            </span>
+                            <span className="text-xs font-mono text-gray-400">
+                                {fmtDate(data.pilotWindow.start)} → {fmtDate(data.pilotWindow.end)}
+                            </span>
+                            {data.pilotWindow.status === 'active' && (
+                                <span className="text-xs font-mono text-gray-500">
+                                    día {data.pilotWindow.currentDay} de {data.pilotWindow.totalDays} · {data.pilotWindow.daysRemaining} días restantes
+                                </span>
+                            )}
+                        </div>
+                    )}
+                    <div className="mt-3 text-xs font-mono text-gray-600 leading-relaxed">
+                        Enlace público a <span className="text-gray-400">/preview</span> — el piloto no envía mensajes.
+                        La medición es <span className="text-gray-400">Viewed</span> →{' '}
+                        <span className="text-gray-400">Staked</span>.
+                    </div>
                 </header>
 
                 {/* Tabs */}
@@ -302,32 +396,78 @@ export default function InternalFESDashboard() {
                                 <div className="border border-gray-800 bg-black/40 p-6">
                                     <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">VIP</div>
                                     <div className="text-3xl font-mono font-bold text-[#ff6b6b] mt-2">{data.frozenCohort?.cohortDistribution?.VIP ?? 0}</div>
-                                    <div className="text-xs font-mono text-gray-600 mt-1">whale · outreach directo</div>
+                                    <div className="text-xs font-mono text-gray-600 mt-1">excluded from A/B test · reported separately</div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Estado del piloto */}
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <div className="border border-gray-800 bg-black/40 p-6">
-                                <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">Contacted</div>
-                                <div className="text-3xl font-mono font-bold text-gray-200 mt-2">{data.frozenCohort?.contacted ?? 0}</div>
-                                <div className="text-xs font-mono text-gray-600 mt-1">mensajes enviados</div>
+                        {/* ── PILOT PROGRESS: embudo del piloto ────────────────────────── */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="text-xs font-mono font-medium text-[#00f0ff] bg-[#00f0ff]/10 border border-[#00f0ff]/20 px-3 py-1 tracking-widest">
+                                    PILOT PROGRESS
+                                </span>
                             </div>
-                            <div className="border border-gray-800 bg-black/40 p-6">
-                                <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">Reactivated</div>
-                                <div className="text-3xl font-mono font-bold text-[#4ade80] mt-2">{data.frozenCohort?.reactivated ?? 0}</div>
-                                <div className="text-xs font-mono text-gray-600 mt-1">
-                                    {data.frozenCohort && data.frozenCohort.total > 0
-                                        ? `${(data.frozenCohort.reactivated / data.frozenCohort.total * 100).toFixed(1)}% del piloto`
-                                        : '—'}
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="border border-gray-800 bg-black/40 p-6">
+                                    <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">Viewed</div>
+                                    <div className="text-3xl font-mono font-bold text-[#00f0ff] mt-2">{data.frozenCohort?.viewed ?? 0}</div>
+                                    <div className="text-xs font-mono text-gray-600 mt-1">
+                                        wallets del cohorte vieron su reporte
+                                    </div>
+                                </div>
+                                <div className="border border-gray-800 bg-black/40 p-6">
+                                    <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">Staked</div>
+                                    <div className="text-3xl font-mono font-bold text-[#4ade80] mt-2">{data.frozenCohort?.staked ?? 0}</div>
+                                    <div className="text-xs font-mono text-gray-600 mt-1">
+                                        staking posterior a la vista
+                                    </div>
+                                </div>
+                                <div className="border border-gray-800 bg-black/40 p-6">
+                                    <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">Not Viewed Yet</div>
+                                    <div className="text-3xl font-mono font-bold text-[#f59e0b] mt-2">{data.frozenCohort?.notViewed ?? 0}</div>
+                                    <div className="text-xs font-mono text-gray-600 mt-1">
+                                        del cohorte no han entrado aún
+                                    </div>
+                                </div>
+                                <div className="border border-[#4ade80]/20 bg-black/40 p-6">
+                                    <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">Conversion rate</div>
+                                    <div className="text-3xl font-mono font-bold text-[#4ade80] mt-2">
+                                        {data.frozenCohort?.viewed
+                                            ? `${(((data.frozenCohort?.staked ?? 0) / data.frozenCohort.viewed) * 100).toFixed(1)}%`
+                                            : '—'}
+                                    </div>
+                                    <div className="text-xs font-mono text-gray-600 mt-1">Staked / Viewed</div>
                                 </div>
                             </div>
-                            <div className="border border-gray-800 bg-black/40 p-6">
-                                <div className="text-xs font-mono text-gray-500 uppercase tracking-widest">Still Inactive</div>
-                                <div className="text-3xl font-mono font-bold text-[#f59e0b] mt-2">{data.frozenCohort?.stillInactive ?? 0}</div>
-                                <div className="text-xs font-mono text-gray-600 mt-1">sin reactivar</div>
+
+                            {/* Bloque de contexto — texto que define el spec */}
+                            <div className="mt-4 border border-gray-800 bg-black/40 p-5 text-xs font-mono text-gray-500 leading-relaxed">
+                                La ventana de observación está activa desde el{' '}
+                                <span className="text-gray-300">14 de octubre de 2026, 08:45 UTC</span>. La
+                                distribución es mediante enlace público: los holders entran voluntariamente a{' '}
+                                <span className="text-gray-300">/preview</span> y consultan su reporte. La conversión
+                                se calcula sobre wallets con vista registrada, no sobre el total del cohorte
+                                congelado. Las wallets que nunca entraron permanecen en{' '}
+                                <span className="text-gray-300">&quot;Not Viewed Yet&quot;</span> y se reportan por
+                                separado en el informe final.
                             </div>
+
+                            {(data.frozenCohort?.viewed ?? 0) === 0 && (
+                                <div className="mt-3 border border-gray-800 bg-black/40 px-5 py-3 text-xs font-mono text-gray-500">
+                                    Aún no hay vistas registradas. La ventana está activa; las vistas aparecerán a
+                                    medida que los holders entren a /preview.
+                                </div>
+                            )}
+
+                            {(data.frozenCohort?.reactivatedNotAttributed ?? 0) > 0 && (
+                                <div className="mt-3 border border-[#f59e0b]/20 bg-[#f59e0b]/5 px-5 py-3 text-xs font-mono text-[#f59e0b]/80">
+                                    ⚠ {data.frozenCohort!.reactivatedNotAttributed} wallet(s) con actividad de
+                                    bloque detectada pero sin atribución de stake confirmada en chain. No cuentan
+                                    como Staked hasta que el monitor de atribución corra.
+                                </div>
+                            )}
                         </div>
 
                         {/* ── Resultado A/B: la métrica primaria del experimento ───────── */}
@@ -336,72 +476,71 @@ export default function InternalFESDashboard() {
                                 <span className="text-xs font-mono font-medium text-[#4ade80] bg-[#4ade80]/10 border border-[#4ade80]/20 px-3 py-1 tracking-widest">
                                     CONVERSIÓN A/B
                                 </span>
-                                <span className="text-xs font-mono text-gray-600">métrica primaria · conversion_per_wallet</span>
+                                <span className="text-xs font-mono text-gray-600">
+                                    Viewed → Staked · calculado sobre la cohorte congelada (fes_participants)
+                                </span>
                             </div>
 
-                            {data.reactivation && data.reactivation.totalContacted > 0 ? (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-sm font-mono">
-                                        <thead>
-                                            <tr className="border-b border-gray-800 text-gray-500 uppercase tracking-widest text-xs">
-                                                <th className="text-left p-3">Cohort</th>
-                                                <th className="text-right p-3">Contacted</th>
-                                                <th className="text-right p-3">Reactivated</th>
-                                                <th className="text-right p-3">Conversión</th>
-                                                <th className="text-right p-3">Días prom. react.</th>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm font-mono">
+                                    <thead>
+                                        <tr className="border-b border-gray-800 text-gray-500 uppercase tracking-widest text-xs">
+                                            <th className="text-left p-3">Cohort</th>
+                                            <th className="text-right p-3">En cohorte</th>
+                                            <th className="text-right p-3">Viewed</th>
+                                            <th className="text-right p-3">Tasa vista</th>
+                                            <th className="text-right p-3">Staked</th>
+                                            <th className="text-right p-3">Conversión</th>
+                                            <th className="text-right p-3">Días prom.</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {cohortStats.filter(c => c.code !== 'VIP').map(c => (
+                                            <tr key={c.code} className="border-b border-gray-800/50">
+                                                <td className={`p-3 font-bold ${c.code === 'A' ? 'text-[#00f0ff]' : 'text-[#f59e0b]'}`}>
+                                                    {c.code === 'A' ? 'A · control' : 'B · treatment'}
+                                                </td>
+                                                <td className="p-3 text-right text-gray-400">{c.n}</td>
+                                                <td className="p-3 text-right text-gray-200">{c.viewed}</td>
+                                                <td className="p-3 text-right text-[#00f0ff]">
+                                                    {c.viewRate != null ? `${(c.viewRate * 100).toFixed(1)}%` : '—'}
+                                                </td>
+                                                <td className="p-3 text-right text-gray-200">{c.staked}</td>
+                                                <td className="p-3 text-right text-[#4ade80] font-bold">
+                                                    {c.convRate != null ? `${(c.convRate * 100).toFixed(1)}%` : '—'}
+                                                </td>
+                                                <td className="p-3 text-right text-gray-400">
+                                                    {c.avgDays != null ? `${c.avgDays.toFixed(1)}d` : '—'}
+                                                </td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            {['A', 'B'].map(code => {
-                                                const c = data.reactivation!.byCohort.find(x => x.cohort === code);
-                                                const color = code === 'A' ? 'text-[#00f0ff]' : 'text-[#f59e0b]';
-                                                const label = code === 'A' ? 'A · control' : 'B · treatment';
-                                                return (
-                                                    <tr key={code} className="border-b border-gray-800/50">
-                                                        <td className={`p-3 font-bold ${color}`}>{label}</td>
-                                                        <td className="p-3 text-right text-gray-300">{c?.contacted ?? 0}</td>
-                                                        <td className="p-3 text-right text-gray-200">{c?.reactivated ?? 0}</td>
-                                                        <td className="p-3 text-right text-[#4ade80] font-bold">
-                                                            {c && c.contacted > 0 ? `${(c.rate * 100).toFixed(1)}%` : '—'}
-                                                        </td>
-                                                        <td className="p-3 text-right text-gray-300">
-                                                            {c?.avgDaysToReactivate != null ? `${c.avgDaysToReactivate.toFixed(1)}d` : '—'}
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                            {data.reactivation.byCohort.filter(x => x.cohort === 'VIP').map(c => (
-                                                <tr key="VIP" className="border-t border-gray-800/50">
-                                                    <td className="p-3 font-bold text-[#ff6b6b]">VIP · n=1</td>
-                                                    <td className="p-3 text-right text-gray-400">{c.contacted}</td>
-                                                    <td className="p-3 text-right text-gray-400">{c.reactivated}</td>
-                                                    <td className="p-3 text-right text-gray-400">
-                                                        {c.contacted > 0 ? `${(c.rate * 100).toFixed(0)}%` : '—'}
-                                                    </td>
-                                                    <td className="p-3 text-right text-gray-400">
-                                                        {c.avgDaysToReactivate != null ? `${c.avgDaysToReactivate.toFixed(1)}d` : '—'}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className="text-sm font-mono text-gray-500 leading-relaxed">
-                                    Sin datos todavía — {data.frozenCohort?.total ?? 0} wallets en el piloto,{' '}
-                                    <span className="text-gray-300">0 contactadas</span>.
-                                    <div className="text-xs font-mono text-gray-600 mt-2">
-                                        La ventana de observación arranca cuando se envíen los mensajes. La conversión
-                                        se calcula sobre contactadas, no sobre el total del piloto.
-                                    </div>
-                                </div>
-                            )}
+                                        ))}
+                                        {cohortStats.filter(c => c.code === 'VIP').map(c => (
+                                            <tr key="VIP" className="border-t border-gray-800/50">
+                                                <td className="p-3 font-bold text-[#ff6b6b]">VIP · n=1</td>
+                                                <td className="p-3 text-right text-gray-500">{c.n}</td>
+                                                <td className="p-3 text-right text-gray-500">{c.viewed}</td>
+                                                <td className="p-3 text-right text-gray-500">
+                                                    {c.viewRate != null ? `${(c.viewRate * 100).toFixed(0)}%` : '—'}
+                                                </td>
+                                                <td className="p-3 text-right text-gray-500">{c.staked}</td>
+                                                <td className="p-3 text-right text-gray-500">
+                                                    {c.convRate != null ? `${(c.convRate * 100).toFixed(0)}%` : '—'}
+                                                </td>
+                                                <td className="p-3 text-right text-gray-500">
+                                                    {c.avgDays != null ? `${c.avgDays.toFixed(1)}d` : '—'}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
 
                             <div className="mt-5 pt-4 border-t border-gray-800 text-xs font-mono text-gray-600 leading-relaxed">
-                                La comparación válida es <span className="text-[#00f0ff]">A</span> contra{' '}
-                                <span className="text-[#f59e0b]">B</span>.{' '}
-                                <span className="text-[#ff6b6b]">VIP</span> recibe outreach directo y es n=1: queda
-                                listado por separado y no entra al test.
+                                <span className="text-[#00f0ff]">Tasa vista</span> = quiénes del cohorte abrieron{' '}
+                                /preview. <span className="text-[#4ade80]">Conversión</span> = de quienes vieron,
+                                cuántos volvieron a stakear — no sobre el total del piloto. La comparación válida es{' '}
+                                <span className="text-[#00f0ff]">A</span> contra <span className="text-[#f59e0b]">B</span>.{' '}
+                                <span className="text-[#ff6b6b]">VIP</span> está excluido del test y se reporta aparte.
                             </div>
                         </div>
 
@@ -445,36 +584,131 @@ export default function InternalFESDashboard() {
                             )}
                         </div>
 
-                        {/* Cohort balance comparison */}
+                        {/* Balance por cohorte — total Y mediana, sobre la cohorte congelada */}
                         <div className="border border-gray-800 bg-black/40 p-6">
-                            <div className="text-xs font-mono text-gray-500 uppercase tracking-widest mb-4">Cohort Balance Comparison</div>
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-4">
-                                    <span className="text-sm font-mono font-bold text-[#00f0ff] w-24">Cohort A</span>
-                                    <div className="flex-1 h-6 bg-gray-900 relative">
-                                        <div
-                                            className="h-full bg-[#00f0ff]/30"
-                                            style={{ width: `${Math.min((data.cohorts?.A?.avgBalance || 0) / 10000, 100)}%` }}
-                                        />
-                                    </div>
-                                    <span className="text-sm font-mono text-gray-300 w-36 text-right">
-                                        {(data.cohorts?.A?.avgBalance || 0).toLocaleString()} RIF
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <span className="text-sm font-mono font-bold text-[#f59e0b] w-24">Cohort B</span>
-                                    <div className="flex-1 h-6 bg-gray-900 relative">
-                                        <div
-                                            className="h-full bg-[#f59e0b]/30"
-                                            style={{ width: `${Math.min((data.cohorts?.B?.avgBalance || 0) / 10000, 100)}%` }}
-                                        />
-                                    </div>
-                                    <span className="text-sm font-mono text-gray-300 w-36 text-right">
-                                        {(data.cohorts?.B?.avgBalance || 0).toLocaleString()} RIF
-                                    </span>
-                                </div>
+                            <div className="flex flex-wrap items-center gap-2 mb-4">
+                                <span className="text-xs font-mono font-medium text-gray-400 bg-gray-800/40 border border-gray-700 px-3 py-1 tracking-widest">
+                                    BALANCE POR COHORTE
+                                </span>
+                                <span className="text-xs font-mono text-gray-600">cohorte congelada · RIF</span>
                             </div>
+
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm font-mono">
+                                    <thead>
+                                        <tr className="border-b border-gray-800 text-gray-500 uppercase tracking-widest text-xs">
+                                            <th className="text-left p-3">Cohort</th>
+                                            <th className="text-right p-3">n</th>
+                                            <th className="text-right p-3">Total RIF</th>
+                                            <th className="text-right p-3">Mediana RIF</th>
+                                            <th className="text-right p-3">Media RIF</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(data.frozenCohort?.balanceByCohort ?? []).map(b => {
+                                            const color = b.cohort === 'VIP' ? 'text-[#ff6b6b]'
+                                                : b.cohort === 'B' ? 'text-[#f59e0b]' : 'text-[#00f0ff]';
+                                            return (
+                                                <tr key={b.cohort} className="border-b border-gray-800/50">
+                                                    <td className={`p-3 font-bold ${color}`}>{b.cohort}</td>
+                                                    <td className="p-3 text-right text-gray-400">{b.n}</td>
+                                                    <td className="p-3 text-right text-gray-200">{b.total.toLocaleString()}</td>
+                                                    <td className="p-3 text-right text-[#4ade80]">{b.median.toLocaleString()}</td>
+                                                    <td className="p-3 text-right text-gray-500">{b.mean.toLocaleString()}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {(() => {
+                                const list = data.frozenCohort?.balanceByCohort ?? [];
+                                const a = list.find(b => b.cohort === 'A');
+                                const b = list.find(b => b.cohort === 'B');
+                                if (!a || !b || a.median === 0 || a.total === 0) return null;
+                                const rMed = a.median / b.median;
+                                const rTot = a.total / b.total;
+                                return (
+                                    <div className="mt-4 pt-4 border-t border-gray-800 text-xs font-mono text-gray-600 leading-relaxed">
+                                        A/B en mediana: <span className="text-[#4ade80]">{rMed.toFixed(1)}×</span>{' '}
+                                        · en total: <span className="text-[#f59e0b]">{rTot.toFixed(1)}×</span>.
+                                        Los dos números son correctos y no se contradicen: dos wallets grandes de A
+                                        tiran el total mucho más arriba que la mediana. Para hablar de
+                                        «balance típico» usá la mediana; para el aggregate de toda la cohorte, el total.
+                                    </div>
+                                );
+                            })()}
                         </div>
+
+                        {/* Vistas por canal de origen */}
+                        {(() => {
+                            const by = data.frozenCohort?.viewsByChannel ?? {};
+                            const known = FES_CHANNELS.map(c => ({ key: c, label: CHANNEL_LABELS[c], n: by[c] ?? 0 }));
+                            const unknown = by.unknown ?? 0;
+                            const max = Math.max(1, ...known.map(k => k.n), unknown);
+                            const totalViews = known.reduce((s, k) => s + k.n, 0) + unknown;
+                            return (
+                                <div className="border border-gray-800 bg-black/40 p-6">
+                                    <div className="flex flex-wrap items-center gap-2 mb-4">
+                                        <span className="text-xs font-mono font-medium text-gray-400 bg-gray-800/40 border border-gray-700 px-3 py-1 tracking-widest">
+                                            VISTAS POR CANAL
+                                        </span>
+                                        <span className="text-xs font-mono text-gray-600">
+                                            /preview?src=&lt;canal&gt; · {totalViews} vistas
+                                        </span>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {known.map(k => (
+                                            <div key={k.key} className="flex items-center gap-4">
+                                                <span className="text-sm font-mono text-gray-400 w-40">{k.label}</span>
+                                                <div className="flex-1 h-5 bg-gray-900 relative">
+                                                    <div
+                                                        className="h-full bg-[#00f0ff]/25"
+                                                        style={{ width: `${(k.n / max) * 100}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-sm font-mono text-gray-300 w-10 text-right">{k.n}</span>
+                                            </div>
+                                        ))}
+                                        {unknown > 0 && (
+                                            <div className="flex items-center gap-4 pt-2 border-t border-gray-800/50">
+                                                <span className="text-sm font-mono text-gray-600 w-40">Sin tracking (previo)</span>
+                                                <div className="flex-1 h-5 relative">
+                                                    <div
+                                                        className="h-full bg-gray-800"
+                                                        style={{ width: `${(unknown / max) * 100}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-sm font-mono text-gray-600 w-10 text-right">{unknown}</span>
+                                            </div>
+                                        )}
+                                        <div className="flex items-center gap-4 pt-3 border-t border-gray-700">
+                                            <span className="text-sm font-mono font-bold text-gray-300 w-40">Total</span>
+                                            <div className="flex-1" />
+                                            <span className="text-sm font-mono font-bold text-gray-200 w-10 text-right">{totalViews}</span>
+                                        </div>
+                                    </div>
+                                    {unknown > 0 && (
+                                        <div className="mt-4 pt-3 border-t border-gray-800 text-xs font-mono text-gray-600 leading-relaxed">
+                                            {unknown} vista(s) son anteriores al tracking de canal: se registraron
+                                            antes de agregar <span className="text-gray-400">?src=</span> y no se
+                                            pueden atribuir. No cuentan como{' '}
+                                            <span className="text-gray-400">Direct / unknown</span>.
+                                        </div>
+                                    )}
+                                    <div className="mt-4 pt-3 border-t border-gray-800 text-xs font-mono text-gray-700 leading-relaxed">
+                                        Para atribuir: publicar el enlace como{' '}
+                                        <span className="text-gray-500">/preview?src=rootstock_official</span>,{' '}
+                                        <span className="text-gray-500">?src=forum</span>,{' '}
+                                        <span className="text-gray-500">?src=andromeda</span> o{' '}
+                                        <span className="text-gray-500">?src=direct</span>. Si no viene{' '}
+                                        <span className="text-gray-500">?src=</span> se usa el referrer; sin
+                                        referrer clasificable cae en Direct / unknown.
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                         {/* Strategy info */}
                         <div className="border border-gray-800 bg-black/40 p-6">
@@ -502,12 +736,12 @@ export default function InternalFESDashboard() {
                                     <tr className="border-b border-gray-800 text-gray-500 uppercase tracking-widest">
                                         <th className="text-left p-4">Wallet</th>
                                         <th className="text-center p-4">Cohort</th>
-                                        <th className="text-center p-4">Variant</th>
+                                        <th className="text-center p-4">Arm</th>
                                         <th className="text-right p-4">Balance (RIF)</th>
                                         <th className="text-right p-4">Days Inactive</th>
-                                        <th className="text-center p-4">Contacted</th>
-                                        <th className="text-center p-4">Reactivated</th>
-                                        <th className="text-right p-4">Days to React.</th>
+                                        <th className="text-center p-4">Viewed</th>
+                                        <th className="text-center p-4">Staked</th>
+                                        <th className="text-right p-4">Days view→stake</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -532,16 +766,16 @@ export default function InternalFESDashboard() {
                                                 <td className="p-4 text-right text-gray-200">{p.balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                                                 <td className="p-4 text-right text-gray-400">{p.daysInactiveAtDetection}d</td>
                                                 <td className="p-4 text-center">
-                                                    {p.messageSentAt
-                                                        ? <span className="text-[#4ade80]">yes</span>
+                                                    {p.viewed
+                                                        ? <span className="text-[#00f0ff]">yes</span>
                                                         : <span className="text-gray-700">no</span>}
                                                 </td>
                                                 <td className="p-4 text-center">
-                                                    {p.reactivated
+                                                    {p.staked
                                                         ? <span className="text-[#4ade80] font-bold">yes</span>
                                                         : <span className="text-gray-700">no</span>}
                                                 </td>
-                                                <td className="p-4 text-right text-gray-400">{p.daysToReactivate ?? '—'}</td>
+                                                <td className="p-4 text-right text-gray-400">{p.daysViewToStake ?? '—'}</td>
                                             </tr>
                                         ))}
                                 </tbody>
