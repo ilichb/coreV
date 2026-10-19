@@ -7,7 +7,9 @@
 
 **Andromeda Core** is a verifiable reputation protocol and economic activation engine for DAO ecosystems. We provide a decentralized trust layer for builders, DAOs, and autonomous agents, with Mainnet data infrastructure that already extracts, normalizes, and persists governance and staking information from the **Rootstock Collective** — live 24/7 at [core.andromedacomputer.net](http://core.andromedacomputer.net).
 
-> 🎯 **Mission:** Convert the 97.7% idle RIF supply into productive capital through an activation dashboard, automated impact reports, and external data feeds for the **FES (Funding Efficiency Score)** developed by the Rootstock Lab.
+> 🎯 **Mission:** Convert the 97.7% idle RIF supply into productive capital through an activation dashboard, automated impact reports, and external data feeds for the **FES (Framework for Engagement & Staking)** developed by the Rootstock Lab.
+
+> 📌 **Note on naming:** An earlier version of this README used "Funding Efficiency Score" as the expansion of FES. That was incorrect. FES in this project stands for Framework for Engagement & Staking, which is the pilot's internal design name. The Funding Efficiency Score is a separate framework developed by the Rootstock Lab. Corrected on October 10, 2026.
 
 ---
 
@@ -61,9 +63,9 @@ Andromeda Core has **~7,200 lines of 100% functional TypeScript code**, of which
 
 ---
 
-## 🧪 FES Pilot — Funding Efficiency Score Experiment
+## 🧪 FES Pilot — Framework for Engagement & Staking Experiment
 
-The **FES (Funding Efficiency Score) Pilot** is a live A/B experiment on Rootstock Mainnet designed to test whether personalized staking yield projections can reactivate inactive RIF holders. Built on top of Andromeda Core's existing infrastructure.
+The **FES (Framework for Engagement & Staking) Pilot** is a live A/B experiment on Rootstock Mainnet designed to test whether personalized staking yield projections can reactivate inactive RIF holders. Built on top of Andromeda Core's existing infrastructure.
 
 ### 🔍 Detection & Assignment Pipeline
 
@@ -126,7 +128,7 @@ The **FES (Funding Efficiency Score) Pilot** is a live A/B experiment on Rootsto
 
 ## 🎯 Alignment with Rootstock Collective
 
-### 1. Co-Powering the FES (Funding Efficiency Score)
+### 1. Co-Powering the FES (Framework for Engagement & Staking)
 
 Our infrastructure is already built to feed the Rootstock Lab's FES:
 
