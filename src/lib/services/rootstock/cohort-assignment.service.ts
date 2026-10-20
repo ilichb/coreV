@@ -1,8 +1,20 @@
-import { inactiveHolderService, type InactiveHolder } from './inactive-holder.service';
+import type { InactiveHolder } from './inactive-holder.service';
 
-const WHALE_BALANCE_THRESHOLD = 1_000_000;
+/**
+ * Umbral de la cohorte VIP: wallets con balance >= 1M RIF quedan fuera de la
+ * pool principal y en su propia cohorte (A/B son el experimento principal).
+ */
+const VIP_BALANCE_THRESHOLD = 1_000_000;
 
-export type Cohort = 'A' | 'B' | 'WHALE';
+/**
+ * Cohorte del piloto FES.
+ *
+ * OJO: debe coincidir con el CHECK de `fes_participants.cohort`
+ * ('A', 'B', 'VIP') y con el snapshot congelado publicado en IPFS. La etiqueta
+ * 'WHALE' que se usaba en versiones anteriores rompía ese contrato (el INSERT
+ * era rechazado por la constraint y el seed devolvía un éxito silencioso).
+ */
+export type Cohort = 'A' | 'B' | 'VIP';
 
 export interface CohortAssignment {
   wallet: string;
@@ -24,13 +36,13 @@ export interface CohortResult {
     A: CohortAssignment[];
     B: CohortAssignment[];
   };
-  whales: CohortAssignment[];
+  vip: CohortAssignment[];
   summary: {
     total: number;
     mainPool: number;
     cohortA: CohortSummary;
     cohortB: CohortSummary;
-    whales: CohortSummary;
+    vip: CohortSummary;
   };
   metadata: {
     strategy: string;
@@ -54,12 +66,12 @@ function summarize(group: CohortAssignment[]): CohortSummary {
 
 class CohortAssignmentService {
   assign(holders: InactiveHolder[]): CohortResult {
-    const whales: CohortAssignment[] = [];
+    const vip: CohortAssignment[] = [];
     const mainPool: InactiveHolder[] = [];
 
     for (const h of holders) {
-      if (h.balance >= WHALE_BALANCE_THRESHOLD) {
-        whales.push({ ...h, cohort: 'WHALE' });
+      if (h.balance >= VIP_BALANCE_THRESHOLD) {
+        vip.push({ ...h, cohort: 'VIP' });
       } else {
         mainPool.push(h);
       }
@@ -87,47 +99,32 @@ class CohortAssignmentService {
 
     return {
       cohorts: { A, B },
-      whales,
+      vip,
       summary: {
         total: holders.length,
         mainPool: mainPool.length,
         cohortA: summarize(A),
         cohortB: summarize(B),
-        whales: summarize(whales),
+        vip: summarize(vip),
       },
       metadata: {
-        strategy: 'Whales (>1M RIF) excluded to separate cohort. Main pool stratified by days inactive (descending), pair-based alternating (swap per pair).',
+        strategy: 'VIP (>1M RIF) excluded to separate cohort. Main pool stratified by days inactive (descending), pair-based alternating (swap per pair).',
         generatedAt: new Date().toISOString(),
       },
     };
   }
 
-  assignSingleHolder(holder: InactiveHolder): CohortAssignment {
-    if (holder.balance >= WHALE_BALANCE_THRESHOLD) {
-      return { ...holder, cohort: 'WHALE' };
-    }
-    const cohort: Cohort = holder.daysInactive % 2 === 0 ? 'A' : 'B';
-    return { ...holder, cohort };
-  }
-
-  async getCohort(address: string, existingActivity?: InactiveHolder): Promise<{ cohort: Cohort; assignment: CohortAssignment } | null> {
-    const activity = existingActivity || await inactiveHolderService.getHolderActivity(address);
-    if (!activity) return null;
-
-    try {
-      const holders = await inactiveHolderService.findInactiveHolders();
-      if (holders.count > 0) {
-        const result = this.assign(holders.holders);
-        const all = [...result.cohorts.A, ...result.cohorts.B, ...result.whales];
-        const found = all.find(a => a.wallet === address.toLowerCase());
-        if (found) return { cohort: found.cohort, assignment: found };
-      }
-    } catch (err) {
-      console.error('[Cohort] findInactiveHolders failed, using direct assignment:', err);
-    }
-
-    const assignment = this.assignSingleHolder(activity);
-    return { cohort: assignment.cohort, assignment };
+  /**
+   * Devuelve todas las asignaciones en una sola lista.
+   *
+   * NOTA: `assign()` es la asignación EN VIVO y solo sirve para el seed
+   * (generación de la lista congelada) y para el dashboard interno. La cohorte
+   * de cara al piloto se resuelve SIEMPRE desde `fes_participants`
+   * (ver `fesStorage.getParticipant`); acá no existe ninguna asignación
+   * individual alternativa para evitar que dos fuentes cuenten cosas distintas.
+   */
+  flatten(result: CohortResult): CohortAssignment[] {
+    return [...result.cohorts.A, ...result.cohorts.B, ...result.vip];
   }
 }
 

@@ -43,6 +43,21 @@ export class WalletHashService {
   // Versión del esquema de hashing
   private static readonly HASH_VERSION = 'v2';
 
+  /**
+   * Versión del esquema determinista (HMAC) usado por el piloto FES.
+   *
+   * El esquema v2 genera una sal aleatoria por wallet en memoria y su
+   * "persistencia" es un mock que solo loguea: tras cada reinicio/cold start
+   * la misma wallet produce un hash distinto, lo que rompe el join entre
+   * `fes_events`, `fes_attributions` y el dashboard (una reactivación real
+   * queda huérfana y Staked se queda en 0). FES necesita hashes
+   * REPRODUCIBLES entre procesos, y para eso usa HMAC-SHA256 con una clave
+   * configurada en el entorno (`FES_WALLET_HASH_SALT`).
+   *
+   * Atlas (GDPR: forget/opt-out) sigue en v2 — no se cambió su comportamiento.
+   */
+  private static readonly FES_HASH_VERSION = 'v3';
+
   private constructor() {
     this.loadConfigFromEnv();
   }
@@ -162,6 +177,64 @@ export class WalletHashService {
   }
 
   /**
+   * Clave del esquema determinista (v3).
+   *
+   * En producción SIN clave no se puede generar un hash "cualquiera": sería
+   * distinto en cada proceso y corrompería silenciosamente la atribución del
+   * piloto. Por eso falla cerrado (throw) y deja el despliegue roto de forma
+   * visible, en lugar de dejarlo roto de forma invisible.
+   */
+  private getFesSalt(): string {
+    const salt = process.env.FES_WALLET_HASH_SALT;
+    if (salt && salt.length >= 16) return salt;
+
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'FES_WALLET_HASH_SALT no está configurada (o tiene menos de 16 caracteres). ' +
+        'Sin ella los hashes de wallet no son reproducibles entre procesos y la ' +
+        'atribución del piloto FES no puede unir eventos. Configurarla en las ' +
+        'variables de entorno del despliegue.'
+      );
+    }
+
+    logger.warn(
+      '[WalletHashService] FES_WALLET_HASH_SALT no configurada — usando sal SOLO para ' +
+      'desarrollo. No sirve para datos reales.'
+    );
+    return 'fes-dev-only-salt-do-not-use-in-production';
+  }
+
+  /**
+   * Hash determinista (HMAC-SHA256 con clave de entorno) — esquema v3.
+   *
+   * Misma wallet + misma clave ⇒ mismo hash, en cualquier proceso y en
+   * cualquier momento. Formato igual al v2 para que las UI que recortan el
+   * hash no cambien.
+   */
+  public hashWalletDeterministic(walletAddress: string): WalletHashResult {
+    try {
+      const normalizedAddress = walletAddress.toLowerCase();
+      const raw = crypto
+        .createHmac('sha256', this.getFesSalt())
+        .update(normalizedAddress)
+        .digest('hex');
+
+      return {
+        walletHash: `did:andromeda:hash:${WalletHashService.FES_HASH_VERSION}:${raw.substring(0, 32)}`,
+        // Nunca devolver la clave en claro: el objeto viaja por call sites que
+        // podrían loguearlo o exponerlo.
+        salt: '[hmac-key]',
+        algorithm: 'hmac-sha256',
+        timestamp: new Date().toISOString(),
+        version: WalletHashService.FES_HASH_VERSION,
+      };
+    } catch (error) {
+      logger.error('[WalletHashService] Error al hashear wallet (determinista):', error);
+      throw error;
+    }
+  }
+
+  /**
    * Verificar si un hash corresponde a una dirección de wallet
    */
   public verifyHash(walletHash: string, walletAddress: string): boolean {
@@ -244,6 +317,14 @@ export const walletHashService = WalletHashService.getInstance();
  */
 export function hashWallet(walletAddress: string): string {
   return walletHashService.hashWallet(walletAddress).walletHash;
+}
+
+/**
+ * Hash determinista (v3) — el que usa el piloto FES.
+ * Requiere `FES_WALLET_HASH_SALT` en el entorno.
+ */
+export function hashWalletDeterministic(walletAddress: string): string {
+  return walletHashService.hashWalletDeterministic(walletAddress).walletHash;
 }
 
 export function verifyWalletHash(walletHash: string, walletAddress: string): boolean {

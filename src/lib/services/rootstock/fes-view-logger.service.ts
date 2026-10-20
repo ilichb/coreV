@@ -99,7 +99,7 @@ class FESViewLoggerService {
         channel?: unknown;
     }): Promise<void> {
         try {
-            const walletHash = walletHashService.hashWallet(params.wallet).walletHash;
+            const walletHash = walletHashService.hashWalletDeterministic(params.wallet).walletHash;
             const now = new Date();
             const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
 

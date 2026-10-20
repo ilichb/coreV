@@ -75,6 +75,10 @@ export async function middleware(request: NextRequest) {
     '/api/fes/participants',
     '/api/fes/view-stats',
     '/api/fes/attributions',
+    // S3: /track devolvía `reactivated_wallets` con addresses en claro y el
+    // detalle completo por wallet a cualquier visitante. Sus únicos callers
+    // son el cron (con X-Internal-Key) y el test-dashboard en desarrollo.
+    '/api/fes/track',
   ]);
   const isInternalFesApi = INTERNAL_FES_APIS.has(pathname);
 
@@ -124,6 +128,7 @@ export const config = {
     '/api/fes/participants',
     '/api/fes/view-stats',
     '/api/fes/attributions',
+    '/api/fes/track',
     // Páginas internas (con y sin prefijo de locale)
     '/internal/:path*',
     '/en/internal/:path*',

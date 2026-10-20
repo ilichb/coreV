@@ -3,30 +3,44 @@
  *
  * Endpoint público para que un holder verifique su estado en el FES pilot.
  *
- * Recibe: { wallet: "0x..." }
- * Responde: { found, cohort, message, yieldProjection, viewLogged }
+ * Recibe: { wallet: "0x...", src?, referrer? }
+ * Responde: { found, inPilot, cohort, message, yieldProjection, viewLogged }
+ *
+ * C1 — La cohorte se resuelve SOLO desde `fes_participants` (lista congelada).
+ * Antes se calculaba en vivo con `cohortAssignmentService.getCohort()`, que
+ * re-asignaba cohortes desde cero con una heurística alternativa
+ * (`daysInactive % 2`) cuando el subgraph fallaba: dos wallets podían recibir
+ * cohortes distintas según el momento de la consulta, y una wallet fuera de la
+ * lista podía colarse en el experimento. Ahora una wallet no congelada recibe
+ * "not in pilot" y el endpoint no toca el subgraph ni la RPC pública.
  *
  * NO expone datos de otros holders — solo la información de la wallet consultada.
  * Las wallets se devuelven hasheadas (walletHash) en lugar de la address cruda.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { inactiveHolderService } from '@/lib/services/rootstock/inactive-holder.service';
-import { cohortAssignmentService } from '@/lib/services/rootstock/cohort-assignment.service';
-import { buildMessage, type MessageVariant } from '@/lib/services/rootstock/message-templates';
+import { buildMessage } from '@/lib/services/rootstock/message-templates';
 import { yieldProjectionService } from '@/lib/services/rootstock/yield-projection.service';
-import { fesStorage } from '@/lib/services/rootstock/fes-storage.service';
+import { fesStorage, type MessageVariant } from '@/lib/services/rootstock/fes-storage.service';
 import { fesViewLogger } from '@/lib/services/rootstock/fes-view-logger.service';
 import { resolveChannel } from '@/lib/services/rootstock/fes-channels';
 import { walletHashService } from '@/lib/services/security/wallet-hash.service';
+import { rateLimit, clientIp } from '@/lib/security/rate-limit';
 
-function toDateStr(v: Date | string): string {
-    if (typeof v === 'string') return v.split('T')[0];
-    return v.toISOString().split('T')[0];
-}
+// Límite por IP: 30 consultas/min. Suficiente para una persona probando su
+// wallet; insuficiente para enumerar la lista congelada desde una sola IP.
+const RATE_LIMIT = { limit: 30, windowMs: 60_000 };
 
 export async function POST(request: NextRequest) {
     try {
+        const limiter = rateLimit(`fes:check-wallet:${clientIp(request.headers)}`, RATE_LIMIT.limit, RATE_LIMIT.windowMs);
+        if (!limiter.allowed) {
+            return NextResponse.json(
+                { error: 'Too many requests. Try again shortly.' },
+                { status: 429, headers: { 'Retry-After': String(limiter.retryAfterSec) } }
+            );
+        }
+
         const body = await request.json();
         const wallet = (body.wallet || '').trim().toLowerCase();
         // Canal por el que llegó. Prioridad: ?src= válido → dominio del
@@ -41,54 +55,38 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 1. Verificar si el holder está en la lista de inactivos
-        const activity = await inactiveHolderService.getHolderActivity(wallet);
-        console.log('[API] activity:', activity ? `found (balance: ${activity.balance}, days: ${activity.daysInactive})` : 'null');
+        // 1. Cohorte autoritativa: lista congelada del piloto.
+        const participant = await fesStorage.getParticipant(wallet);
 
-        if (!activity) {
+        if (!participant) {
             return NextResponse.json({
                 found: false,
-                wallet: walletHashService.hashWallet(wallet).walletHash,
-                message: 'No inactive staking position found for this wallet. You may be actively staking or have never staked.',
+                inPilot: false,
+                wallet: walletHashService.hashWalletDeterministic(wallet).walletHash,
+                message:
+                    'This wallet is not part of the FES pilot cohort. Only the wallets selected ' +
+                    'in the frozen snapshot are eligible for the experiment.',
             });
         }
 
-        // 2. Obtener cohorte (reutilizar activity ya fetched)
-        const cohortInfo = await cohortAssignmentService.getCohort(wallet, activity);
-        console.log('[API] cohortInfo:', cohortInfo ? `cohort: ${cohortInfo.cohort}` : 'null - falling back');
+        const balance = Number(participant.balance_at_detection);
+        const daysInactive = participant.days_inactive_at_detection;
+        // La columna se llama last_block_* pero guarda el timestamp (unix, s)
+        // de la última actividad de staking detectada en el seed.
+        const lastStakeActivity = new Date(Number(participant.last_block_at_detection) * 1000);
 
-        if (!cohortInfo) {
-            return NextResponse.json({
-                found: true,
-                wallet: walletHashService.hashWallet(wallet).walletHash,
-                message: 'Staking position detected but could not be assigned to a cohort.',
-                balance: activity.balance,
-                daysInactive: activity.daysInactive,
-            });
-        }
+        // 2. Proyección de rendimiento sobre los datos congelados.
+        const yieldProjection = await yieldProjectionService.calculate(balance, daysInactive);
 
-        // 3. Calcular proyección de rendimiento
-        const yieldProjection = await yieldProjectionService.calculate(
-            activity.balance,
-            activity.daysInactive
-        );
-        console.log('[API] yieldProjection:', yieldProjection ? `yield: ${yieldProjection.projectedYieldRIF} RIF, APR: ${yieldProjection.aprUsed}%` : 'null');
-
-        // 4. Generar mensaje según cohorte
-        const variantMap: Record<string, MessageVariant> = {
-            'A': 'control',
-            'B': 'treatment',
-            'WHALE': 'vip',
-        };
-
-        const variant = variantMap[cohortInfo.cohort] || 'control';
+        // 3. Mensaje según la variante congelada del participante.
+        const variant = participant.message_variant as MessageVariant;
 
         const message = buildMessage(
             {
                 wallet,
-                balance: activity.balance,
-                daysInactive: activity.daysInactive,
-                lastStakeActivity: toDateStr(activity.lastStakeActivity),
+                balance,
+                daysInactive,
+                lastStakeActivity: lastStakeActivity.toISOString().split('T')[0],
                 projectedYield: yieldProjection.projectedYieldRIF,
                 recommendedBuilders: yieldProjection.recommendedBuilders,
             },
@@ -96,7 +94,9 @@ export async function POST(request: NextRequest) {
             'en' // Default language, could be extended with Accept-Language header
         );
 
-        // 5. Loguear la vista en fes_events (Supabase).
+        // 4. Loguear la vista en fes_events (Supabase).
+        // Es la fuente del embudo Viewed → Staked: la atribución lee estos
+        // eventos con la wallet cruda, por eso acá se guarda sin hashear.
         // El resultado se refleja en `viewLogged`: antes devolvía `true` fijo
         // aunque el INSERT fuera rechazado por RLS, así que la UI reportaba
         // éxito en un log que nunca ocurrió.
@@ -106,11 +106,11 @@ export async function POST(request: NextRequest) {
                 wallet,
                 event_type: 'preview_view',
                 payload: {
-                    cohort: cohortInfo.cohort,
+                    cohort: participant.cohort,
                     message_variant: variant,
                     channel,
-                    balance: activity.balance,
-                    daysInactive: activity.daysInactive,
+                    balance,
+                    daysInactive,
                     projectedYield: yieldProjection.projectedYieldRIF,
                     timestamp: new Date().toISOString(),
                 },
@@ -120,26 +120,27 @@ export async function POST(request: NextRequest) {
             console.error('[FES] recordEvent failed:', err);
         }
 
-        // 6. Loguear la vista en MongoDB (para reportes diarios + IPFS)
+        // 5. Loguear la vista en MongoDB (para reportes diarios + IPFS)
         // Fire-and-forget: no bloquea la respuesta
         fesViewLogger.logView({
             wallet,
-            cohort: cohortInfo.cohort,
+            cohort: participant.cohort,
             messageVariant: variant,
-            balance: activity.balance,
-            daysInactive: activity.daysInactive,
+            balance,
+            daysInactive,
             projectedYield: yieldProjection.projectedYieldRIF,
             channel,
         }).catch(err => console.error('[FES View Logger] Background log failed:', err));
 
-        // 7. Respuesta — solo datos de esta wallet, hasheada
+        // 6. Respuesta — solo datos de esta wallet, hasheada
         return NextResponse.json({
             found: true,
-            wallet: walletHashService.hashWallet(wallet).walletHash,
-            cohort: cohortInfo.cohort,
-            balance: activity.balance,
-            daysInactive: activity.daysInactive,
-            lastStakeActivity: toDateStr(activity.lastStakeActivity),
+            inPilot: true,
+            wallet: walletHashService.hashWalletDeterministic(wallet).walletHash,
+            cohort: participant.cohort,
+            balance,
+            daysInactive,
+            lastStakeActivity: lastStakeActivity.toISOString().split('T')[0],
             message: {
                 subject: message.subject,
                 body: message.body,

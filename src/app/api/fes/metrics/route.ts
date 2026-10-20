@@ -46,7 +46,7 @@ export async function GET() {
       return NextResponse.json({
         count: 0,
         cohorts: null,
-        whales: null,
+        vip: null,
         messages: null,
         reactivation: null,
         metadata: {
@@ -79,22 +79,22 @@ export async function GET() {
     const messages = {
       control: cohortResult.cohorts.A.map(h => buildMessage(msgCtx(h), 'control')),
       treatment: cohortResult.cohorts.B.map(h => buildMessage(msgCtx(h), 'treatment')),
-      vip: cohortResult.whales.map(h => buildMessage(msgCtx(h), 'vip')),
+      vip: cohortResult.vip.map(h => buildMessage(msgCtx(h), 'vip')),
     };
 
     // Holder details con wallet hasheada en lugar de address cruda
     const holderDetails = holdersWithYield.map(h => {
-      const all = [...cohortResult.cohorts.A, ...cohortResult.cohorts.B, ...cohortResult.whales];
+      const all = cohortAssignmentService.flatten(cohortResult);
       const assignment = all.find(a => a.wallet === h.wallet);
       return {
-        walletHash: walletHashService.hashWallet(h.wallet).walletHash,
+        walletHash: walletHashService.hashWalletDeterministic(h.wallet).walletHash,
         balance: h.balance,
         daysInactive: h.daysInactive,
         lastStakeActivity: typeof h.lastStakeActivity === 'string' ? h.lastStakeActivity : h.lastStakeActivity.toISOString(),
         cohort: assignment?.cohort || null,
         message_variant: assignment?.cohort === 'A' ? 'control'
           : assignment?.cohort === 'B' ? 'treatment'
-            : assignment?.cohort === 'WHALE' ? 'vip'
+            : assignment?.cohort === 'VIP' ? 'vip'
               : null,
         yieldProjection: h.yieldProjection,
       };
@@ -155,7 +155,7 @@ export async function GET() {
     // silenciosa.
     const viewedHashes = new Map<string, string>();
     for (const p of viewed) {
-      viewedHashes.set(walletHashService.hashWallet(p.wallet).walletHash, p.wallet.toLowerCase());
+      viewedHashes.set(walletHashService.hashWalletDeterministic(p.wallet).walletHash, p.wallet.toLowerCase());
     }
 
     let attributions: Awaited<ReturnType<typeof fesAttributionMonitor.getAttributions>> = [];
@@ -271,11 +271,11 @@ export async function GET() {
         B: cohortResult.summary.cohortB,
         total: cohortResult.summary.total,
         mainPool: cohortResult.summary.mainPool,
-        whales: cohortResult.summary.whales,
+        vip: cohortResult.summary.vip,
       },
-      whales: cohortResult.whales.map(w => ({
+      vip: cohortResult.vip.map(w => ({
         ...w,
-        walletHash: walletHashService.hashWallet(w.wallet).walletHash,
+        walletHash: walletHashService.hashWalletDeterministic(w.wallet).walletHash,
       })),
       messages: {
         control: { total: messages.control.length, sample: messages.control.slice(0, 2) },

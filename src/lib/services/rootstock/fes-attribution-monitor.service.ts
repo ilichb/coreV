@@ -1,390 +1,593 @@
 /**
- * FES Attribution Monitor Service
+ * FES Attribution Monitor — detección on-chain de stakes del piloto.
  *
- * Consulta eventos Staked en el contrato de staking de Rootstock
- * y cruza con los walletHash registrados en MongoDB (vistas de /preview)
- * para atribuir stakes al experimento FES.
+ * ── Qué se verificó en la blockchain (y por qué este archivo se reescribió) ──
  *
- * Flujo:
- * 1. Obtener todos los walletHash que vieron /preview desde MongoDB
- * 2. Consultar eventos Staked recientes en el contrato de staking (vía RPC)
- * 3. Cruzar: si una wallet que vio /preview aparece en Staked, es una atribución
- * 4. Registrar la atribución en Supabase (fes_events) y MongoDB
+ * 1. El contrato de staking NO emite un evento `Staked`. La ABI publicada de
+ *    StRIFTokenV02 (implementación 0xC92B149fCDcf176D7e7A41eb51f56668B7BABe03,
+ *    proxy EIP-1967 0x5Db91E24BD32059584bbdB831a901F1199f3D459) tiene 10
+ *    eventos y ninguno se llama Staked. El monitor anterior buscaba un topic0
+ *    inventado (`STAKED_EVENT_SIG`) contra una dirección por defecto que ni
+ *    siquiera es la del contrato: `eth_getLogs` devolvía [] o error, el catch
+ *    lo convertía en [] silencioso, y "Staked" quedaba en 0 para siempre.
  *
- * Schema en MongoDB (colección: fes_attributions):
- * {
- *   walletHash: string,
- *   cohort: string,
- *   txHash: string,
- *   blockNumber: number,
- *   amount: string,        // RIF stakeado
- *   viewedAt: Date,        // Cuándo vio /preview
- *   stakedAt: Date,        // Cuándo hizo stake
- *   daysToStake: number,   // Días entre vista y stake
- *   detectedAt: Date       // Cuándo se detectó la atribución
- * }
+ * 2. Un stake real es: Transfer de RIF (0x2AcC95758f8b5F583470bA265Eb685a8f45fC9D5)
+ *    HACIA el proxy de staking, en una transacción cuyo input empieza con
+ *    `depositAndDelegate(address,uint256)` = 0xfbde32f8.
+ *    Un unstake es: Transfer de RIF DESDE el proxy, en una transacción cuyo
+ *    input empieza con `withdrawTo(address,uint256)` = 0x205c2878.
+ *    Verificado tx por tx (receipt + input) contra dos fixtures reales:
+ *      stake cohorte B 0x88e85d2dd8ff040c13de41c3f320f1efc180c709ce725d28064937fc386510ba
+ *      stake cohorte A 0x2945dfbc8a15aabc3845e39cd1f14194673fcecd5a75a48a213df0652339a8c8
+ *
+ * 3. Los RPC públicos de Rootstock (sovryn.app y rskj) rechazan `eth_getLogs`
+ *    con "exceed maximum block range". Los logs se leen por la API pública de
+ *    Blockscout; el número/timestamp de bloque sí se puede pedir por RPC.
+ *
+ * ── Reglas del experimento que implementa ──────────────────────────────────
+ *   * Solo interesan las 18 wallets de la cohorte CONGELADA (fes_participants).
+ *   * Atribución = stake de una wallet del piloto que además tiene un
+ *     evento `preview_view` PREVIO en fes_events (la vista inicia el
+ *     recorrido) y dentro de la ventana del piloto.
+ *   * El cursor de escaneo vive en Supabase (fes_monitor_state), no en Redis:
+ *     con TTL de 24h el escaneo se reiniciaba y perdía eventos.
+ *   * Un fallo de lectura NO avanza el cursor y NO se traga: se propaga para
+ *     que el cron reporte el error. El modo anterior devolvía [] y reportaba
+ *     éxito con cero eventos, que es indistinguible de "no pasó nada".
  */
 
-import { mongoDBClient } from '@/lib/infrastructure/mongodb';
 import { rpcBalancer } from '@/lib/infrastructure/clients/rpc-balancer';
-import { fesStorage } from '@/lib/services/rootstock/fes-storage.service';
+import { fesStorage, type FESStakeEvent } from '@/lib/services/rootstock/fes-storage.service';
 import { walletHashService } from '@/lib/services/security/wallet-hash.service';
 import { logger } from '@/lib/utils/logger';
-import { Db, Collection } from 'mongodb';
 
-// Contrato de staking de Rootstock Collective
-const STAKING_CONTRACT = process.env.STAKING_CONTRACT_ADDRESS || '0x9Fb7cB8C6A1bEe5C8f3c1b2E5f6a7b8c9d0e1f2a';
+// ── Constantes verificadas on-chain ────────────────────────────────────────
 
-// Event signature: Staked(address indexed user, uint256 amount, uint256 lockDays)
-const STAKED_EVENT_SIG = '0x5c2c7e4b9c5e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a';
+/** Token RIF en Rootstock (verificado contra el subgraph y Blockscout). */
+const RIF_TOKEN = (process.env.RIF_TOKEN_ADDRESS || '0x2AcC95758f8b5F583470bA265Eb685a8f45fC9D5').toLowerCase();
 
-export interface FESAttribution {
-    walletHash: string;
-    cohort: string;
-    txHash: string;
-    blockNumber: number;
-    amount: string;
-    viewedAt: Date;
-    stakedAt: Date;
-    daysToStake: number;
-    detectedAt: Date;
+/**
+ * Proxy de staking (StRIFTokenV02, EIP-1967). Sin este dato el monitor no
+ * puede clasificar stakes: mejor fallar explícitamente que inventar una
+ * dirección (era exactamente el defecto del monitor anterior).
+ */
+const STAKING_PROXY = (process.env.STAKING_CONTRACT_ADDRESS || '').toLowerCase();
+
+/** Transfer(address indexed,address indexed,uint256) */
+const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+/** depositAndDelegate(address,uint256) */
+const DEPOSIT_AND_DELEGATE_SELECTOR = '0xfbde32f8';
+/** withdrawTo(address,uint256) */
+const WITHDRAW_TO_SELECTOR = '0x205c2878';
+
+const BLOCKSCOUT_API = (process.env.BLOCKSCOUT_API_URL || 'https://rootstock.blockscout.com').replace(/\/$/, '');
+
+/** Rango por petición a Blockscout (los endpoints públicos limitan el rango). */
+const LOG_SCAN_CHUNK = 2_000;
+/** Límite de logs por respuesta; si se llena, el rango se subdivide. */
+const LOG_HARD_LIMIT = 1_000;
+/** Reintentos por petición de logs. */
+const LOG_FETCH_RETRIES = 3;
+/** Backoff base entre reintentos (ms). Ajustable para tests. */
+const LOG_RETRY_BASE_DELAY_MS = Number(process.env.FES_LOG_RETRY_BASE_DELAY_MS ?? 1_000);
+
+const CHECKPOINT_KEY = 'attribution_last_scanned_block';
+
+// ── Ancla del rango inicial ────────────────────────────────────────────────
+// Sin checkpoint previo hay que decidir desde dónde escanear. El ancla es un
+// bloque real verificado; se extrapola al inicio de la ventana del piloto con
+// la cadencia media de Rootstock (~30 s/bloque). El desfase de unas horas no
+// afecta a la corrección: la atribución se valida además por timestamp
+// (stake posterior a la vista y dentro de la ventana), el rango es solo un
+// atajo de escaneo.
+const BLOCK_ANCHOR_NUMBER = 9_299_400;
+const BLOCK_ANCHOR_TIME_MS = Date.parse('2026-10-05T00:00:00Z');
+const AVG_BLOCK_MS = 30_000;
+
+/** Inicio de la ventana del piloto (mismo valor que /api/fes/metrics). */
+const PILOT_WINDOW_START_MS = Date.parse('2026-10-14T08:45:00Z');
+const PILOT_WINDOW_DAYS = 28;
+
+function pilotWindowEndMs(): number {
+  return PILOT_WINDOW_START_MS + PILOT_WINDOW_DAYS * 86_400_000;
+}
+
+function defaultStartBlock(): number {
+  const blocks = Math.floor((PILOT_WINDOW_START_MS - BLOCK_ANCHOR_TIME_MS) / AVG_BLOCK_MS);
+  return Math.max(0, BLOCK_ANCHOR_NUMBER + blocks);
+}
+
+// ── Tipos ──────────────────────────────────────────────────────────────────
+
+export interface ChainStakeEvent {
+  wallet: string;
+  type: 'stake' | 'unstake';
+  txHash: string;
+  logIndex: number;
+  amountWei: string;
+  blockNumber: number;
+  blockTimestamp: string; // ISO
+}
+
+export interface Attribution {
+  walletHash: string;
+  cohort: string;
+  txHash: string;
+  logIndex: number;
+  blockNumber: number;
+  amount: string; // wei
+  amountRif: number;
+  viewedAt: string;
+  stakedAt: string;
+  daysToStake: number;
+}
+
+export interface MonitorCheckResult {
+  fromBlock: number;
+  toBlock: number;
+  transfersScanned: number;
+  stakeEvents: number;
+  unstakeEvents: number;
+  newEvents: number;
+  newAttributions: number;
+  participantsUpdated: number;
+  checkpointSaved: number;
+  checkedAt: string;
 }
 
 export interface AttributionSummary {
-    totalAttributions: number;
-    byCohort: Record<string, number>;
-    totalVolumeRIF: number;
-    volumeByCohort: Record<string, number>;
-    avgDaysToStake: number | null;
-    lastCheckedBlock: number;
-    checkedAt: string;
+  totalAttributions: number;
+  byCohort: Record<string, number>;
+  totalVolumeRIF: number;
+  volumeByCohort: Record<string, number>;
+  avgDaysToStake: number | null;
+  lastCheckedBlock: number;
+  checkedAt: string;
 }
 
+// ── Cliente Blockscout ─────────────────────────────────────────────────────
+
+interface RawLog {
+  address: string;
+  topics: string[];
+  data: string;
+  blockNumber: string;
+  transactionHash: string;
+  logIndex: string;
+}
+
+async function blockscoutLogs(params: Record<string, string>, signal?: AbortSignal): Promise<RawLog[]> {
+  const qs = new URLSearchParams({ module: 'logs', action: 'getLogs', ...params });
+  const res = await fetch(`${BLOCKSCOUT_API}/api?${qs.toString()}`, {
+    headers: { accept: 'application/json' },
+    signal: signal ?? AbortSignal.timeout(30_000),
+  });
+  if (!res.ok) {
+    throw new Error(`Blockscout getLogs → HTTP ${res.status}`);
+  }
+  const json = await res.json();
+  // Blockscout responde { status, message, result } en el endpoint legacy.
+  if (json?.result === 'Too many results' || json?.status === '0') {
+    throw new Error(`Blockscout getLogs → ${json?.message || 'error'}: ${String(json?.result).slice(0, 120)}`);
+  }
+  if (!Array.isArray(json?.result)) {
+    throw new Error('Blockscout getLogs → respuesta inesperada (sin array result)');
+  }
+  return json.result as RawLog[];
+}
+
+async function blockscoutLogsWithRetry(params: Record<string, string>): Promise<RawLog[]> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= LOG_FETCH_RETRIES; attempt++) {
+    try {
+      return await blockscoutLogs(params);
+    } catch (err) {
+      lastError = err;
+      await new Promise(r => setTimeout(r, attempt * LOG_RETRY_BASE_DELAY_MS));
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
+}
+
+/**
+ * Escanea Transfers de RIF en un rango, sub-dividiendo si el límite del
+ * endpoint se alcanza. Un fallo acá se PROPAGA (nunca se convierte en []).
+ */
+async function scanTransfers(fromBlock: number, toBlock: number): Promise<RawLog[]> {
+  if (toBlock < fromBlock) return [];
+
+  const logs = await blockscoutLogsWithRetry({
+    fromBlock: String(fromBlock),
+    toBlock: String(toBlock),
+    address: RIF_TOKEN,
+    topic0: TRANSFER_TOPIC,
+  });
+
+  if (logs.length >= LOG_HARD_LIMIT && toBlock > fromBlock) {
+    const mid = Math.floor((fromBlock + toBlock) / 2);
+    logger.warn(`[FES Attribution] rango ${fromBlock}-${toBlock} lleno (${logs.length} logs); subdividiendo`);
+    const left = await scanTransfers(fromBlock, mid);
+    const right = await scanTransfers(mid + 1, toBlock);
+    return [...left, ...right];
+  }
+
+  return logs;
+}
+
+function toTopicAddress(topic: string): string {
+  return `0x${topic.slice(26)}`.toLowerCase();
+}
+
+// ── Servicio ───────────────────────────────────────────────────────────────
+
 class FESAttributionMonitorService {
-    private readonly ATTRIBUTIONS_COLLECTION = 'fes_attributions';
-    private readonly VIEWS_COLLECTION = 'fes_views';
-    private readonly CHECKPOINT_KEY = 'fes:attribution:lastCheckedBlock';
-    private db: Db | null = null;
-
-    /**
-     * Obtiene la conexión a MongoDB (lazy)
-     */
-    private async getDb(): Promise<Db> {
-        if (!this.db) {
-            await mongoDBClient.connect();
-            this.db = mongoDBClient.getDb();
-        }
-        return this.db;
+  /**
+   * Ejecuta un ciclo de escaneo y atribución.
+   * Lanza error si algo falla: el caller (cron) debe poder distinguir
+   * "cero actividad" de "no pude leer la cadena".
+   */
+  async runCheck(): Promise<MonitorCheckResult> {
+    if (!STAKING_PROXY) {
+      throw new Error(
+        'STAKING_CONTRACT_ADDRESS no está configurada. Sin el proxy de staking no hay ' +
+        'forma de clasificar stakes/unstakes (el monitor anterior fallaba en silencio ' +
+        'con una dirección inventada). Configurarla y re-ejecutar.'
+      );
     }
 
-    /**
-     * Obtiene la colección de atribuciones
-     */
-    private async getAttributionsCollection(): Promise<Collection<FESAttribution>> {
-        const db = await this.getDb();
-        return db.collection<FESAttribution>(this.ATTRIBUTIONS_COLLECTION);
+    const participants = await fesStorage.listParticipants();
+    if (participants.length === 0) {
+      logger.info('[FES Attribution] sin cohorte congelada (fes_participants vacía); nada que escanear');
+      return this.emptyResult(0);
+    }
+    const pilotWallets = new Set(participants.map(p => p.wallet.toLowerCase()));
+
+    const toBlock = await this.currentBlock();
+    const stored = await fesStorage.getMonitorState(CHECKPOINT_KEY);
+    const fromBlock = stored ? Number(stored) + 1 : defaultStartBlock();
+
+    if (fromBlock > toBlock) {
+      return this.emptyResult(toBlock);
     }
 
-    /**
-     * Obtiene la colección de vistas
-     */
-    private async getViewsCollection(): Promise<Collection> {
-        const db = await this.getDb();
-        return db.collection(this.VIEWS_COLLECTION);
+    const rawLogs = await scanTransfers(fromBlock, toBlock);
+
+    // Clasificar: solo los Transfers que involucran al proxy Y cuya
+    // transacción llama al método correspondiente.
+    const txInputs = await this.txInputs(rawLogs);
+    const events: ChainStakeEvent[] = [];
+
+    for (const log of rawLogs) {
+      if (String(log.address).toLowerCase() !== RIF_TOKEN) continue;
+      if (log.topics?.[0] !== TRANSFER_TOPIC || log.topics.length < 3) continue;
+
+      const from = toTopicAddress(log.topics[1]);
+      const to = toTopicAddress(log.topics[2]);
+      const input = txInputs.get(log.transactionHash.toLowerCase());
+      if (!input) continue;
+
+      const blockNumber = parseInt(log.blockNumber, 16);
+      const logIndex = parseInt(log.logIndex, 16);
+
+      let wallet: string | null = null;
+      let type: 'stake' | 'unstake' | null = null;
+
+      if (to === STAKING_PROXY && input.startsWith(DEPOSIT_AND_DELEGATE_SELECTOR)) {
+        wallet = from;
+        type = 'stake';
+      } else if (from === STAKING_PROXY && input.startsWith(WITHDRAW_TO_SELECTOR)) {
+        wallet = to;
+        type = 'unstake';
+      }
+
+      if (!wallet || !type) continue;
+      if (!pilotWallets.has(wallet)) continue; // solo la cohorte congelada
+
+      events.push({
+        wallet,
+        type,
+        txHash: log.transactionHash.toLowerCase(),
+        logIndex,
+        amountWei: BigInt(log.data).toString(),
+        blockNumber,
+        blockTimestamp: new Date(0).toISOString(), // se completa abajo
+      });
     }
 
-    /**
-     * Ejecuta el ciclo completo de monitoreo de atribución
-     */
-    async runCheck(): Promise<{
-        newAttributions: number;
-        totalAttributions: number;
-        summary: AttributionSummary;
-    }> {
-        try {
-            // 1. Obtener el último bloque verificado
-            const lastCheckedBlock = await this.getLastCheckedBlock();
-            const currentBlockHex = await rpcBalancer.call<string>({ method: 'eth_blockNumber', params: [] });
-            const currentBlock = parseInt(currentBlockHex, 16);
-
-            if (currentBlock <= lastCheckedBlock) {
-                logger.info(`[FES Attribution] No new blocks since last check (${lastCheckedBlock})`);
-                const summary = await this.getSummary();
-                return { newAttributions: 0, totalAttributions: summary.totalAttributions, summary };
-            }
-
-            // 2. Obtener todas las wallets que vieron /preview (con walletHash)
-            const viewsCollection = await this.getViewsCollection();
-            const viewers = await viewsCollection
-                .find({})
-                .project({ walletHash: 1, cohort: 1, timestamp: 1 })
-                .toArray();
-
-            if (viewers.length === 0) {
-                logger.info('[FES Attribution] No viewers found, skipping check');
-                await this.saveLastCheckedBlock(currentBlock);
-                const summary = await this.getSummary();
-                return { newAttributions: 0, totalAttributions: 0, summary };
-            }
-
-            // 3. Consultar eventos Staked desde el último bloque verificado
-            const fromBlock = lastCheckedBlock > 0 ? lastCheckedBlock + 1 : currentBlock - 10000; // Últimos ~2 días si es primera vez
-            const stakedEvents = await this.fetchStakedEvents(fromBlock, currentBlock);
-
-            logger.info(`[FES Attribution] Found ${stakedEvents.length} Staked events between blocks ${fromBlock}-${currentBlock}`);
-
-            // 4. Cruzar eventos Staked con viewers
-            const attributionsCollection = await this.getAttributionsCollection();
-            let newAttributions = 0;
-
-            for (const event of stakedEvents) {
-                const walletHash = walletHashService.hashWallet(event.user).walletHash;
-
-                // Verificar si esta wallet vio /preview
-                const viewer = viewers.find(v => v.walletHash === walletHash);
-                if (!viewer) continue;
-
-                // Verificar si ya registramos esta atribución
-                const existing = await attributionsCollection.findOne({ txHash: event.txHash });
-                if (existing) continue;
-
-                // Calcular días entre vista y stake
-                const viewedAt = new Date(viewer.timestamp);
-                const stakedAt = new Date(parseInt(event.blockTimestamp, 16) * 1000);
-                const daysToStake = Math.round((stakedAt.getTime() - viewedAt.getTime()) / 86400000);
-
-                // Registrar atribución en MongoDB
-                const attribution: FESAttribution = {
-                    walletHash,
-                    cohort: viewer.cohort,
-                    txHash: event.txHash,
-                    blockNumber: event.blockNumber,
-                    amount: event.amount,
-                    viewedAt,
-                    stakedAt,
-                    daysToStake,
-                    detectedAt: new Date(),
-                };
-
-                await attributionsCollection.insertOne(attribution);
-
-                // Registrar evento en Supabase
-                await fesStorage.recordEvent({
-                    wallet: event.user.toLowerCase(),
-                    event_type: 'attributed_stake',
-                    payload: {
-                        txHash: event.txHash,
-                        blockNumber: event.blockNumber,
-                        amount: event.amount,
-                        cohort: viewer.cohort,
-                        daysToStake,
-                        viewedAt: viewedAt.toISOString(),
-                    },
-                });
-
-                newAttributions++;
-                logger.info(`[FES Attribution] ✅ New attribution: ${walletHash.slice(0, 16)}... (${event.amount} RIF, cohort ${viewer.cohort})`);
-            }
-
-            // 5. Guardar checkpoint
-            await this.saveLastCheckedBlock(currentBlock);
-
-            const summary = await this.getSummary();
-            logger.info(`[FES Attribution] Check complete: ${newAttributions} new attributions, ${summary.totalAttributions} total`);
-
-            return { newAttributions, totalAttributions: summary.totalAttributions, summary };
-        } catch (error: any) {
-            logger.error('[FES Attribution] Run check failed:', error);
-            const summary = await this.getSummary();
-            return { newAttributions: 0, totalAttributions: summary.totalAttributions, summary };
-        }
+    // Timestamps de bloque solo para los eventos que interesan (pocos).
+    const timestamps = await this.blockTimestamps([...new Set(events.map(e => e.blockNumber))]);
+    for (const e of events) {
+      const ts = timestamps.get(e.blockNumber);
+      if (!ts) {
+        throw new Error(`No se pudo leer el timestamp del bloque ${e.blockNumber}`);
+      }
+      e.blockTimestamp = ts;
     }
 
-    /**
-     * Consulta eventos Staked en el contrato de staking vía RPC
-     */
-    private async fetchStakedEvents(fromBlock: number, toBlock: number): Promise<Array<{
-        user: string;
-        amount: string;
-        blockNumber: number;
-        blockTimestamp: string;
-        txHash: string;
-    }>> {
-        try {
-            const logs = await rpcBalancer.call<Array<{
-                address: string;
-                blockNumber: string;
-                blockHash: string;
-                transactionHash: string;
-                data: string;
-                topics: string[];
-            }>>({
-                method: 'eth_getLogs',
-                params: [{
-                    address: STAKING_CONTRACT,
-                    fromBlock: `0x${fromBlock.toString(16)}`,
-                    toBlock: `0x${toBlock.toString(16)}`,
-                    topics: [STAKED_EVENT_SIG],
-                }],
-                timeout: 30000,
-            });
+    // Persistir (dedupe por UNIQUE(tx_hash, log_index)).
+    const newEvents = await fesStorage.insertStakeEvents(
+      events.map(e => ({
+        wallet: e.wallet,
+        event_type: e.type,
+        tx_hash: e.txHash,
+        log_index: e.logIndex,
+        amount_wei: e.amountWei,
+        amount_rif: Number(e.amountWei) / 1e18,
+        block_number: e.blockNumber,
+        block_timestamp: e.blockTimestamp,
+        attributed: false,
+        days_view_to_stake: null,
+      }))
+    );
 
-            if (!logs || !Array.isArray(logs)) return [];
+    // Atribución: stake de una wallet del piloto con vista previa en /preview.
+    const windowEndMs = pilotWindowEndMs();
+    const newAttributions = await this.attribute(events, windowEndMs);
 
-            // Obtener timestamps de los bloques (en batch)
-            const uniqueBlocks = [...new Set(logs.map(l => parseInt(l.blockNumber, 16)))];
-            const blockTimestamps = await this.batchGetBlockTimestamps(uniqueBlocks);
+    // Actualizar flags de participantes (contralibre del dashboard).
+    const participantsUpdated = await this.updateParticipants(events);
 
-            return logs.map(log => {
-                const blockNum = parseInt(log.blockNumber, 16);
-                // Decodificar event: topics[1] = user (address), data = amount (uint256)
-                const user = `0x${log.topics[1].substring(26)}`; // Últimos 40 chars = address
-                const amount = BigInt(log.data).toString();
+    // El cursor SOLO avanza si todo lo anterior salió bien.
+    await fesStorage.setMonitorState(CHECKPOINT_KEY, String(toBlock));
 
-                return {
-                    user: user.toLowerCase(),
-                    amount,
-                    blockNumber: blockNum,
-                    blockTimestamp: blockTimestamps.get(blockNum) || '0',
-                    txHash: log.transactionHash,
-                };
-            });
-        } catch (error: any) {
-            logger.error('[FES Attribution] Failed to fetch Staked events:', error);
-            return [];
-        }
+    const result: MonitorCheckResult = {
+      fromBlock,
+      toBlock,
+      transfersScanned: rawLogs.length,
+      stakeEvents: events.filter(e => e.type === 'stake').length,
+      unstakeEvents: events.filter(e => e.type === 'unstake').length,
+      newEvents,
+      newAttributions,
+      participantsUpdated,
+      checkpointSaved: toBlock,
+      checkedAt: new Date().toISOString(),
+    };
+
+    logger.info(
+      `[FES Attribution] check ${fromBlock}-${toBlock}: ${result.stakeEvents} stakes, ` +
+      `${result.unstakeEvents} unstakes, ${newEvents} nuevos, ${newAttributions} atribuidos`
+    );
+
+    return result;
+  }
+
+  /**
+   * Atribuye stakes con vista previa. Devuelve la cantidad de atribuciones
+   * nuevas (por debajo, escribe el evento `attributed_stake` y marca el
+   * evento de cadena como atribuido).
+   */
+  private async attribute(events: ChainStakeEvent[], windowEndMs: number): Promise<number> {
+    const stakes = events.filter(e => e.type === 'stake');
+    if (stakes.length === 0) return 0;
+
+    let attributed = 0;
+    for (const stake of stakes) {
+      // Primera vista de /preview de esa wallet (fes_events, wallet cruda).
+      const views = await fesStorage.getEvents(stake.wallet, 'preview_view', 50);
+      const firstView = views
+        .map(v => v.created_at ?? '')
+        .filter(Boolean)
+        .sort()[0];
+
+      if (!firstView) continue; // nunca abrió /preview → sin atribución posible
+
+      const viewMs = Date.parse(firstView);
+      const stakeMs = Date.parse(stake.blockTimestamp);
+      const stakeRif = Number(stake.amountWei) / 1e18;
+
+      // La vista debe ser PREVIA al stake; si no, el stake no vino del piloto.
+      if (!(stakeMs > viewMs)) continue;
+      if (stakeMs > windowEndMs) continue; // fuera de la ventana
+
+      const daysToStake = Math.round(((stakeMs - viewMs) / 86_400_000) * 10) / 10;
+
+      await fesStorage.recordEvent({
+        wallet: stake.wallet,
+        event_type: 'attributed_stake',
+        payload: {
+          txHash: stake.txHash,
+          logIndex: stake.logIndex,
+          blockNumber: stake.blockNumber,
+          amountRif: stakeRif,
+          viewedAt: firstView,
+          stakedAt: stake.blockTimestamp,
+          daysToStake,
+          attributionRule: 'stake posterior a preview_view y dentro de la ventana del piloto',
+        },
+      });
+
+      await fesStorage.markStakeEventAttributed(stake.txHash, stake.logIndex, daysToStake);
+
+      attributed++;
+      logger.info(
+        `[FES Attribution] ✅ atribución: ${stake.wallet.slice(0, 10)}… ` +
+        `(${stakeRif} RIF, ${daysToStake} días desde la vista)`
+      );
     }
 
-    /**
-     * Obtiene timestamps de bloques en batch
-     */
-    private async batchGetBlockTimestamps(blocks: number[]): Promise<Map<number, string>> {
-        const result = new Map<number, string>();
+    return attributed;
+  }
 
-        const BATCH_SIZE = 20;
-        for (let i = 0; i < blocks.length; i += BATCH_SIZE) {
-            const batch = blocks.slice(i, i + BATCH_SIZE);
-            const responses = await Promise.allSettled(
-                batch.map(async block => {
-                    const hex = `0x${block.toString(16)}`;
-                    const blockData = await rpcBalancer.call<any>({
-                        method: 'eth_getBlockByNumber',
-                        params: [hex, false],
-                        timeout: 10000,
-                    });
-                    return { block, timestamp: blockData?.timestamp || '0x0' };
-                })
-            );
+  /**
+   * `reactivated` = hubo actividad on-chain de la wallet del piloto después
+   * del arranque de la ventana (stake o unstake). Es el contralibre del
+   * dashboard: debe ser >= Staked (atribuido); si es mayor, hay actividad
+   * que la atribución no pudo confirmar y hay que mirarla a mano.
+   */
+  private async updateParticipants(events: ChainStakeEvent[]): Promise<number> {
+    if (events.length === 0) return 0;
 
-            for (const res of responses) {
-                if (res.status === 'fulfilled') {
-                    result.set(res.value.block, res.value.timestamp);
-                }
-            }
-        }
-
-        return result;
+    const byWallet = new Map<string, ChainStakeEvent[]>();
+    for (const e of events) {
+      const list = byWallet.get(e.wallet) ?? [];
+      list.push(e);
+      byWallet.set(e.wallet, list);
     }
 
-    /**
-     * Obtiene el último bloque verificado desde Redis
-     */
-    private async getLastCheckedBlock(): Promise<number> {
-        try {
-            const { redisService } = await import('@/lib/services/coordination/redis');
-            const cached = await redisService.get(this.CHECKPOINT_KEY);
-            return cached ? parseInt(cached, 10) : 0;
-        } catch {
-            return 0;
-        }
+    const windowStartMs = PILOT_WINDOW_START_MS;
+    let updated = 0;
+
+    for (const [wallet, list] of byWallet) {
+      const latest = list.reduce((a, b) => (a.blockNumber >= b.blockNumber ? a : b));
+      const latestMs = Date.parse(latest.blockTimestamp);
+      if (latestMs < windowStartMs) continue; // actividad previa al piloto no cuenta
+
+      const participant = await fesStorage.getParticipant(wallet);
+      if (!participant) continue;
+
+      const fields: Record<string, unknown> = {
+        last_block_current: latest.blockNumber,
+        last_checked_at: new Date().toISOString(),
+      };
+      if (!participant.reactivated) {
+        fields.reactivated = true;
+        fields.reactivated_at = latest.blockTimestamp;
+      }
+
+      await fesStorage.updateParticipantField(wallet, fields);
+      updated++;
     }
 
-    /**
-     * Guarda el último bloque verificado en Redis
-     */
-    private async saveLastCheckedBlock(block: number): Promise<void> {
-        try {
-            const { redisService } = await import('@/lib/services/coordination/redis');
-            await redisService.set(this.CHECKPOINT_KEY, block.toString(), 86400);
-        } catch (error: any) {
-            logger.error('[FES Attribution] Failed to save checkpoint:', error);
-        }
+    return updated;
+  }
+
+  /** Inputs de transacción (dedupe por txHash) para clasificar stake/unstake. */
+  private async txInputs(logs: RawLog[]): Promise<Map<string, string>> {
+    const txHashes = [...new Set(logs.map(l => String(l.transactionHash).toLowerCase()))];
+    const inputs = new Map<string, string>();
+
+    const BATCH = 10;
+    for (let i = 0; i < txHashes.length; i += BATCH) {
+      const batch = txHashes.slice(i, i + BATCH);
+      const settled = await Promise.allSettled(
+        batch.map(async (hash) => {
+          const tx = await rpcBalancer.call<{ input: string }>({
+            method: 'eth_getTransactionByHash',
+            params: [hash],
+            timeout: 15_000,
+          });
+          return { hash, input: String(tx?.input || '').toLowerCase() };
+        })
+      );
+      for (const s of settled) {
+        if (s.status === 'fulfilled') inputs.set(s.value.hash, s.value.input);
+      }
     }
 
-    /**
-     * Obtiene resumen de atribuciones
-     */
-    async getSummary(): Promise<AttributionSummary> {
-        try {
-            const collection = await this.getAttributionsCollection();
+    return inputs;
+  }
 
-            const totalAttributions = await collection.countDocuments();
+  private async blockTimestamps(blocks: number[]): Promise<Map<number, string>> {
+    const result = new Map<number, string>();
+    const BATCH = 10;
+    for (let i = 0; i < blocks.length; i += BATCH) {
+      const batch = blocks.slice(i, i + BATCH);
+      const settled = await Promise.allSettled(
+        batch.map(async (block) => {
+          const data = await rpcBalancer.call<{ timestamp: string }>({
+            method: 'eth_getBlockByNumber',
+            params: [`0x${block.toString(16)}`, false],
+            timeout: 15_000,
+          });
+          const ts = data?.timestamp ? parseInt(data.timestamp, 16) * 1000 : NaN;
+          if (Number.isNaN(ts)) throw new Error(`bloque ${block} sin timestamp`);
+          return { block, iso: new Date(ts).toISOString() };
+        })
+      );
+      for (const s of settled) {
+        if (s.status === 'fulfilled') result.set(s.value.block, s.value.iso);
+      }
+    }
+    return result;
+  }
 
-            // Por cohorte
-            const cohortAgg = await collection.aggregate([
-                { $group: { _id: '$cohort', count: { $sum: 1 }, volume: { $sum: { $toDouble: '$amount' } } } },
-            ]).toArray();
+  private async currentBlock(): Promise<number> {
+    const hex = await rpcBalancer.call<string>({ method: 'eth_blockNumber', params: [] });
+    return parseInt(hex, 16);
+  }
 
-            const byCohort: Record<string, number> = {};
-            const volumeByCohort: Record<string, number> = {};
-            let totalVolumeRIF = 0;
+  private emptyResult(toBlock: number): MonitorCheckResult {
+    return {
+      fromBlock: toBlock,
+      toBlock,
+      transfersScanned: 0,
+      stakeEvents: 0,
+      unstakeEvents: 0,
+      newEvents: 0,
+      newAttributions: 0,
+      participantsUpdated: 0,
+      checkpointSaved: toBlock,
+      checkedAt: new Date().toISOString(),
+    };
+  }
 
-            for (const row of cohortAgg) {
-                byCohort[row._id] = row.count;
-                const volume = parseFloat(row.volume) / 1e18;
-                volumeByCohort[row._id] = volume;
-                totalVolumeRIF += volume;
-            }
+  /**
+   * Atribuciones detectadas. Fuente: eventos `attributed_stake` en Supabase
+   * (antes: colección de MongoDB con hashes no reproducibles entre reinicios).
+   */
+  async getAttributions(limit = 100): Promise<Attribution[]> {
+    const events = await fesStorage.getEvents(undefined, 'attributed_stake', limit);
+    const participants = await fesStorage.listParticipants();
+    const cohortByWallet = new Map(participants.map(p => [p.wallet.toLowerCase(), p.cohort]));
 
-            // Promedio de días para stake
-            const daysAgg = await collection.aggregate([
-                { $group: { _id: null, avgDays: { $avg: '$daysToStake' } } },
-            ]).toArray();
-            const avgDaysToStake = daysAgg.length > 0 ? Math.round(daysAgg[0].avgDays * 10) / 10 : null;
+    return events.map((e) => {
+      const payload = (e.payload || {}) as Record<string, unknown>;
+      const viewedAt = String(payload.viewedAt ?? '');
+      const stakedAt = String(payload.stakedAt ?? '');
+      const daysToStake = Number(payload.daysToStake ?? 0);
+      const amountRif = Number(payload.amountRif ?? 0);
 
-            const lastCheckedBlock = await this.getLastCheckedBlock();
+      return {
+        walletHash: walletHashService.hashWalletDeterministic(e.wallet).walletHash,
+        cohort: cohortByWallet.get(e.wallet.toLowerCase()) ?? 'unknown',
+        txHash: String(payload.txHash ?? ''),
+        logIndex: Number(payload.logIndex ?? 0),
+        blockNumber: Number(payload.blockNumber ?? 0),
+        amount: String(BigInt(Math.round(amountRif * 1e18))),
+        amountRif,
+        viewedAt,
+        stakedAt,
+        daysToStake,
+      };
+    });
+  }
 
-            return {
-                totalAttributions,
-                byCohort,
-                totalVolumeRIF: Math.round(totalVolumeRIF * 100) / 100,
-                volumeByCohort: Object.fromEntries(
-                    Object.entries(volumeByCohort).map(([k, v]) => [k, Math.round(v * 100) / 100])
-                ),
-                avgDaysToStake,
-                lastCheckedBlock,
-                checkedAt: new Date().toISOString(),
-            };
-        } catch (error: any) {
-            logger.error('[FES Attribution] Failed to get summary:', error);
-            return {
-                totalAttributions: 0,
-                byCohort: {},
-                totalVolumeRIF: 0,
-                volumeByCohort: {},
-                avgDaysToStake: null,
-                lastCheckedBlock: 0,
-                checkedAt: new Date().toISOString(),
-            };
-        }
+  async getSummary(): Promise<AttributionSummary> {
+    const events = await fesStorage.listStakeEvents(1000);
+    const attributed = events.filter(e => e.attributed);
+
+    const byCohort: Record<string, number> = {};
+    const volumeByCohort: Record<string, number> = {};
+
+    const participants = await fesStorage.listParticipants();
+    const cohortByWallet = new Map(participants.map(p => [p.wallet.toLowerCase(), p.cohort]));
+
+    let totalVolumeRIF = 0;
+    let daysSum = 0;
+    for (const e of attributed) {
+      const cohort = cohortByWallet.get(e.wallet.toLowerCase()) ?? 'unknown';
+      byCohort[cohort] = (byCohort[cohort] ?? 0) + 1;
+      volumeByCohort[cohort] = (volumeByCohort[cohort] ?? 0) + e.amount_rif;
+      totalVolumeRIF += e.amount_rif;
+      daysSum += Number(e.days_view_to_stake ?? 0);
     }
 
-    /**
-     * Obtiene todas las atribuciones registradas
-     */
-    async getAttributions(limit = 100): Promise<FESAttribution[]> {
-        try {
-            const collection = await this.getAttributionsCollection();
-            return await collection
-                .find({})
-                .sort({ detectedAt: -1 })
-                .limit(limit)
-                .toArray() as FESAttribution[];
-        } catch (error: any) {
-            logger.error('[FES Attribution] Failed to get attributions:', error);
-            return [];
-        }
-    }
+    const stored = await fesStorage.getMonitorState(CHECKPOINT_KEY);
+
+    const round2 = (n: number) => Math.round(n * 100) / 100;
+
+    return {
+      totalAttributions: attributed.length,
+      byCohort,
+      totalVolumeRIF: round2(totalVolumeRIF),
+      volumeByCohort: Object.fromEntries(
+        Object.entries(volumeByCohort).map(([k, v]) => [k, round2(v)])
+      ),
+      avgDaysToStake: attributed.length > 0 ? round2(daysSum / attributed.length) : null,
+      lastCheckedBlock: stored ? Number(stored) : 0,
+      checkedAt: new Date().toISOString(),
+    };
+  }
 }
 
 export const fesAttributionMonitor = new FESAttributionMonitorService();

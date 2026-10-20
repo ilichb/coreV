@@ -68,6 +68,25 @@ export interface FESEvent {
   created_at?: string;
 }
 
+/**
+ * Evento de staking detectado on-chain (Transfer de RIF involucrando al
+ * proxy de staking). Identidad única: (tx_hash, log_index).
+ */
+export interface FESStakeEvent {
+  id?: string;
+  wallet: string;
+  event_type: 'stake' | 'unstake';
+  tx_hash: string;
+  log_index: number;
+  amount_wei: string;
+  amount_rif: number;
+  block_number: number;
+  block_timestamp: string;
+  attributed: boolean;
+  days_view_to_stake: number | null;
+  detected_at?: string;
+}
+
 class FESStorageService {
   // ── Participants ──────────────────────────────────────────────────────────
 
@@ -109,6 +128,21 @@ class FESStorageService {
       return null;
     }
     return data as FESParticipant | null;
+  }
+
+  /**
+   * Número exacto de filas en la lista congelada.
+   * Usado por el guard de congelamiento de `seed-participants`.
+   */
+  async countParticipants(): Promise<number> {
+    const { count, error } = await getSupabaseAdmin()
+      .from('fes_participants')
+      .select('wallet', { count: 'exact', head: true });
+    if (error) {
+      logger.error('FES storage: countParticipants failed', error);
+      throw new Error(`FES storage: countParticipants failed → ${error.code}: ${error.message}`);
+    }
+    return count ?? 0;
   }
 
   async listParticipants(cohort?: Cohort, reactivated?: boolean): Promise<FESParticipant[]> {
@@ -178,6 +212,77 @@ class FESStorageService {
       return [];
     }
     return (data || []) as FESEvent[];
+  }
+
+  // ── Stake events (on-chain, escaneados por el attribution monitor) ────────
+
+  /**
+   * Inserta eventos de stake/unstake detectados on-chain.
+   * Deduplicación por la constraint UNIQUE (tx_hash, log_index): re-ejecutar
+   * el escaneo del mismo rango no duplica filas.
+   *
+   * Devuelve la cantidad de filas realmente insertadas.
+   */
+  async insertStakeEvents(events: Omit<FESStakeEvent, 'id' | 'detected_at'>[]): Promise<number> {
+    if (events.length === 0) return 0;
+    const data = await adminWrite<Array<{ id: string }>>(
+      `insertStakeEvents (${events.length} filas)`,
+      (c) =>
+        c
+          .from('fes_stake_events')
+          .upsert(events, { onConflict: 'tx_hash,log_index', ignoreDuplicates: true })
+          .select('id')
+    );
+    return Array.isArray(data) ? data.length : 0;
+  }
+
+  async listStakeEvents(limit = 500): Promise<FESStakeEvent[]> {
+    const { data, error } = await getSupabaseAdmin()
+      .from('fes_stake_events')
+      .select('*')
+      .order('block_number', { ascending: false })
+      .limit(limit);
+    if (error) {
+      logger.error('FES storage: listStakeEvents failed', error);
+      return [];
+    }
+    return (data || []) as FESStakeEvent[];
+  }
+
+  /** Marca un evento de stake como atribuido al experimento. */
+  async markStakeEventAttributed(txHash: string, logIndex: number, daysViewToStake: number): Promise<void> {
+    const { error } = await getSupabaseAdmin()
+      .from('fes_stake_events')
+      .update({ attributed: true, days_view_to_stake: daysViewToStake })
+      .eq('tx_hash', txHash.toLowerCase())
+      .eq('log_index', logIndex);
+    if (error) {
+      throw new Error(`FES storage: markStakeEventAttributed failed → ${error.code}: ${error.message}`);
+    }
+  }
+
+  // ── Monitor state (cursor de escaneo) ────────────────────────────────────
+
+  async getMonitorState(key: string): Promise<string | null> {
+    const { data, error } = await getSupabaseAdmin()
+      .from('fes_monitor_state')
+      .select('value')
+      .eq('key', key)
+      .maybeSingle();
+    if (error) {
+      logger.error('FES storage: getMonitorState failed', error);
+      return null;
+    }
+    return data ? (data.value as string) : null;
+  }
+
+  async setMonitorState(key: string, value: string): Promise<void> {
+    const { error } = await getSupabaseAdmin()
+      .from('fes_monitor_state')
+      .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+    if (error) {
+      throw new Error(`FES storage: setMonitorState failed → ${error.code}: ${error.message}`);
+    }
   }
 
   // ── Metrics ───────────────────────────────────────────────────────────────

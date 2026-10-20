@@ -22,7 +22,7 @@ interface FESMetrics {
         A: { count: number; avgDaysInactive: number; avgBalance: number };
         B: { count: number; avgDaysInactive: number; avgBalance: number };
     };
-    whales: Array<{
+    vip: Array<{
         walletHash: string;
         balance: number;
         daysInactive: number;
@@ -109,7 +109,7 @@ interface FESMetrics {
 const LOADING_STAGES = [
     'QUERYING REWARDS SUBGRAPH…',
     'RESOLVING RIF BALANCES VIA RPC…',
-    'ASSIGNING COHORTS A / B / WHALE…',
+    'ASSIGNING COHORTS A / B / VIP…',
     'PROJECTING YIELDS…',
 ];
 
@@ -229,7 +229,7 @@ export default function InternalFESDashboard() {
     const [data, setData] = useState<FESMetrics | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [tab, setTab] = useState<'overview' | 'frozen' | 'holders' | 'messages' | 'whales'>('overview');
+    const [tab, setTab] = useState<'overview' | 'frozen' | 'holders' | 'messages' | 'vip'>('overview');
 
     useEffect(() => {
         fetch('/api/fes/metrics', { credentials: 'include' })
@@ -284,7 +284,7 @@ export default function InternalFESDashboard() {
         { id: 'overview' as const, label: 'Overview' },
         { id: 'frozen' as const, label: `Frozen Cohort (${data.frozenCohort?.total ?? 0})` },
         { id: 'holders' as const, label: `Live Holders (${data.count})` },
-        { id: 'whales' as const, label: `Live Whales (${data.whales.length})` },
+        { id: 'vip' as const, label: `Live VIP (${data.vip.length})` },
         { id: 'messages' as const, label: 'Messages' },
     ];
 
@@ -570,8 +570,8 @@ export default function InternalFESDashboard() {
                                     <div className="text-xs font-mono text-gray-700 mt-1">{data.cohorts?.B?.avgDaysInactive?.toFixed(1) || 0} avg days</div>
                                 </div>
                                 <div>
-                                    <div className="text-xs font-mono text-gray-600 uppercase tracking-widest">Whales</div>
-                                    <div className="text-2xl font-mono font-bold text-gray-400 mt-1">{data.whales.length}</div>
+                                    <div className="text-xs font-mono text-gray-600 uppercase tracking-widest">VIP</div>
+                                    <div className="text-2xl font-mono font-bold text-gray-400 mt-1">{data.vip.length}</div>
                                 </div>
                             </div>
                             {data.frozenCohort && data.count !== data.frozenCohort.total && (
@@ -804,7 +804,7 @@ export default function InternalFESDashboard() {
                                         <td className="p-4 text-right text-gray-200">{h.balance.toLocaleString()}</td>
                                         <td className="p-4 text-right text-gray-400">{h.daysInactive}d</td>
                                         <td className="p-4 text-center">
-                                            <span className={`text-xs font-bold px-2 py-1 border ${h.cohort === 'WHALE' ? 'border-[#ff6b6b]/40 text-[#ff6b6b]'
+                                            <span className={`text-xs font-bold px-2 py-1 border ${h.cohort === 'VIP' ? 'border-[#ff6b6b]/40 text-[#ff6b6b]'
                                                     : h.cohort === 'B' ? 'border-[#f59e0b]/40 text-[#f59e0b]'
                                                         : h.cohort === 'A' ? 'border-[#00f0ff]/40 text-[#00f0ff]'
                                                             : 'border-gray-700 text-gray-600'
@@ -824,8 +824,8 @@ export default function InternalFESDashboard() {
                     </div>
                 )}
 
-                {/* Tab: Whales */}
-                {tab === 'whales' && (
+                {/* Tab: VIP */}
+                {tab === 'vip' && (
                     <div className="border border-gray-800 bg-black/40 overflow-x-auto">
                         <table className="w-full text-sm font-mono">
                             <thead>
@@ -836,7 +836,7 @@ export default function InternalFESDashboard() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {data.whales.map((w, i) => (
+                                {data.vip.map((w, i) => (
                                     <tr key={i} className="border-b border-gray-800/50 hover:bg-gray-900/30">
                                         <td className="p-4 text-gray-400">{w.walletHash.slice(0, 16)}...</td>
                                         <td className="p-4 text-right text-[#ff6b6b] font-bold">{w.balance.toLocaleString()} RIF</td>

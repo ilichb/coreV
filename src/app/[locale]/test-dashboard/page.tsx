@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-type Cohort = 'A' | 'B' | 'WHALE';
+type Cohort = 'A' | 'B' | 'VIP';
 type MessageVariant = 'control' | 'treatment' | 'vip';
 
 interface Holder {
@@ -47,8 +47,8 @@ interface ReactivationMetrics {
 interface MetricsData {
   count: number;
   holders: Holder[];
-  cohorts: { total: number; mainPool: number; cohortA: CohortSummary; cohortB: CohortSummary; whales: CohortSummary };
-  whales: Holder[];
+  cohorts: { total: number; mainPool: number; cohortA: CohortSummary; cohortB: CohortSummary; vip: CohortSummary };
+  vip: Holder[];
   messages: { control: MessageGroup; treatment: MessageGroup; vip: MessageGroup };
   reactivation: ReactivationMetrics | null;
   metadata: { source: string; minBalanceRIF: number; minDaysInactive: number; generatedAt: string; note: string; cohortStrategy: string };
@@ -324,7 +324,7 @@ export default function TestDashboardPage() {
 
   const cohortA = metrics?.holders.filter(h => h.cohort === 'A') || [];
   const cohortB = metrics?.holders.filter(h => h.cohort === 'B') || [];
-  const whales = metrics?.holders.filter(h => h.cohort === 'WHALE') || [];
+  const vipHolders = metrics?.holders.filter(h => h.cohort === 'VIP') || [];
 
   return (
     <div className="min-h-screen bg-[#050608] text-gray-100 p-4 md:p-6">
@@ -388,8 +388,8 @@ export default function TestDashboardPage() {
                 <Card label="Main Pool (A/B)" value={fmt(metrics.cohorts.mainPool)} accent="border-gray-600/30" />
                 <Card label="Cohort A — Control" value={fmt(cohortA.length)} sub={`${fmtRIF(metrics.cohorts.cohortA.totalBalance)} RIF`} accent="border-[#00f0ff]/20" />
                 <Card label="Cohort B — Treatment" value={fmt(cohortB.length)} sub={`${fmtRIF(metrics.cohorts.cohortB.totalBalance)} RIF`} accent="border-[#f59e0b]/20" />
-                <Card label="Whales (>1M)" value={fmt(whales.length)} sub={`${fmtRIF(metrics.cohorts.whales.totalBalance)} RIF`} accent="border-[#ff6b6b]/20" />
-                <Card label="Total RIF" value={fmtRIF(metrics.cohorts.cohortA.totalBalance + metrics.cohorts.cohortB.totalBalance + metrics.cohorts.whales.totalBalance)} accent="border-gray-600/30" />
+                <Card label="VIP (>1M)" value={fmt(vipHolders.length)} sub={`${fmtRIF(metrics.cohorts.vip.totalBalance)} RIF`} accent="border-[#ff6b6b]/20" />
+                <Card label="Total RIF" value={fmtRIF(metrics.cohorts.cohortA.totalBalance + metrics.cohorts.cohortB.totalBalance + metrics.cohorts.vip.totalBalance)} accent="border-gray-600/30" />
                 <Card label="Avg Days Inactive" value={fmt((metrics.cohorts.cohortA.avgDaysInactive + metrics.cohorts.cohortB.avgDaysInactive) / 2, 0)} sub="A/B pool avg" accent="border-gray-600/30" />
               </div>
               <JSONPreview data={metrics} label="metrics response" />
@@ -419,8 +419,8 @@ export default function TestDashboardPage() {
                 </thead>
                 <tbody>
                   {metrics.holders.map((h, i) => {
-                    const rowColor = h.cohort === 'WHALE' ? 'border-[#ff6b6b]/10' : h.cohort === 'B' ? 'border-[#f59e0b]/10' : 'border-gray-800/50';
-                    const badgeColor = h.cohort === 'WHALE' ? 'red' as const : h.cohort === 'B' ? 'amber' as const : h.cohort === 'A' ? 'cyan' as const : 'gray' as const;
+                    const rowColor = h.cohort === 'VIP' ? 'border-[#ff6b6b]/10' : h.cohort === 'B' ? 'border-[#f59e0b]/10' : 'border-gray-800/50';
+                    const badgeColor = h.cohort === 'VIP' ? 'red' as const : h.cohort === 'B' ? 'amber' as const : h.cohort === 'A' ? 'cyan' as const : 'gray' as const;
                     const msgBadgeColor = h.message_variant === 'vip' ? 'red' as const : h.message_variant === 'treatment' ? 'amber' as const : h.message_variant === 'control' ? 'cyan' as const : 'gray' as const;
                     return (
                       <tr key={h.wallet} className={`border-b ${rowColor} hover:bg-white/[0.02] transition-colors`}>
@@ -494,11 +494,11 @@ export default function TestDashboardPage() {
           </div>
         )}
 
-        {/* ═══ Whales / VIP ═══ */}
-        {whales.length > 0 && (
-          <Section title="Whales — VIP Cohort" count={whales.length} color="red">
+        {/* ═══ VIP ═══ */}
+        {vipHolders.length > 0 && (
+          <Section title="VIP Cohort" count={vipHolders.length} color="red">
             <div className="divide-y divide-[#ff6b6b]/10">
-              {whales.map(h => (
+              {vipHolders.map(h => (
                 <div key={h.wallet} className="px-4 py-3">
                   <div className="flex items-center justify-between">
                     <div>
@@ -513,7 +513,7 @@ export default function TestDashboardPage() {
                 </div>
               ))}
             </div>
-            <JSONPreview data={whales} label="whales data" />
+            <JSONPreview data={vipHolders} label="vip data" />
           </Section>
         )}
 

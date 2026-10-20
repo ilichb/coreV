@@ -6,14 +6,22 @@
  * y `batchUpsertParticipants` estaban definidas pero ningún flujo las llamaba,
  * así que la tabla nunca recibió filas.
  *
+ * GUARD DE CONGELAMIENTO: una vez que `fes_participants` tiene filas, la
+ * lista se considera CONGELADA (es la cohorte experimental del piloto y
+ * coincide con el snapshot publicado en IPFS). Re-ejecutar el seed la
+ * re-asignaría desde cero y rompería el experimento. Por eso un re-seed con
+ * commit solo se permite con `{ "restore": true }` explícito, reservado a
+ * restaurar la lista desde `local-snapshots/fes-snapshot-custody.json`.
+ *
  * Idempotente: el upsert usa `onConflict: 'wallet'` (PK), así que re-ejecutarlo
  * actualiza en lugar de duplicar.
  *
  * Auth: requiere `X-Internal-Key` (FES_INTERNAL_KEY). Ver src/middleware.ts.
  *
- * Body opcional: { "commit": true }
+ * Body: { "commit": boolean, "restore": boolean }
  *   - commit: false (default) → solo dry-run, devuelve el plan sin escribir
  *   - commit: true           → escribe
+ *   - restore: true          → autoriza reescribir una lista ya congelada
  *
  * Deliberadamente NO se dispara desde GET /api/fes/metrics: ese endpoint se
  * llama en cada visita al dashboard y no debe escribir en la base.
@@ -22,36 +30,58 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { inactiveHolderService } from '@/lib/services/rootstock/inactive-holder.service';
 import { cohortAssignmentService } from '@/lib/services/rootstock/cohort-assignment.service';
-import { fesStorage, type Cohort } from '@/lib/services/rootstock/fes-storage.service';
+import { fesStorage } from '@/lib/services/rootstock/fes-storage.service';
 import { logger } from '@/lib/utils/logger';
 
 // El detection hace ~13s (subgraph paginado + RPC batching). Subimos el timeout.
 export const maxDuration = 60;
 
-const VARIANT: Record<string, 'control' | 'treatment' | 'vip'> = {
+const VARIANT: Record<'A' | 'B' | 'VIP', 'control' | 'treatment' | 'vip'> = {
   A: 'control',
   B: 'treatment',
-  WHALE: 'vip',
+  VIP: 'vip',
 };
-
-/** Mapea el cohort del servicio ('WHALE') al que exige el CHECK de la tabla ('VIP'). */
-function toTableCohort(cohort: string): Cohort {
-  return cohort === 'WHALE' ? 'VIP' : (cohort as Cohort);
-}
 
 export async function POST(request: NextRequest) {
   let commit = false;
+  let restore = false;
   try {
     const raw = await request.text();
     if (raw.trim()) {
       const body = JSON.parse(raw);
       commit = body.commit === true;
+      restore = body.restore === true;
     }
   } catch {
     // body vacío o inválido → dry-run
   }
 
   try {
+    // ── Guard de congelamiento ────────────────────────────────────────────
+    // Se consulta ANTES de detectar (la detección tarda ~13s y consume la API
+    // key) para rechazar temprano un re-seed destructivo.
+    const existing = await fesStorage.countParticipants();
+
+    if (existing > 0 && commit && !restore) {
+      logger.warn(`[FES seed] RECHAZADO: la lista ya tiene ${existing} participantes congelados`);
+      return NextResponse.json(
+        {
+          error: 'Frozen list',
+          detail:
+            `fes_participants already has ${existing} rows. The cohort is frozen for the pilot ` +
+            `(it must match the published IPFS snapshot). Re-seeding would reassign cohorts ` +
+            `and invalidate the experiment.`,
+          existingParticipants: existing,
+          hint: 'To restore the list from the custody snapshot, re-send with { "commit": true, "restore": true }.',
+        },
+        { status: 409 }
+      );
+    }
+
+    if (existing > 0 && restore) {
+      logger.warn(`[FES seed] MODO RESTORE: se va a reescribir una lista congelada de ${existing} filas`);
+    }
+
     logger.info('[FES seed] Iniciando detección de holders inactivos...');
     const inactive = await inactiveHolderService.findInactiveHolders();
 
@@ -64,16 +94,12 @@ export async function POST(request: NextRequest) {
     }
 
     const cohortResult = cohortAssignmentService.assign(inactive.holders);
-    const all = [
-      ...cohortResult.cohorts.A,
-      ...cohortResult.cohorts.B,
-      ...cohortResult.whales,
-    ];
+    const all = cohortAssignmentService.flatten(cohortResult);
 
     const rows = all.map((h) => ({
       wallet: h.wallet.toLowerCase(),
-      cohort: toTableCohort(h.cohort),
-      message_variant: VARIANT[h.cohort] ?? 'control',
+      cohort: h.cohort,
+      message_variant: VARIANT[h.cohort],
       balance_at_detection: h.balance,
       days_inactive_at_detection: h.daysInactive,
       last_block_at_detection: Number(h.lastStakeActivity.getTime() / 1000),
@@ -98,6 +124,7 @@ export async function POST(request: NextRequest) {
     if (!commit) {
       return NextResponse.json({
         dryRun: true,
+        frozenListSize: existing,
         total: rows.length,
         distribution,
         duplicates,
@@ -106,7 +133,9 @@ export async function POST(request: NextRequest) {
           cohort: r.cohort,
           balance: r.balance_at_detection,
         })),
-        hint: 'Re-enviar con { "commit": true } para escribir en Supabase.',
+        hint: existing > 0
+          ? `La lista ya está congelada (${existing} filas): un commit requiere { "commit": true, "restore": true }.`
+          : 'Re-enviar con { "commit": true } para escribir en Supabase.',
       });
     }
 
@@ -122,6 +151,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       dryRun: false,
+      restored: restore && existing > 0,
       seeded: rows.length,
       distribution,
       duplicates,

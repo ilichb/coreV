@@ -63,7 +63,19 @@ class ReactivationTrackerService {
       }
 
       const currentBlock = parseInt(backer, 10);
-      const checkpoint = participant.last_block_checkpoint;
+
+      // M3 — El checkpoint nunca se escribía en ningún flujo: `last_block_checkpoint`
+      // quedaba NULL para siempre, `delta` era siempre null y `reactivated`
+      // siempre false, sin importar cuánta actividad hubiera. El primer check
+      // fija la línea de base; los siguientes comparan contra ella.
+      let checkpoint = participant.last_block_checkpoint;
+      if (checkpoint === null) {
+        checkpoint = currentBlock;
+        await fesStorage.updateParticipantField(lower, {
+          last_block_checkpoint: checkpoint,
+        });
+      }
+
       const delta = checkpoint !== null ? currentBlock - checkpoint : null;
       const reactivated = checkpoint !== null && currentBlock >= checkpoint + REACTIVATION_BLOCK_DELTA;
 

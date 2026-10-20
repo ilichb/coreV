@@ -9,7 +9,34 @@
  * Run: node scripts/test-fes-endpoint.mjs
  */
 
-const SUBGRAPH_URL = 'https://gateway.thegraph.com/api/6ba71d4cadf96bbe2d090ad56d1ab692/subgraphs/id/7kSWmHvWixeZBpzVfgkGS2sYNYoXZz614TcqnPTgkWwA';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Carga básica de .env del proyecto (solo si el operador no exportó la variable).
+// No imprime valores.
+if (!process.env.THEGRAPH_API_KEY) {
+  try {
+    const envFile = fs.readFileSync(path.join(__dirname, '..', '.env'), 'utf8');
+    for (const line of envFile.split(/\r?\n/)) {
+      const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
+      if (m && !process.env[m[1]]) process.env[m[1]] = m[2].trim();
+    }
+  } catch { /* sin .env: el check de abajo falla explícitamente */ }
+}
+
+// La API key de The Graph NUNCA se hardcodea: este archivo contenía una copia
+// en claro de la clave expuesta. Se lee de entorno y el script falla
+// explícitamente si falta.
+const THEGRAPH_API_KEY = process.env.THEGRAPH_API_KEY || '';
+if (!THEGRAPH_API_KEY) {
+  console.error('ERROR: THEGRAPH_API_KEY no está definida.');
+  console.error('  Exportala antes de correr: export THEGRAPH_API_KEY=<clave>');
+  process.exit(1);
+}
+
+const SUBGRAPH_URL = `https://gateway.thegraph.com/api/${THEGRAPH_API_KEY}/subgraphs/id/7kSWmHvWixeZBpzVfgkGS2sYNYoXZz614TcqnPTgkWwA`;
 const RPC_URL = 'https://public-node.rsk.co';
 const RIF_TOKEN = '0x2AcC95758f8b5F583470bA265Eb685a8f45fC9D5';
 const MIN_BALANCE = BigInt(500) * BigInt(10) ** BigInt(18);
