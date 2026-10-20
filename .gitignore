@@ -4,6 +4,13 @@
 # local-snapshots/ contiene el mapping wallet → hash y el balance exacto.
 .fes-snapshot-seed
 local-snapshots/
+# S1 (auditoría FES 2026-10-20): datos de wallets del piloto. Nunca trackear.
+# wallets/csv = 10.000 holders; wallets/pilot-candidates.json = detalle de
+# calificados; ambos con addresses y balances en claro. Siguen disponibles
+# localmente y en el historial Git (rotación/reescritura = decisión del dueño).
+wallets/
+*metrics_out*.json
+metrics_response.json
 .env
 .env.*
 .env.local

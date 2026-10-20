@@ -65,22 +65,25 @@ open http://localhost:3000/preview
 
 ## Simular reactivación
 
+> Reemplaza `<WALLET_DE_PRUEBA>` por una wallet real de `fes_participants`
+> (consultar `local-snapshots/fes-snapshot-custody.json`, NO PUBLICAR ese archivo).
+
 ```sql
 -- En Supabase SQL Editor, asignar checkpoint manual:
 UPDATE fes_participants
 SET last_block_checkpoint = 1,
     message_sent_at = NOW(),
     message_language = 'en'
-WHERE wallet = '0xac31a4beedd7ec916b7a48a612230cb85c1aaf56';
+WHERE wallet = '<WALLET_DE_PRUEBA>';
 ```
 
 ```bash
 # Verificar
 curl -X POST http://localhost:3000/api/fes/track \
   -H 'Content-Type: application/json' \
-  -d '{"wallet":"0xac31a4beedd7ec916b7a48a612230cb85c1aaf56"}' | jq '.'
+  -d '{"wallet":"<WALLET_DE_PRUEBA>"}' | jq '.'
 
-curl http://localhost:3000/api/fes/participants | jq '.participants[] | select(.wallet == "0xac31a4beedd7ec916b7a48a612230cb85c1aaf56")'
+curl http://localhost:3000/api/fes/participants | jq '.participants[] | select(.wallet == "<WALLET_DE_PRUEBA>")'
 ```
 
 ## Errores conocidos del entorno
