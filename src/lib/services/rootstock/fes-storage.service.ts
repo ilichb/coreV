@@ -34,6 +34,10 @@
  *   CREATE INDEX idx_fes_events_wallet ON fes_events(wallet);
  *   CREATE INDEX idx_fes_events_type ON fes_events(event_type);
  *   CREATE INDEX idx_fes_participants_cohort ON fes_participants(cohort);
+ *
+ * Nuevas tablas del modelo de medición (fes_views, fes_attributions,
+ * fes_pilot_meta, fes_stake_events, fes_monitor_state) viven en
+ * `supabase/migrations/002_fes_stake_events.sql`.
  */
 
 import { getSupabaseAdmin, adminWrite } from '@/lib/services/coordination/supabase-admin';
@@ -85,6 +89,60 @@ export interface FESStakeEvent {
   attributed: boolean;
   days_view_to_stake: number | null;
   detected_at?: string;
+}
+
+/**
+ * Vista de /preview (fuente del embudo Viewed). Spec del piloto: se guarda
+ * con walletHash DETERMINISTA (v3 HMAC-SHA256), nunca la address cruda.
+ * El join con fes_attributions se hace por ese hash.
+ */
+export interface FESView {
+  id?: string;
+  wallet_hash: string;
+  cohort: Cohort;
+  message_variant: MessageVariant | null;
+  channel: string;
+  referrer: string | null;
+  balance_rif: number | null;
+  days_inactive: number | null;
+  created_at?: string;
+}
+
+/**
+ * Atribución persistida: join vista ↔ stake con la regla del experimento
+ * (staked_at > viewed_at y dentro de la ventana). UNIQUE(wallet_hash): la
+ * conversión se cuenta por wallet.
+ */
+export interface FESAttribution {
+  id?: string;
+  wallet_hash: string;
+  cohort: Cohort;
+  channel: string | null;
+  viewed_at: string;
+  staked_at: string;
+  tx_hash: string;
+  log_index: number;
+  block_number: number;
+  amount_rif: number;
+  days_view_to_stake: number;
+  created_at?: string;
+}
+
+/**
+ * Identidad del piloto (fila inmutable en fes_pilot_meta): snapshot CID,
+ * merkle root, seed, ventana, tamaño de cohorte y piso de exposición.
+ */
+export interface FESPilotMeta {
+  key: string;
+  snapshot_cid: string;
+  merkle_root: string;
+  seed: string;
+  window_start: string;
+  window_end: string;
+  cohort_count: number;
+  cohort_breakdown: Record<string, number>;
+  exposure_floor: number;
+  created_at?: string;
 }
 
 class FESStorageService {
@@ -283,6 +341,111 @@ class FESStorageService {
     if (error) {
       throw new Error(`FES storage: setMonitorState failed → ${error.code}: ${error.message}`);
     }
+  }
+
+  /**
+   * Cursor de escaneo CON su timestamp de última escritura. Lo usa la alerta
+   * "monitor estancado": si `updated_at` no avanza en >2h, el cron está roto.
+   */
+  async getMonitorStateEntry(key: string): Promise<{ value: string; updated_at: string } | null> {
+    const { data, error } = await getSupabaseAdmin()
+      .from('fes_monitor_state')
+      .select('value, updated_at')
+      .eq('key', key)
+      .maybeSingle();
+    if (error) {
+      logger.error('FES storage: getMonitorStateEntry failed', error);
+      return null;
+    }
+    return (data as { value: string; updated_at: string } | null) ?? null;
+  }
+
+  // ── Views (fuente del embudo Viewed; walletHash determinista) ─────────────
+
+  async recordView(view: Omit<FESView, 'id' | 'created_at'>): Promise<void> {
+    const { error } = await getSupabaseAdmin().from('fes_views').insert({
+      wallet_hash: view.wallet_hash,
+      cohort: view.cohort,
+      message_variant: view.message_variant ?? null,
+      channel: view.channel,
+      referrer: view.referrer ?? null,
+      balance_rif: view.balance_rif ?? null,
+      days_inactive: view.days_inactive ?? null,
+    });
+    if (error) {
+      throw new Error(`FES storage: recordView failed → ${error.code}: ${error.message}`);
+    }
+  }
+
+  /** De la más antigua a la más reciente: la atribución necesita la PRIMERA vista. */
+  async getViews(limit = 2000): Promise<FESView[]> {
+    const { data, error } = await getSupabaseAdmin()
+      .from('fes_views')
+      .select('*')
+      .order('created_at', { ascending: true })
+      .limit(limit);
+    if (error) {
+      // Fail-loud: sin vistas el embudo entero leería 0 y mentiría.
+      throw new Error(`FES storage: getViews failed → ${error.code}: ${error.message}`);
+    }
+    return (data || []) as FESView[];
+  }
+
+  // ── Attributions (join persistido vista ↔ stake) ──────────────────────────
+
+  /** Idempotente por wallet_hash ( UNIQUE): re-ejecutar no duplica conversiones. */
+  async insertAttribution(a: Omit<FESAttribution, 'id' | 'created_at'>): Promise<boolean> {
+    const data = await adminWrite<Array<{ id: string }>>('insertAttribution', (c) =>
+      c
+        .from('fes_attributions')
+        .upsert(
+          {
+            wallet_hash: a.wallet_hash,
+            cohort: a.cohort,
+            channel: a.channel ?? null,
+            viewed_at: a.viewed_at,
+            staked_at: a.staked_at,
+            tx_hash: a.tx_hash.toLowerCase(),
+            log_index: a.log_index,
+            block_number: a.block_number,
+            amount_rif: a.amount_rif,
+            days_view_to_stake: a.days_view_to_stake,
+          },
+          { onConflict: 'wallet_hash', ignoreDuplicates: true }
+        )
+        .select('id')
+    );
+    // con ignoreDuplicates, solo las filas realmente insertadas vuelven en data
+    return Array.isArray(data) && data.length > 0;
+  }
+
+  async listAttributions(limit = 500): Promise<FESAttribution[]> {
+    const { data, error } = await getSupabaseAdmin()
+      .from('fes_attributions')
+      .select('*')
+      .order('staked_at', { ascending: true })
+      .limit(limit);
+    if (error) {
+      // Fail-loud: una lectura fallida no puede parecer "cero conversiones".
+      throw new Error(`FES storage: listAttributions failed → ${error.code}: ${error.message}`);
+    }
+    return (data || []) as FESAttribution[];
+  }
+
+  // ── Pilot meta (identidad inmutable del piloto) ───────────────────────────
+
+  /** Fila única de identidad. null si la migración 002 no se aplicó todavía. */
+  async getPilotMeta(key = 'fes_pilot_2026'): Promise<FESPilotMeta | null> {
+    const { data, error } = await getSupabaseAdmin()
+      .from('fes_pilot_meta')
+      .select('*')
+      .eq('key', key)
+      .maybeSingle();
+    if (error) {
+      logger.error('FES storage: getPilotMeta failed', error);
+      return null;
+    }
+    return (data as FESPilotMeta | null) ?? null;
   }
 
   // ── Metrics ───────────────────────────────────────────────────────────────

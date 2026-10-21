@@ -4,6 +4,7 @@ import { cohortAssignmentService } from '@/lib/services/rootstock/cohort-assignm
 import { buildMessage } from '@/lib/services/rootstock/message-templates';
 import { fesStorage } from '@/lib/services/rootstock/fes-storage.service';
 import { fesAttributionMonitor } from '@/lib/services/rootstock/fes-attribution-monitor.service';
+import { computeFesAlerts } from '@/lib/services/rootstock/fes-alerts';
 import { yieldProjectionService } from '@/lib/services/rootstock/yield-projection.service';
 import { walletHashService } from '@/lib/services/security/wallet-hash.service';
 import { logger } from '@/lib/utils/logger';
@@ -26,7 +27,7 @@ function buildPilotWindow() {
   const end = new Date(PILOT_WINDOW_START.getTime() + PILOT_WINDOW_DAYS * 86400000);
   const elapsedDays = Math.floor((now.getTime() - PILOT_WINDOW_START.getTime()) / 86400000);
 
-  const status =
+  const status: 'upcoming' | 'active' | 'closed' =
     elapsedDays < 0 ? 'upcoming' : elapsedDays >= PILOT_WINDOW_DAYS ? 'closed' : 'active';
 
   return {
@@ -48,7 +49,6 @@ export async function GET() {
         cohorts: null,
         vip: null,
         messages: null,
-        reactivation: null,
         metadata: {
           source: 'Rewards Subgraph',
           generatedAt: new Date().toISOString(),
@@ -100,8 +100,6 @@ export async function GET() {
       };
     });
 
-    const reactivation = await fesStorage.getReactivationMetrics();
-
     // Cohorte congelada (lista persistida en fes_participants vs. detección en vivo).
     //
     // IMPORTANTE: esto es la fuente de verdad del piloto. La detección en vivo de
@@ -118,83 +116,143 @@ export async function GET() {
 
     // ── Modelo de medición ────────────────────────────────────────────────
     // El piloto NO envía mensajes. El canal es un enlace público a /preview.
-    //   Viewed     = abrió /preview (evento preview_view en fes_events)
+    //   Viewed     = abrió /preview (fila en fes_views, walletHash v3)
     //   Staked     = stake VERIFICADO en chain, posterior a la vista y dentro
     //                de la ventana (fes_attributions). La condición
-    //                stakeDate > viewDate es la que prueba que el stake vino
+    //                stakedAt > viewedAt es la que prueba que el stake vino
     //                DESPUÉS del reporte — sin eso no hay atribución.
-    //   Not Viewed = en la cohorte congelada sin evento de vista
+    //   Not Viewed = en la cohorte congelada sin vista registrada.
     const win = buildPilotWindow();
+    const windowStartMs = new Date(win.start).getTime();
     const windowEndMs = new Date(win.end).getTime();
 
-    const viewEvents = await fesStorage.getEvents(undefined, 'preview_view', 1000);
-    const viewByWallet = new Map<string, string>();
+    // ── Identidad del piloto (Bloque 1): fila inmutable fes_pilot_meta ────
+    // Fallback a las constantes si la migración 002 no se aplicó todavía; el
+    // campo `source` hace visible cuál de las dos fuentes se usó.
+    const pilotMetaRow = await fesStorage.getPilotMeta();
+    const exposureFloor = pilotMetaRow?.exposure_floor ?? 8;
+    const pilotMeta = {
+      snapshotCid: pilotMetaRow?.snapshot_cid ?? null,
+      merkleRoot: pilotMetaRow?.merkle_root ?? null,
+      windowStart: pilotMetaRow?.window_start ?? win.start,
+      windowEnd: pilotMetaRow?.window_end ?? win.end,
+      cohortCount: pilotMetaRow?.cohort_count ?? frozen.length,
+      cohortBreakdown: pilotMetaRow?.cohort_breakdown ?? frozenDistribution,
+      exposureFloor,
+      source: pilotMetaRow ? ('fes_pilot_meta' as const) : ('fallback-constants' as const),
+    };
+
+    // ── Vistas: fuente fes_views (walletHash determinista v3) ──────────────
+    // El join con la cohorte es por hash: la wallet cruda de fes_participants
+    // se hashea con la misma sal con la que check-wallet registró la vista.
+    const viewRows = await fesStorage.getViews(5000);
     // 'unknown' = eventos anteriores a que existiera el tracking de canal.
     // Sin este bucket, esas vistas caerían en 'direct' y el desglose mentiría.
     const viewsByChannel: Record<string, number> = {
       rootstock_official: 0, forum: 0, andromeda: 0, direct: 0, unknown: 0,
     };
-    for (const e of viewEvents) {
-      const w = (e.wallet || '').toLowerCase();
-      const raw = (e.payload as any)?.channel;
-      const ch = raw ? String(raw) : 'unknown';
+    const viewByHash = new Map<string, string>(); // wallet_hash → PRIMERA vista
+    for (const v of viewRows) {
+      const ch = v.channel || 'unknown';
       viewsByChannel[ch] = (viewsByChannel[ch] ?? 0) + 1;
-      // Nos quedamos con la PRIMERA vista: es la que inicia el recorrido.
-      if (w && !viewByWallet.has(w)) {
-        viewByWallet.set(w, e.created_at ?? new Date().toISOString());
+      if (!v.wallet_hash || !v.created_at) continue;
+      const cur = viewByHash.get(v.wallet_hash);
+      // Date.parse en vez de confiar en el orden de la tabla.
+      if (!cur || Date.parse(v.created_at) < Date.parse(cur)) {
+        viewByHash.set(v.wallet_hash, v.created_at);
       }
     }
 
-    const viewed = frozen.filter(p => viewByWallet.has(p.wallet.toLowerCase()));
-    const notViewed = frozen.filter(p => !viewByWallet.has(p.wallet.toLowerCase()));
-
-    // fes_attributions guarda walletHash, así que se compara contra el hash de
-    // cada wallet del cohorte. Si la colección está vacía el monitor nunca
-    // corrió, y Staked queda en 0 aunque haya reactivaciones — por eso el
-    // contralibre de más abajo, para que una divergencia sea visible y no
-    // silenciosa.
-    const viewedHashes = new Map<string, string>();
-    for (const p of viewed) {
-      viewedHashes.set(walletHashService.hashWalletDeterministic(p.wallet).walletHash, p.wallet.toLowerCase());
+    const hashByWallet = new Map<string, string>(); // wallet cruda → wallet_hash
+    for (const p of frozen) {
+      hashByWallet.set(p.wallet.toLowerCase(), walletHashService.hashWalletDeterministic(p.wallet).walletHash);
     }
 
+    const viewInfoByWallet = new Map<string, string>(); // wallet → viewedAt
+    for (const p of frozen) {
+      const viewedAt = viewByHash.get(hashByWallet.get(p.wallet.toLowerCase())!);
+      if (viewedAt) viewInfoByWallet.set(p.wallet.toLowerCase(), viewedAt);
+    }
+
+    const viewed = frozen.filter(p => viewInfoByWallet.has(p.wallet.toLowerCase()));
+    const notViewed = frozen.filter(p => !viewInfoByWallet.has(p.wallet.toLowerCase()));
+
+    // fes_attributions guarda wallet_hash; se compara contra el hash de cada
+    // wallet del cohorte. Si la colección está vacía el monitor nunca corrió,
+    // y Staked queda en 0 aunque haya actividad on-chain — por eso el
+    // Bloque 4 del dashboard muestra el estado del monitor, para que esa
+    // divergencia sea visible y no silenciosa.
     let attributions: Awaited<ReturnType<typeof fesAttributionMonitor.getAttributions>> = [];
     try {
       attributions = await fesAttributionMonitor.getAttributions(500);
     } catch (err) {
       logger.error('FES metrics: getAttributions failed', err);
     }
+    const attrByHash = new Map(attributions.map(a => [a.walletHash, a]));
 
     const stakedAtByWallet = new Map<string, string>();
-    for (const a of attributions) {
-      const wallet = viewedHashes.get(a.walletHash);
-      if (!wallet) continue; // no vio el reporte → no hay atribución posible
-      const stakeMs = new Date(a.stakedAt).getTime();
-      const viewMs = new Date(viewByWallet.get(wallet)!).getTime();
-      if (stakeMs > viewMs && stakeMs <= windowEndMs && !stakedAtByWallet.has(wallet)) {
-        stakedAtByWallet.set(wallet, a.stakedAt as unknown as string);
+    for (const [wallet, viewedAt] of viewInfoByWallet) {
+      const a = attrByHash.get(hashByWallet.get(wallet)!);
+      if (!a) continue; // vio el reporte pero no hay stake atribuible
+      const stakeMs = Date.parse(a.stakedAt);
+      const viewMs = Date.parse(viewedAt);
+      // Defensa en profundidad: la regla ya vive en el monitor y en la
+      // constraint CHECK de fes_attributions; acá se re-verifica contra la
+      // vista vigente antes de contar la conversión.
+      if (stakeMs > viewMs && stakeMs >= windowStartMs && stakeMs <= windowEndMs) {
+        if (!stakedAtByWallet.has(wallet)) stakedAtByWallet.set(wallet, a.stakedAt);
       }
     }
 
     const staked = frozen.filter(p => stakedAtByWallet.has(p.wallet.toLowerCase()));
 
-    // Contralibre: flag `reactivated` del tracker (se dispara con cualquier
-    // avance de bloque, incluidos unstakes o transferencias). Si es mayor que
-    // Staked, hay actividad atribuible que la atribución no pudo confirmar.
-    const reactivatedCount = frozen.filter(p => p.reactivated).length;
-    const reactivatedNotAttributed = frozen.filter(
-      p => p.reactivated && !stakedAtByWallet.has(p.wallet.toLowerCase())
-    ).length;
+    // ── Estado del monitor (Bloque 4) + contralibre de hash (alerta 3) ────
+    let monitor: Awaited<ReturnType<typeof fesAttributionMonitor.getMonitorStatus>> | null = null;
+    try {
+      monitor = await fesAttributionMonitor.getMonitorStatus();
+    } catch (err) {
+      logger.error('FES metrics: getMonitorStatus failed', err);
+    }
 
-    // Días desde la primera vista hasta el stake atribuido. Si no hay
-    // atribución, se usa el `reactivated_at` del tracker como aproximación,
-    // marcándolo con `daysSource` para no presentarlo como atribución.
-    const daysViewToStake = (p: { wallet: string; reactivated_at: string | null }) => {
+    // Determinismo del hash: si un wallet_hash persistido no coincide con el
+    // hash recalculado hoy, la sal FES_WALLET_HASH_SALT cambió o falta, y la
+    // atribución futura se perdería en cada reinicio (alerta #3 del spec).
+    let hashMismatches: number | null = null;
+    try {
+      const stakeEvents = await fesStorage.listStakeEvents(500);
+      const attrTx = new Map(attributions.map(a => [`${a.txHash}:${a.logIndex}`, a.walletHash]));
+      hashMismatches = 0;
+      for (const e of stakeEvents) {
+        if (!e.attributed) continue;
+        const stored = attrTx.get(`${e.tx_hash}:${e.log_index}`);
+        if (!stored) continue; // evento marcado pero sin fila en fes_attributions
+        if (walletHashService.hashWalletDeterministic(e.wallet).walletHash !== stored) {
+          hashMismatches++;
+        }
+      }
+    } catch (err) {
+      logger.error('FES metrics: hash determinism check failed', err);
+      hashMismatches = null;
+    }
+
+    const alerts = computeFesAlerts({
+      viewed: viewed.length,
+      exposureFloor,
+      daysRemaining: win.daysRemaining,
+      windowStatus: win.status,
+      monitor,
+      hashMismatches,
+    });
+
+    // Días desde la primera vista hasta el stake atribuido. Solo se calcula
+    // sobre atribuciones reales (fes_attributions): sin stake atribuido no hay
+    // número, y el modelo de reactivación ya no participa de la métrica.
+    const daysViewToStake = (p: { wallet: string }) => {
       const wallet = p.wallet.toLowerCase();
-      const viewedAt = viewByWallet.get(wallet);
-      const stakeAt = stakedAtByWallet.get(wallet) ?? p.reactivated_at;
+      const viewedAt = viewInfoByWallet.get(wallet);
+      const stakeAt = stakedAtByWallet.get(wallet);
       if (!stakeAt || !viewedAt) return null;
-      const d = (new Date(stakeAt).getTime() - new Date(viewedAt).getTime()) / 86400000;
+      const d = (Date.parse(stakeAt) - Date.parse(viewedAt)) / 86400000;
       return d >= 0 ? Math.round(d * 10) / 10 : null;
     };
 
@@ -230,18 +288,12 @@ export async function GET() {
       // Staked / Viewed, protegido contra división por cero: si nadie entró a
       // /preview la conversión no es 0%, es indefinida, y se reporta como null.
       conversionRate: viewed.length > 0 ? staked.length / viewed.length : null,
-      // Contralibre: actividad del tracker no confirmada por atribución
-      reactivatedCount,
-      reactivatedNotAttributed,
-      // Conservados por compatibilidad con lo que ya consumes
-      reactivated: staked.length,
-      stillInactive: frozen.length - staked.length,
-      contacted: 0,
       cohortDistribution: frozenDistribution,
       viewsByChannel,
       balanceByCohort,
       participants: frozen.map(p => {
-        const viewedAt = viewByWallet.get(p.wallet.toLowerCase()) ?? null;
+        const w = p.wallet.toLowerCase();
+        const viewedAt = viewInfoByWallet.get(w) ?? null;
         return {
           wallet: p.wallet,
           cohort: p.cohort,
@@ -252,13 +304,9 @@ export async function GET() {
           viewedAt,
           // Atribuido: mismo criterio que el agregado de arriba, para que la
           // tabla A/B sume exactamente lo que dice el bloque PILOT PROGRESS.
-          staked: stakedAtByWallet.has(p.wallet.toLowerCase()),
-          stakedAt: stakedAtByWallet.get(p.wallet.toLowerCase()) ?? null,
-          reactivated: p.reactivated,
-          reactivatedAt: p.reactivated_at,
+          staked: stakedAtByWallet.has(w),
+          stakedAt: stakedAtByWallet.get(w) ?? null,
           daysViewToStake: daysViewToStake(p),
-          lastBlockCheckpoint: p.last_block_checkpoint,
-          lastBlockCurrent: p.last_block_current,
         };
       }),
     };
@@ -282,8 +330,11 @@ export async function GET() {
         treatment: { total: messages.treatment.length, sample: messages.treatment.slice(0, 2) },
         vip: { total: messages.vip.length, sample: messages.vip.slice(0, 1) },
       },
-      reactivation,
+      // ── Datos del piloto (spec oct-2026) ───────────────────────────────
+      pilotMeta,
       frozenCohort,
+      monitor,
+      alerts,
       // Log de verificación del Cambio #3: la fuente de la conversión debe
       // dar 18 (Frozen Cohort), nunca 12 (Live Detection). Se puede borrar
       // una vez confirmado en producción.
@@ -303,7 +354,8 @@ export async function GET() {
         note:
           'FES metrics — Internal use only. Wallets are hashed for privacy. ' +
           'El piloto NO envía mensajes: el canal es un enlace público a /preview. ' +
-          'La medición es Viewed (abrió /preview) → Staked (volvió a stakear).',
+          'La medición es Viewed (abrió /preview) → Staked (volvió a stakear). ' +
+          'El modelo Contacted/Messages/Reactivated fue abandonado (oct-2026).',
       },
     });
   } catch (error: any) {

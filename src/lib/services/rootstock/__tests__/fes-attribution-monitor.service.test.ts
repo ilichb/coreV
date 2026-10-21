@@ -17,7 +17,11 @@ const OUTSIDER = '0x9999999999999999999999999999999999999999';
 // ── Dobles ─────────────────────────────────────────────────────────────────
 const listParticipants = jest.fn();
 const getParticipant = jest.fn();
-const getEvents = jest.fn();
+const getViews = jest.fn();
+const insertAttribution = jest.fn();
+const listAttributions = jest.fn();
+const getMonitorStateEntry = jest.fn();
+const listStakeEvents = jest.fn();
 const insertStakeEvents = jest.fn();
 const recordEvent = jest.fn();
 const markStakeEventAttributed = jest.fn();
@@ -31,7 +35,11 @@ jest.mock('@/lib/services/rootstock/fes-storage.service', () => ({
   fesStorage: {
     listParticipants: (...a: unknown[]) => listParticipants(...a),
     getParticipant: (...a: unknown[]) => getParticipant(...a),
-    getEvents: (...a: unknown[]) => getEvents(...a),
+    getViews: (...a: unknown[]) => getViews(...a),
+    insertAttribution: (...a: unknown[]) => insertAttribution(...a),
+    listAttributions: (...a: unknown[]) => listAttributions(...a),
+    getMonitorStateEntry: (...a: unknown[]) => getMonitorStateEntry(...a),
+    listStakeEvents: (...a: unknown[]) => listStakeEvents(...a),
     insertStakeEvents: (...a: unknown[]) => insertStakeEvents(...a),
     recordEvent: (...a: unknown[]) => recordEvent(...a),
     markStakeEventAttributed: (...a: unknown[]) => markStakeEventAttributed(...a),
@@ -46,6 +54,25 @@ jest.mock('@/lib/infrastructure/clients/rpc-balancer', () => ({
 }));
 
 const NOW_BLOCK = 9_400_000;
+
+// Sal determinista para los tests (el servicio la lee en cada hash).
+process.env.FES_WALLET_HASH_SALT = 'test-salt-0123456789abcdef';
+
+import { walletHashService } from '@/lib/services/security/wallet-hash.service';
+
+/** Fila de fes_views como la escribe check-wallet (walletHash v3, sin crudo). */
+function viewRow(wallet: string, createdAt: string, channel = 'forum') {
+  return {
+    wallet_hash: walletHashService.hashWalletDeterministic(wallet).walletHash,
+    cohort: 'B' as const,
+    message_variant: 'treatment' as const,
+    channel,
+    referrer: null,
+    balance_rif: null,
+    days_inactive: null,
+    created_at: createdAt,
+  };
+}
 
 /** Carga el módulo con el entorno ya seteado (las constantes se leen al importar). */
 function loadMonitor() {
@@ -120,7 +147,11 @@ beforeEach(() => {
 
   listParticipants.mockResolvedValue([FROZEN]);
   getParticipant.mockResolvedValue(FROZEN);
-  getEvents.mockResolvedValue([]);
+  getViews.mockResolvedValue([]);
+  insertAttribution.mockResolvedValue(true);
+  listAttributions.mockResolvedValue([]);
+  getMonitorStateEntry.mockResolvedValue(null);
+  listStakeEvents.mockResolvedValue([]);
   insertStakeEvents.mockResolvedValue(1);
   recordEvent.mockResolvedValue(undefined);
   markStakeEventAttributed.mockResolvedValue(undefined);
@@ -215,14 +246,26 @@ describe('fes-attribution-monitor — atribución', () => {
 
   it('atribuye cuando hubo vista PREVIA y el stake queda en la ventana', async () => {
     setupChain(stakeLog(NOW_BLOCK - 10, '2026-10-20T12:00:00Z'));
-    getEvents.mockImplementation(async (wallet: string, type: string) => {
-      if (type === 'preview_view') return [{ wallet, event_type: type, created_at: '2026-10-19T10:00:00Z' }];
-      return [];
-    });
+    getViews.mockResolvedValue([viewRow(PILOT_WALLET, '2026-10-19T10:00:00Z')]);
 
     const result = await loadMonitor().runCheck();
 
     expect(result.newAttributions).toBe(1);
+    // el join queda persistido en fes_attributions (spec oct-2026), por hash
+    expect(insertAttribution).toHaveBeenCalledWith(
+      expect.objectContaining({
+        wallet_hash: walletHashService.hashWalletDeterministic(PILOT_WALLET).walletHash,
+        cohort: 'B',
+        channel: 'forum',
+        viewed_at: '2026-10-19T10:00:00Z',
+        staked_at: '2026-10-20T12:00:00.000Z', // el monitor normaliza a ISO con milisegundos
+        tx_hash: '0xeee',
+        log_index: 2,
+        days_view_to_stake: 1.1,
+      })
+    );
+    // la wallet cruda no viaja en la fila de la atribución
+    expect(JSON.stringify(insertAttribution.mock.calls[0][0])).not.toContain(PILOT_WALLET);
     expect(recordEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         wallet: PILOT_WALLET,
@@ -239,11 +282,12 @@ describe('fes-attribution-monitor — atribución', () => {
 
   it('NO atribuye si la wallet nunca vio /preview', async () => {
     setupChain(stakeLog(NOW_BLOCK - 10, '2026-10-20T12:00:00Z'));
-    getEvents.mockResolvedValue([]);
+    getViews.mockResolvedValue([]);
 
     const result = await loadMonitor().runCheck();
 
     expect(result.newAttributions).toBe(0);
+    expect(insertAttribution).not.toHaveBeenCalled();
     expect(recordEvent).not.toHaveBeenCalled();
     expect(markStakeEventAttributed).not.toHaveBeenCalled();
     // el evento on-chain igual se registra (es actividad real del piloto)
@@ -252,32 +296,35 @@ describe('fes-attribution-monitor — atribución', () => {
 
   it('NO atribuye si el stake es PREVIO a la vista', async () => {
     setupChain(stakeLog(NOW_BLOCK - 10, '2026-10-18T12:00:00Z'));
-    getEvents.mockImplementation(async (wallet: string, type: string) => {
-      if (type === 'preview_view') return [{ wallet, event_type: type, created_at: '2026-10-19T10:00:00Z' }];
-      return [];
-    });
+    getViews.mockResolvedValue([viewRow(PILOT_WALLET, '2026-10-19T10:00:00Z')]);
 
     const result = await loadMonitor().runCheck();
 
     expect(result.newAttributions).toBe(0);
+    expect(insertAttribution).not.toHaveBeenCalled();
   });
 
   it('la atribución usa el PRIMER evento de vista (no el más reciente)', async () => {
     setupChain(stakeLog(NOW_BLOCK - 10, '2026-10-20T12:00:00Z'));
-    getEvents.mockImplementation(async (wallet: string, type: string) => {
-      if (type === 'preview_view') {
-        return [
-          { wallet, event_type: type, created_at: '2026-10-19T10:00:00Z' },
-          { wallet, event_type: type, created_at: '2026-10-20T11:59:00Z' }, // desordenado
-        ];
-      }
-      return [];
-    });
+    getViews.mockResolvedValue([
+      viewRow(PILOT_WALLET, '2026-10-20T11:59:00Z'), // más reciente, primero en el array
+      viewRow(PILOT_WALLET, '2026-10-19T10:00:00Z'), // la primera vista real
+    ]);
 
     await loadMonitor().runCheck();
 
-    const payload = recordEvent.mock.calls[0][0].payload;
-    expect(payload.viewedAt).toBe('2026-10-19T10:00:00Z');
+    expect(insertAttribution.mock.calls[0][0].viewed_at).toBe('2026-10-19T10:00:00Z');
+  });
+
+  it('NO atribuye si la vista de la wallet es de otra cohorte (hash no coincide)', async () => {
+    setupChain(stakeLog(NOW_BLOCK - 10, '2026-10-20T12:00:00Z'));
+    // vista registrada con el hash de OTRA wallet: el join por hash no debe cruzar
+    getViews.mockResolvedValue([viewRow(OUTSIDER, '2026-10-19T10:00:00Z')]);
+
+    const result = await loadMonitor().runCheck();
+
+    expect(result.newAttributions).toBe(0);
+    expect(insertAttribution).not.toHaveBeenCalled();
   });
 });
 

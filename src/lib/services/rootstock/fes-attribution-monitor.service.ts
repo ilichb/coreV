@@ -26,9 +26,11 @@
  *
  * ── Reglas del experimento que implementa ──────────────────────────────────
  *   * Solo interesan las 18 wallets de la cohorte CONGELADA (fes_participants).
- *   * Atribución = stake de una wallet del piloto que además tiene un
- *     evento `preview_view` PREVIO en fes_events (la vista inicia el
- *     recorrido) y dentro de la ventana del piloto.
+ *   * Atribución = stake de una wallet del piloto que además tiene una vista
+ *     de /preview PREVIA en `fes_views` (walletHash determinista v3 — el join
+ *     es por hash: misma wallet + misma FES_WALLET_HASH_SALT ⇒ mismo hash) y
+ *     dentro de la ventana del piloto. El join queda persistido en
+ *     `fes_attributions` (spec oct-2026).
  *   * El cursor de escaneo vive en Supabase (fes_monitor_state), no en Redis:
  *     con TTL de 24h el escaneo se reiniciaba y perdía eventos.
  *   * Un fallo de lectura NO avanza el cursor y NO se traga: se propaga para
@@ -143,6 +145,18 @@ export interface AttributionSummary {
   avgDaysToStake: number | null;
   lastCheckedBlock: number;
   checkedAt: string;
+}
+
+/**
+ * Estado del monitor para el dashboard (Bloque 4). `lastRun` es el
+ * `updated_at` del cursor: si no avanza en >2h, el cron está roto — es el
+ * termómetro de que el sistema sigue funcionando.
+ */
+export interface MonitorStatus {
+  lastCheckedBlock: number;
+  lastRun: string | null;
+  stakesDetected: number;
+  stakesAttributed: number;
 }
 
 // ── Cliente Blockscout ─────────────────────────────────────────────────────
@@ -353,34 +367,74 @@ class FESAttributionMonitorService {
 
   /**
    * Atribuye stakes con vista previa. Devuelve la cantidad de atribuciones
-   * nuevas (por debajo, escribe el evento `attributed_stake` y marca el
-   * evento de cadena como atribuido).
+   * nuevas (por debajo, persiste el join en `fes_attributions`, escribe el
+   * evento legacy `attributed_stake` y marca el evento de cadena como
+   * atribuido).
+   *
+   * El join es por walletHash determinista (v3): la vista se guarda hasheada
+   * en `fes_views` y el stake trae la wallet cruda de chain, que se hashea
+   * con la misma sal al momento de unir. Si la sal no es estable entre
+   * procesos, ninguna vista coincide y la atribución se pierde en silencio —
+   * por eso /api/fes/metrics expone la alerta de determinismo.
    */
   private async attribute(events: ChainStakeEvent[], windowEndMs: number): Promise<number> {
     const stakes = events.filter(e => e.type === 'stake');
     if (stakes.length === 0) return 0;
 
+    // Primera vista de cada wallet (la que inicia el recorrido). Se compara
+    // por timestamp, no por posición: no se confía en el orden de la tabla.
+    const firstViewByHash = new Map<string, { at: string; channel: string | null }>();
+    for (const v of await fesStorage.getViews(5000)) {
+      if (!v.created_at) continue;
+      const cur = firstViewByHash.get(v.wallet_hash);
+      // Date.parse en vez de comparar strings: Postgres puede devolver
+      // "…+00:00" o "…Z" y el orden lexicográfico no es confiable entre formatos.
+      if (!cur || Date.parse(v.created_at) < Date.parse(cur.at)) {
+        firstViewByHash.set(v.wallet_hash, { at: v.created_at, channel: v.channel ?? null });
+      }
+    }
+
+    const participants = await fesStorage.listParticipants();
+    const cohortByWallet = new Map(participants.map(p => [p.wallet.toLowerCase(), p.cohort]));
+
     let attributed = 0;
     for (const stake of stakes) {
-      // Primera vista de /preview de esa wallet (fes_events, wallet cruda).
-      const views = await fesStorage.getEvents(stake.wallet, 'preview_view', 50);
-      const firstView = views
-        .map(v => v.created_at ?? '')
-        .filter(Boolean)
-        .sort()[0];
+      const walletHash = walletHashService.hashWalletDeterministic(stake.wallet).walletHash;
+      const view = firstViewByHash.get(walletHash);
+      if (!view) continue; // nunca abrió /preview → sin atribución posible
 
-      if (!firstView) continue; // nunca abrió /preview → sin atribución posible
-
-      const viewMs = Date.parse(firstView);
+      const viewMs = Date.parse(view.at);
       const stakeMs = Date.parse(stake.blockTimestamp);
-      const stakeRif = Number(stake.amountWei) / 1e18;
 
       // La vista debe ser PREVIA al stake; si no, el stake no vino del piloto.
       if (!(stakeMs > viewMs)) continue;
-      if (stakeMs > windowEndMs) continue; // fuera de la ventana
+      // Dentro de la ventana del piloto (actividad posterior al cierre no
+      // cuenta, ni la previa al arranque).
+      if (stakeMs > windowEndMs) continue;
+      if (stakeMs < PILOT_WINDOW_START_MS) continue;
 
+      const cohort = cohortByWallet.get(stake.wallet.toLowerCase());
+      if (!cohort) continue; // no debería pasar: la cadena ya acotó a la cohorte
+
+      const stakeRif = Number(stake.amountWei) / 1e18;
       const daysToStake = Math.round(((stakeMs - viewMs) / 86_400_000) * 10) / 10;
 
+      // Persistir el join (idempotente por wallet_hash: la conversión se
+      // cuenta una vez por wallet).
+      const inserted = await fesStorage.insertAttribution({
+        wallet_hash: walletHash,
+        cohort,
+        channel: view.channel,
+        viewed_at: view.at,
+        staked_at: stake.blockTimestamp,
+        tx_hash: stake.txHash,
+        log_index: stake.logIndex,
+        block_number: stake.blockNumber,
+        amount_rif: stakeRif,
+        days_view_to_stake: daysToStake,
+      });
+
+      // Continuidad interna: evento legacy + flag en fes_stake_events.
       await fesStorage.recordEvent({
         wallet: stake.wallet,
         event_type: 'attributed_stake',
@@ -389,16 +443,16 @@ class FESAttributionMonitorService {
           logIndex: stake.logIndex,
           blockNumber: stake.blockNumber,
           amountRif: stakeRif,
-          viewedAt: firstView,
+          viewedAt: view.at,
           stakedAt: stake.blockTimestamp,
           daysToStake,
-          attributionRule: 'stake posterior a preview_view y dentro de la ventana del piloto',
+          attributionRule: 'stake posterior a la vista en fes_views y dentro de la ventana del piloto',
         },
       });
 
       await fesStorage.markStakeEventAttributed(stake.txHash, stake.logIndex, daysToStake);
 
-      attributed++;
+      if (inserted) attributed++;
       logger.info(
         `[FES Attribution] ✅ atribución: ${stake.wallet.slice(0, 10)}… ` +
         `(${stakeRif} RIF, ${daysToStake} días desde la vista)`
@@ -522,34 +576,42 @@ class FESAttributionMonitorService {
   }
 
   /**
-   * Atribuciones detectadas. Fuente: eventos `attributed_stake` en Supabase
-   * (antes: colección de MongoDB con hashes no reproducibles entre reinicios).
+   * Atribuciones detectadas. Fuente: `fes_attributions` (join persistido por
+   * el monitor; spec oct-2026). Antes se recalculaba desde eventos
+   * `attributed_stake` de `fes_events`.
    */
-  async getAttributions(limit = 100): Promise<Attribution[]> {
-    const events = await fesStorage.getEvents(undefined, 'attributed_stake', limit);
-    const participants = await fesStorage.listParticipants();
-    const cohortByWallet = new Map(participants.map(p => [p.wallet.toLowerCase(), p.cohort]));
+  async getAttributions(limit = 500): Promise<Attribution[]> {
+    const rows = await fesStorage.listAttributions(limit);
+    return rows.map((a) => ({
+      walletHash: a.wallet_hash,
+      cohort: a.cohort,
+      txHash: a.tx_hash,
+      logIndex: a.log_index,
+      blockNumber: Number(a.block_number),
+      amount: String(BigInt(Math.round(Number(a.amount_rif) * 1e18))),
+      amountRif: Number(a.amount_rif),
+      viewedAt: a.viewed_at,
+      stakedAt: a.staked_at,
+      daysToStake: Number(a.days_view_to_stake),
+    }));
+  }
 
-    return events.map((e) => {
-      const payload = (e.payload || {}) as Record<string, unknown>;
-      const viewedAt = String(payload.viewedAt ?? '');
-      const stakedAt = String(payload.stakedAt ?? '');
-      const daysToStake = Number(payload.daysToStake ?? 0);
-      const amountRif = Number(payload.amountRif ?? 0);
-
-      return {
-        walletHash: walletHashService.hashWalletDeterministic(e.wallet).walletHash,
-        cohort: cohortByWallet.get(e.wallet.toLowerCase()) ?? 'unknown',
-        txHash: String(payload.txHash ?? ''),
-        logIndex: Number(payload.logIndex ?? 0),
-        blockNumber: Number(payload.blockNumber ?? 0),
-        amount: String(BigInt(Math.round(amountRif * 1e18))),
-        amountRif,
-        viewedAt,
-        stakedAt,
-        daysToStake,
-      };
-    });
+  /**
+   * Estado para el Bloque 4 del dashboard: cursor, última corrida y
+   * contadores. `lastRun` viene del `updated_at` del cursor en Supabase.
+   */
+  async getMonitorStatus(): Promise<MonitorStatus> {
+    const [entry, events, attributions] = await Promise.all([
+      fesStorage.getMonitorStateEntry(CHECKPOINT_KEY),
+      fesStorage.listStakeEvents(1000),
+      fesStorage.listAttributions(500),
+    ]);
+    return {
+      lastCheckedBlock: entry ? Number(entry.value) : 0,
+      lastRun: entry?.updated_at ?? null,
+      stakesDetected: events.filter(e => e.event_type === 'stake').length,
+      stakesAttributed: attributions.length,
+    };
   }
 
   async getSummary(): Promise<AttributionSummary> {

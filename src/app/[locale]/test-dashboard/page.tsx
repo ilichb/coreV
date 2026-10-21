@@ -28,29 +28,15 @@ interface MessageGroup {
   sample: Array<{ subject: string; body: string; variant: MessageVariant; platform: string }>;
 }
 
-interface ByCohortMetric {
-  cohort: string;
-  contacted: number;
-  reactivated: number;
-  rate: number;
-  avgDaysToReactivate: number | null;
-}
-
-interface ReactivationMetrics {
-  totalContacted: number;
-  totalReactivated: number;
-  conversionRate: number;
-  avgDaysToReactivate: number | null;
-  byCohort: ByCohortMetric[];
-}
-
 interface MetricsData {
   count: number;
   holders: Holder[];
   cohorts: { total: number; mainPool: number; cohortA: CohortSummary; cohortB: CohortSummary; vip: CohortSummary };
   vip: Holder[];
   messages: { control: MessageGroup; treatment: MessageGroup; vip: MessageGroup };
-  reactivation: ReactivationMetrics | null;
+  // El modelo reactivation (Contacted/Reactivated) fue abandonado en oct-2026:
+  // /api/fes/metrics ya no lo expone. La medición del piloto es el funnel
+  // Viewed → Staked del dashboard /internal/fes.
   metadata: { source: string; minBalanceRIF: number; minDaysInactive: number; generatedAt: string; note: string; cohortStrategy: string };
 }
 
@@ -547,53 +533,6 @@ export default function TestDashboardPage() {
               })}
             </div>
             <JSONPreview data={metrics.messages} label="messages data" />
-          </Section>
-        )}
-
-        {/* ═══ Reactivation Metrics ═══ */}
-        {metrics?.reactivation ? (
-          <Section title="Reactivation Metrics" color="green">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4">
-              <Card label="Contacted" value={fmt(metrics.reactivation.totalContacted)} accent="border-[#00ff88]/20" />
-              <Card label="Reactivated" value={fmt(metrics.reactivation.totalReactivated)} sub={pct(metrics.reactivation.conversionRate)} accent="border-[#00ff88]/20" />
-              <Card label="Avg Days to Reactivate" value={metrics.reactivation.avgDaysToReactivate !== null ? fmt(metrics.reactivation.avgDaysToReactivate, 1) : '—'} accent="border-gray-600/30" />
-              <Card label="Conversion Rate" value={pct(metrics.reactivation.conversionRate)} accent="border-[#00ff88]/20" />
-            </div>
-            {metrics.reactivation.byCohort.length > 0 && (
-              <div className="px-4 pb-4">
-                <table className="w-full text-[10px] font-mono">
-                  <thead>
-                    <tr className="text-gray-500 uppercase tracking-wider border-b border-gray-800">
-                      <th className="text-left py-2">Cohort</th>
-                      <th className="text-right py-2">Contacted</th>
-                      <th className="text-right py-2">Reactivated</th>
-                      <th className="text-right py-2">Rate</th>
-                      <th className="text-right py-2">Avg Days</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {metrics.reactivation.byCohort.map(c => (
-                      <tr key={c.cohort} className="border-b border-gray-800/50">
-                        <td className="py-2 text-gray-300">{c.cohort}</td>
-                        <td className="py-2 text-right text-gray-400">{c.contacted}</td>
-                        <td className="py-2 text-right text-gray-400">{c.reactivated}</td>
-                        <td className="py-2 text-right text-[#00ff88]">{pct(c.rate)}</td>
-                        <td className="py-2 text-right text-gray-400">{c.avgDaysToReactivate !== null ? fmt(c.avgDaysToReactivate, 1) : '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            <JSONPreview data={metrics.reactivation} label="reactivation data" />
-          </Section>
-        ) : (
-          <Section title="Reactivation Metrics" color="green">
-            <div className="px-4 py-4">
-              <span className="text-[10px] font-mono text-yellow-500">
-                No reactivation data yet. Messages have not been sent or tracking has not started.
-              </span>
-            </div>
           </Section>
         )}
 

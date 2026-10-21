@@ -12,7 +12,7 @@ import { NextRequest } from 'next/server';
 process.env.FES_WALLET_HASH_SALT = 'test-salt-0123456789abcdef';
 
 const getParticipant = jest.fn();
-const recordEvent = jest.fn();
+const recordView = jest.fn();
 const logView = jest.fn().mockResolvedValue(undefined);
 const calculate = jest.fn().mockResolvedValue({
   projectedYieldRIF: 123.45,
@@ -23,7 +23,7 @@ const calculate = jest.fn().mockResolvedValue({
 jest.mock('@/lib/services/rootstock/fes-storage.service', () => ({
   fesStorage: {
     getParticipant: (...args: unknown[]) => getParticipant(...args),
-    recordEvent: (...args: unknown[]) => recordEvent(...args),
+    recordView: (...args: unknown[]) => recordView(...args),
   },
 }));
 
@@ -64,7 +64,7 @@ function req(body: Record<string, unknown>, ip = '203.0.113.1'): NextRequest {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  recordEvent.mockResolvedValue(undefined);
+  recordView.mockResolvedValue(undefined);
 });
 
 describe('POST /api/fes/check-wallet — cohorte congelada (C1)', () => {
@@ -79,15 +79,15 @@ describe('POST /api/fes/check-wallet — cohorte congelada (C1)', () => {
     expect(data.inPilot).toBe(false);
     expect(data.cohort).toBeUndefined();
     expect(data.message).toMatch(/not part of the FES pilot/i);
-    // una consulta que no es del piloto NO genera evento de vista
-    expect(recordEvent).not.toHaveBeenCalled();
+    // una consulta que no es del piloto NO genera vista
+    expect(recordView).not.toHaveBeenCalled();
     expect(calculate).not.toHaveBeenCalled();
   });
 
   it('wallet presente → cohorte y variante salen de la fila congelada', async () => {
     getParticipant.mockResolvedValue(PARTICIPANT);
 
-    const res = await POST(req({ wallet: PARTICIPANT.wallet, src: 'forum' }));
+    const res = await POST(req({ wallet: PARTICIPANT.wallet, src: 'forum', referrer: 'https://forum.rootstock.io/t/x' }));
     const data = await res.json();
 
     expect(res.status).toBe(200);
@@ -102,14 +102,18 @@ describe('POST /api/fes/check-wallet — cohorte congelada (C1)', () => {
     // la proyección usa los datos congelados, no una lectura en vivo
     expect(calculate).toHaveBeenCalledWith(2_500_000, 42);
 
-    // el evento de vista se registra con la wallet CRUDA (la atribución une por ella)
-    expect(recordEvent).toHaveBeenCalledWith(
+    // la vista se registra en fes_views con walletHash DETERMINISTA (v3):
+    // el join con fes_attributions es por hash, nunca por address cruda
+    expect(recordView).toHaveBeenCalledWith(
       expect.objectContaining({
-        wallet: PARTICIPANT.wallet,
-        event_type: 'preview_view',
-        payload: expect.objectContaining({ cohort: 'VIP', channel: 'forum' }),
+        wallet_hash: walletHashService.hashWalletDeterministic(PARTICIPANT.wallet).walletHash,
+        cohort: 'VIP',
+        channel: 'forum',
+        referrer: 'https://forum.rootstock.io/t/x',
       })
     );
+    // la address cruda no viaja en la fila de la vista
+    expect(JSON.stringify(recordView.mock.calls[0][0])).not.toContain(PARTICIPANT.wallet);
   });
 
   it('la wallet de la respuesta va hasheada y el hash es determinista entre consultas', async () => {

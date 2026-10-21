@@ -94,30 +94,31 @@ export async function POST(request: NextRequest) {
             'en' // Default language, could be extended with Accept-Language header
         );
 
-        // 4. Loguear la vista en fes_events (Supabase).
-        // Es la fuente del embudo Viewed → Staked: la atribución lee estos
-        // eventos con la wallet cruda, por eso acá se guarda sin hashear.
+        // 4. Registrar la vista en `fes_views` (Supabase) — la fuente del
+        // embudo Viewed → Staked. El spec del piloto pide walletHash
+        // DETERMINISTA (v3): el join con fes_attributions se hace por hash, y
+        // una sal no determinista rompería la atribución en cada reinicio
+        // (alerta #3 del dashboard). El referrer crudo se guarda truncado; el
+        // canal ya viene resuelto por resolveChannel.
         // El resultado se refleja en `viewLogged`: antes devolvía `true` fijo
         // aunque el INSERT fuera rechazado por RLS, así que la UI reportaba
         // éxito en un log que nunca ocurrió.
         let viewLogged = false;
         try {
-            await fesStorage.recordEvent({
-                wallet,
-                event_type: 'preview_view',
-                payload: {
-                    cohort: participant.cohort,
-                    message_variant: variant,
-                    channel,
-                    balance,
-                    daysInactive,
-                    projectedYield: yieldProjection.projectedYieldRIF,
-                    timestamp: new Date().toISOString(),
-                },
+            await fesStorage.recordView({
+                wallet_hash: walletHashService.hashWalletDeterministic(wallet).walletHash,
+                cohort: participant.cohort,
+                message_variant: variant,
+                channel,
+                referrer: typeof body.referrer === 'string' && body.referrer
+                    ? String(body.referrer).slice(0, 255)
+                    : null,
+                balance_rif: balance,
+                days_inactive: daysInactive,
             });
             viewLogged = true;
         } catch (err) {
-            console.error('[FES] recordEvent failed:', err);
+            console.error('[FES] recordView failed:', err);
         }
 
         // 5. Loguear la vista en MongoDB (para reportes diarios + IPFS)

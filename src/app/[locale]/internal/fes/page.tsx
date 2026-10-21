@@ -32,19 +32,17 @@ interface FESMetrics {
         treatment: { total: number; sample: any[] };
         vip: { total: number; sample: any[] };
     };
-    reactivation: {
-        totalContacted: number;
-        totalReactivated: number;
-        conversionRate: number;
-        avgDaysToReactivate: number | null;
-        byCohort: Array<{
-            cohort: string;
-            contacted: number;
-            reactivated: number;
-            rate: number;
-            avgDaysToReactivate: number | null;
-        }>;
-    } | null;
+    /** Identidad del piloto (fila inmutable fes_pilot_meta, Bloque 1) */
+    pilotMeta?: {
+        snapshotCid: string | null;
+        merkleRoot: string | null;
+        windowStart: string;
+        windowEnd: string;
+        cohortCount: number;
+        cohortBreakdown: Record<string, number>;
+        exposureFloor: number;
+        source: 'fes_pilot_meta' | 'fallback-constants';
+    };
     frozenCohort?: {
         total: number;
         /** Embudo real del piloto: enlace público, sin mensajes */
@@ -53,13 +51,6 @@ interface FESMetrics {
         notViewed: number;
         /** Staked / Viewed. null si viewed = 0 (indefinido, no 0%). */
         conversionRate: number | null;
-        /** Contralibre: flag del tracker, sin confirmar en chain */
-        reactivatedCount: number;
-        reactivatedNotAttributed: number;
-        /** Compatibilidad con lo anterior */
-        reactivated: number;
-        stillInactive: number;
-        contacted: number;
         cohortDistribution: Record<string, number>;
         /** Vistas de /preview por canal de origen. 'unknown' = sin tracking (previo). */
         viewsByChannel: Record<string, number>;
@@ -80,14 +71,22 @@ interface FESMetrics {
             viewedAt: string | null;
             staked: boolean;
             stakedAt: string | null;
-            /** Contralibre del tracker, sin confirmar en chain */
-            reactivated: boolean;
-            reactivatedAt: string | null;
             daysViewToStake: number | null;
-            lastBlockCheckpoint: number | null;
-            lastBlockCurrent: number | null;
         }>;
     };
+    /** Estado del monitor de atribución (Bloque 4) */
+    monitor?: {
+        lastCheckedBlock: number;
+        lastRun: string | null;
+        stakesDetected: number;
+        stakesAttributed: number;
+    } | null;
+    /** Alertas del piloto (Bloque 5) */
+    alerts?: Array<{
+        code: string;
+        severity: 'warn' | 'error';
+        message: string;
+    }>;
     pilotWindow?: {
         start: string;
         end: string;
@@ -175,7 +174,7 @@ function FesLoadingSkeleton() {
 
                 {/* Tabs */}
                 <div className="flex gap-1 border-b border-gray-800">
-                    {['Overview', 'Holders', 'Whales', 'Messages'].map((t, i) => (
+                    {['Overview', 'Frozen Cohort', 'Messages'].map((t, i) => (
                         <div key={t} className={`text-sm font-mono px-6 py-3 border-b-2 ${i === 0 ? 'border-[#00f0ff] text-[#00f0ff]' : 'border-transparent text-gray-700'}`}>
                             {t}
                         </div>
@@ -229,7 +228,7 @@ export default function InternalFESDashboard() {
     const [data, setData] = useState<FESMetrics | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [tab, setTab] = useState<'overview' | 'frozen' | 'holders' | 'messages' | 'vip'>('overview');
+    const [tab, setTab] = useState<'overview' | 'frozen' | 'messages'>('overview');
 
     useEffect(() => {
         fetch('/api/fes/metrics', { credentials: 'include' })
@@ -283,8 +282,6 @@ export default function InternalFESDashboard() {
     const tabs = [
         { id: 'overview' as const, label: 'Overview' },
         { id: 'frozen' as const, label: `Frozen Cohort (${data.frozenCohort?.total ?? 0})` },
-        { id: 'holders' as const, label: `Live Holders (${data.count})` },
-        { id: 'vip' as const, label: `Live VIP (${data.vip.length})` },
         { id: 'messages' as const, label: 'Messages' },
     ];
 
@@ -343,6 +340,19 @@ export default function InternalFESDashboard() {
                             )}
                         </div>
                     )}
+                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-mono text-gray-500">
+                        {data.pilotMeta?.snapshotCid ? (
+                            <span>
+                                snapshot <span className="text-gray-400 break-all">{data.pilotMeta.snapshotCid}</span>
+                                {data.pilotMeta.source === 'fallback-constants' && ' (fallback: migración 002 sin aplicar)'}
+                            </span>
+                        ) : (
+                            <span>snapshot CID no disponible (migración 002 sin aplicar)</span>
+                        )}
+                        <span>
+                            piso de exposición: <span className="text-gray-400">{data.pilotMeta?.exposureFloor ?? 8}</span>
+                        </span>
+                    </div>
                     <div className="mt-3 text-xs font-mono text-gray-600 leading-relaxed">
                         Enlace público a <span className="text-gray-400">/preview</span> — el piloto no envía mensajes.
                         La medición es <span className="text-gray-400">Viewed</span> →{' '}
@@ -460,14 +470,6 @@ export default function InternalFESDashboard() {
                                     medida que los holders entren a /preview.
                                 </div>
                             )}
-
-                            {(data.frozenCohort?.reactivatedNotAttributed ?? 0) > 0 && (
-                                <div className="mt-3 border border-[#f59e0b]/20 bg-[#f59e0b]/5 px-5 py-3 text-xs font-mono text-[#f59e0b]/80">
-                                    ⚠ {data.frozenCohort!.reactivatedNotAttributed} wallet(s) con actividad de
-                                    bloque detectada pero sin atribución de stake confirmada en chain. No cuentan
-                                    como Staked hasta que el monitor de atribución corra.
-                                </div>
-                            )}
                         </div>
 
                         {/* ── Resultado A/B: la métrica primaria del experimento ───────── */}
@@ -544,45 +546,70 @@ export default function InternalFESDashboard() {
                             </div>
                         </div>
 
-                        {/* ── Detección en vivo: secundaria, y va a divergir ───────────── */}
+                        {/* ── ATTRIBUTION MONITOR: termómetro del sistema (Bloque 4) ──── */}
                         <div className="border border-gray-800 bg-black/40 p-6">
                             <div className="flex items-center gap-2 mb-4">
-                                <span className="text-xs font-mono font-medium text-gray-500 bg-gray-800/40 border border-gray-700 px-3 py-1 tracking-widest">
-                                    LIVE DETECTION
+                                <span className="text-xs font-mono font-medium text-[#4ade80] bg-[#4ade80]/10 border border-[#4ade80]/20 px-3 py-1 tracking-widest">
+                                    ATTRIBUTION MONITOR
                                 </span>
                                 <span className="text-xs font-mono text-gray-600">
-                                    re-asigna cohortes sobre lo que hoy califica — NO es el piloto
+                                    cron de detección on-chain · cursor en fes_monitor_state
                                 </span>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div>
-                                    <div className="text-xs font-mono text-gray-600 uppercase tracking-widest">Holders hoy</div>
-                                    <div className="text-2xl font-mono font-bold text-gray-400 mt-1">{data.count}</div>
+                                    <div className="text-xs font-mono text-gray-600 uppercase tracking-widest">Last checked block</div>
+                                    <div className="text-2xl font-mono font-bold text-gray-200 mt-1">
+                                        {data.monitor?.lastCheckedBlock ? data.monitor.lastCheckedBlock.toLocaleString() : '—'}
+                                    </div>
                                 </div>
                                 <div>
-                                    <div className="text-xs font-mono text-gray-600 uppercase tracking-widest">Cohort A</div>
-                                    <div className="text-2xl font-mono font-bold text-gray-400 mt-1">{data.cohorts?.A?.count || 0}</div>
-                                    <div className="text-xs font-mono text-gray-700 mt-1">{data.cohorts?.A?.avgDaysInactive?.toFixed(1) || 0} avg days</div>
+                                    <div className="text-xs font-mono text-gray-600 uppercase tracking-widest">Last run</div>
+                                    <div className="text-2xl font-mono font-bold text-gray-200 mt-1">
+                                        {data.monitor?.lastRun
+                                            ? new Date(data.monitor.lastRun).toLocaleString('es-AR', { timeZone: 'UTC', hour12: false }) + ' UTC'
+                                            : '—'}
+                                    </div>
                                 </div>
                                 <div>
-                                    <div className="text-xs font-mono text-gray-600 uppercase tracking-widest">Cohort B</div>
-                                    <div className="text-2xl font-mono font-bold text-gray-400 mt-1">{data.cohorts?.B?.count || 0}</div>
-                                    <div className="text-xs font-mono text-gray-700 mt-1">{data.cohorts?.B?.avgDaysInactive?.toFixed(1) || 0} avg days</div>
+                                    <div className="text-xs font-mono text-gray-600 uppercase tracking-widest">Stakes detected</div>
+                                    <div className="text-2xl font-mono font-bold text-[#00f0ff] mt-1">{data.monitor?.stakesDetected ?? '—'}</div>
                                 </div>
                                 <div>
-                                    <div className="text-xs font-mono text-gray-600 uppercase tracking-widest">VIP</div>
-                                    <div className="text-2xl font-mono font-bold text-gray-400 mt-1">{data.vip.length}</div>
+                                    <div className="text-xs font-mono text-gray-600 uppercase tracking-widest">Stakes attributed</div>
+                                    <div className="text-2xl font-mono font-bold text-[#4ade80] mt-1">{data.monitor?.stakesAttributed ?? '—'}</div>
                                 </div>
                             </div>
-                            {data.frozenCohort && data.count !== data.frozenCohort.total && (
-                                <div className="mt-4 pt-4 border-t border-gray-800 text-xs font-mono text-gray-600 leading-relaxed">
-                                    Difieren en {Math.abs(data.count - data.frozenCohort.total)} wallet(s).{' '}
-                                    {data.count < data.frozenCohort.total
-                                        ? 'Lo esperado: wallets del piloto que se des-stakearon o reactivaron salen del detector de elegibilidad, pero permanecen en la cohorte congelada, que es la que se evalúa.'
-                                        : 'Aparecieron wallets nuevas que no estaban en el snapshot. No entran al piloto: la lista estaba congelada antes de esto.'}
-                                </div>
-                            )}
+                            <div className="mt-4 pt-3 border-t border-gray-800 text-xs font-mono text-gray-600 leading-relaxed">
+                                Si <span className="text-gray-400">Last checked block</span> no avanza, el cron está
+                                roto. Es el termómetro de que el sistema funciona.
+                            </div>
                         </div>
+
+                        {/* ── ALERTAS (Bloque 5) ──────────────────────────────────────── */}
+                        {(data.alerts?.length ?? 0) > 0 && (
+                            <div className="border border-gray-800 bg-black/40 p-6">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <span className="text-xs font-mono font-medium text-[#f59e0b] bg-[#f59e0b]/10 border border-[#f59e0b]/20 px-3 py-1 tracking-widest">
+                                    ALERTS
+                                    </span>
+                                </div>
+                                <div className="space-y-2">
+                                    {data.alerts!.map((a, i) => (
+                                        <div
+                                            key={`${a.code}-${i}`}
+                                            className={`border px-4 py-3 text-xs font-mono leading-relaxed ${
+                                                a.severity === 'error'
+                                                    ? 'border-[#ff6b6b]/30 bg-[#ff6b6b]/5 text-[#ff6b6b]/90'
+                                                    : 'border-[#f59e0b]/30 bg-[#f59e0b]/5 text-[#f59e0b]/90'
+                                            }`}
+                                        >
+                                            {a.severity === 'error' ? '⛔' : '⚠️'} {a.message}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Balance por cohorte — total Y mediana, sobre la cohorte congelada */}
                         <div className="border border-gray-800 bg-black/40 p-6">
@@ -781,70 +808,6 @@ export default function InternalFESDashboard() {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-                )}
-
-                {/* Tab: Holders */}
-                {tab === 'holders' && (
-                    <div className="border border-gray-800 bg-black/40 overflow-x-auto">
-                        <table className="w-full text-sm font-mono">
-                            <thead>
-                                <tr className="border-b border-gray-800 text-gray-500 uppercase tracking-widest">
-                                    <th className="text-left p-4">Wallet Hash</th>
-                                    <th className="text-right p-4">Balance</th>
-                                    <th className="text-right p-4">Days Inactive</th>
-                                    <th className="text-center p-4">Cohort</th>
-                                    <th className="text-right p-4">Proj. Yield</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {data.holders.map((h, i) => (
-                                    <tr key={i} className="border-b border-gray-800/50 hover:bg-gray-900/30">
-                                        <td className="p-4 text-gray-400">{h.walletHash.slice(0, 16)}...</td>
-                                        <td className="p-4 text-right text-gray-200">{h.balance.toLocaleString()}</td>
-                                        <td className="p-4 text-right text-gray-400">{h.daysInactive}d</td>
-                                        <td className="p-4 text-center">
-                                            <span className={`text-xs font-bold px-2 py-1 border ${h.cohort === 'VIP' ? 'border-[#ff6b6b]/40 text-[#ff6b6b]'
-                                                    : h.cohort === 'B' ? 'border-[#f59e0b]/40 text-[#f59e0b]'
-                                                        : h.cohort === 'A' ? 'border-[#00f0ff]/40 text-[#00f0ff]'
-                                                            : 'border-gray-700 text-gray-600'
-                                                }`}>
-                                                {h.cohort || '—'}
-                                            </span>
-                                        </td>
-                                        <td className="p-4 text-right text-[#f59e0b]">
-                                            {h.yieldProjection?.projectedYieldRIF
-                                                ? `~${Math.round(h.yieldProjection.projectedYieldRIF).toLocaleString()} RIF`
-                                                : '—'}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-
-                {/* Tab: VIP */}
-                {tab === 'vip' && (
-                    <div className="border border-gray-800 bg-black/40 overflow-x-auto">
-                        <table className="w-full text-sm font-mono">
-                            <thead>
-                                <tr className="border-b border-gray-800 text-gray-500 uppercase tracking-widest">
-                                    <th className="text-left p-4">Wallet Hash</th>
-                                    <th className="text-right p-4">Balance</th>
-                                    <th className="text-right p-4">Days Inactive</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {data.vip.map((w, i) => (
-                                    <tr key={i} className="border-b border-gray-800/50 hover:bg-gray-900/30">
-                                        <td className="p-4 text-gray-400">{w.walletHash.slice(0, 16)}...</td>
-                                        <td className="p-4 text-right text-[#ff6b6b] font-bold">{w.balance.toLocaleString()} RIF</td>
-                                        <td className="p-4 text-right text-gray-400">{w.daysInactive}d</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
                     </div>
                 )}
 
