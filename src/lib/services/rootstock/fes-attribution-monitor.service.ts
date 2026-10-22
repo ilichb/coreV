@@ -65,12 +65,24 @@ const WITHDRAW_TO_SELECTOR = '0x205c2878';
 const BLOCKSCOUT_API = (process.env.BLOCKSCOUT_API_URL || 'https://rootstock.blockscout.com').replace(/\/$/, '');
 
 /**
+ * Lee un número de env AL MOMENTO DEL LLAMADO (no al importar el módulo):
+ * en dev, el valor compilado y el env del proceso pueden divergir, y una
+ * constante leída al importar queda congelada. No numérico → default.
+ */
+function envNum(name: string, fallback: number): number {
+  const v = Number(process.env[name]);
+  return Number.isFinite(v) && v >= 0 ? v : fallback;
+}
+
+/**
  * Rango por petición a Blockscout. Con rangos anchos el endpoint responde
  * HTTP 500 ({"message":"Something went wrong"}): verificado oct-2026,
- * 5.000 bloques OK, 23.000+ falla. 5.000 es el máximo probado con margen —
- * y menos requests ayudan con el rate limit del punto siguiente.
+ * 5.000 OK, 23.000+ falla. 10.000 es la apuesta que reduce el escaneo frío
+ * a ~6 requests (la cuota anónima ronda ~6-9/hora); si un chunk de 10.000
+ * 500ea, la subdivisión lo parte en 5.000 (probados OK) — el fallo de
+ * ancho cuesta 1 request, no un escaneo completo.
  */
-const LOG_SCAN_CHUNK = Number(process.env.FES_LOG_SCAN_CHUNK ?? 5_000);
+const LOG_SCAN_CHUNK_DEFAULT = 10_000;
 /** Límite de logs por respuesta; si se llena, el rango se subdivide. */
 const LOG_HARD_LIMIT = 1_000;
 /**
@@ -81,21 +93,6 @@ const LOG_HARD_LIMIT = 1_000;
 const LOG_MIN_SUBDIVIDE_RANGE = 500;
 /** Reintentos por petición de logs. */
 const LOG_FETCH_RETRIES = 3;
-/** Backoff base entre reintentos (ms). Ajustable para tests. */
-const LOG_RETRY_BASE_DELAY_MS = Number(process.env.FES_LOG_RETRY_BASE_DELAY_MS ?? 1_000);
-/**
- * Pausa entre chunks: Blockscout limita por IP (HTTP 429 "Too many
- * requests") y una ráfaga de ~10-24 requests seguidas lo dispara. Ajustable
- * para tests (0) y por entorno si el límite aprieta.
- */
-const LOG_CHUNK_DELAY_MS = Number(process.env.FES_LOG_CHUNK_DELAY_MS ?? 1_000);
-/**
- * Espera base ante HTTP 429. El backoff corto (1-2s) NO limpia la ventana
- * de rate limit (verificado oct-2026: ni siquiera 15s seguros alcanzaban);
- * se reintenta con esta espera creciente y con el Retry-After del servidor
- * si viene.
- */
-const LOG_429_COOLDOWN_MS = Number(process.env.FES_LOG_429_COOLDOWN_MS ?? 15_000);
 
 const CHECKPOINT_KEY = 'attribution_last_scanned_block';
 
@@ -246,20 +243,26 @@ async function blockscoutLogs(params: Record<string, string>, signal?: AbortSign
 }
 
 async function blockscoutLogsWithRetry(params: Record<string, string>): Promise<RawLog[]> {
+  const baseDelayMs = envNum('FES_LOG_RETRY_BASE_DELAY_MS', 1_000);
+  const cooldown429Ms = envNum('FES_LOG_429_COOLDOWN_MS', 15_000);
   let lastError: unknown;
   for (let attempt = 1; attempt <= LOG_FETCH_RETRIES; attempt++) {
     try {
       return await blockscoutLogs(params);
     } catch (err) {
       lastError = err;
+      // 5xx: no reintentar al MISMO ancho — el caller (scanRange) biparte el
+      // rango, que es el reintento que sí ataca la causa. Reintentar igual
+      // quema cuota de la ventana horaria por requests que van a fallar igual.
+      if (err instanceof BlockscoutHttpError && err.status >= 500) throw err;
       if (attempt < LOG_FETCH_RETRIES) {
         // 429 = ventana de rate limit por IP: el backoff corto de 1-2s no
         // alcanza (verificado oct-2026), se espera el cooldown creciente o
         // el Retry-After del servidor si trae uno.
         const is429 = err instanceof BlockscoutHttpError && err.status === 429;
         const delay = is429
-          ? Math.max((err instanceof BlockscoutHttpError ? err.retryAfterSec ?? 0 : 0) * 1_000, LOG_429_COOLDOWN_MS * attempt)
-          : attempt * LOG_RETRY_BASE_DELAY_MS;
+          ? Math.max((err instanceof BlockscoutHttpError ? err.retryAfterSec ?? 0 : 0) * 1_000, cooldown429Ms * attempt)
+          : attempt * baseDelayMs;
         await new Promise(r => setTimeout(r, delay));
       }
     }
@@ -283,15 +286,17 @@ async function scanTransfers(fromBlock: number, toBlock: number): Promise<RawLog
   if (toBlock < fromBlock) return [];
 
   const all: RawLog[] = [];
+  const chunkWidth = envNum('FES_LOG_SCAN_CHUNK', LOG_SCAN_CHUNK_DEFAULT);
+  const chunkDelayMs = envNum('FES_LOG_CHUNK_DELAY_MS', 1_000);
   let first = true;
-  for (let start = fromBlock; start <= toBlock; start += LOG_SCAN_CHUNK) {
+  for (let start = fromBlock; start <= toBlock; start += chunkWidth) {
     // Pausa entre requests: sin ella los chunks salen en ráfaga y Blockscout
     // responde 429 por IP.
-    if (!first && LOG_CHUNK_DELAY_MS > 0) {
-      await new Promise(r => setTimeout(r, LOG_CHUNK_DELAY_MS));
+    if (!first && chunkDelayMs > 0) {
+      await new Promise(r => setTimeout(r, chunkDelayMs));
     }
     first = false;
-    const end = Math.min(start + LOG_SCAN_CHUNK - 1, toBlock);
+    const end = Math.min(start + chunkWidth - 1, toBlock);
     all.push(...(await scanRange(start, end)));
   }
   return all;
@@ -302,10 +307,11 @@ async function scanTransfers(fromBlock: number, toBlock: number): Promise<RawLog
  * de resultados, subdivide (protección por densidad, complementaria al
  * chunking por ancho de rango).
  *
- * Si Blockscout responde 5xx DESPUÉS de los reintentos (error intermitente
- * del servidor, verificado oct-2026: un chunk de 5.000 pasó y otro idéntico
- * devolvió "Something went wrong."), se biparte el rango y se reintenta más
- * abajo — un rango chico cabe en su presupuesto de escaneo. Solo se subdivide
+ * Si Blockscout responde 5xx (error intermitente del servidor, verificado
+ * oct-2026: un chunk de 5.000 pasó y otro idéntico devolvió "Something went
+ * wrong.") se biparte el rango y se reintenta más abajo — un rango chico
+ * cabe en su presupuesto de escaneo, y bipartir ES el reintento (el retry
+ * por request no reintent ante 5xx para no quemar cuota). Solo se subdivide
  * ante 5xx: ante 429 (rate limit) subdivide MULTIPLICARÍA las requests y
  * empeoraría el bloqueo; ese caso espera el cooldown y se propaga. Bajo
  * LOG_MIN_SUBDIVIDE_RANGE el fallo ya no es de ancho → se anota con el rango
