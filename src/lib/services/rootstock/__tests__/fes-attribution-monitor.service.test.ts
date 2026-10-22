@@ -59,8 +59,11 @@ const NOW_BLOCK = 9_400_000;
 process.env.FES_WALLET_HASH_SALT = 'test-salt-0123456789abcdef';
 // Chunking y pacing conocidos: mismo camino que producción pero sin sleeps
 // (el servicio lee estas constantes al importar, y loadMonitor re-importa).
+// El retry va en 0 porque los tests de fallo ahora biparten rangos y cada
+// intento tendría backoff real.
 process.env.FES_LOG_SCAN_CHUNK = '2000';
 process.env.FES_LOG_CHUNK_DELAY_MS = '0';
+process.env.FES_LOG_RETRY_BASE_DELAY_MS = '0';
 
 import { walletHashService } from '@/lib/services/security/wallet-hash.service';
 
@@ -442,6 +445,36 @@ describe('fes-attribution-monitor — robustez', () => {
       expect(String(url)).toContain('apikey=test-key-123');
     } finally {
       delete process.env.BLOCKSCOUT_API_KEY;
+    }
+  });
+
+  it('recupera si un chunk devuelve 500 intermitente: biparte el rango en vez de rendirse', async () => {
+    const prevChunk = process.env.FES_LOG_SCAN_CHUNK;
+    process.env.FES_LOG_SCAN_CHUNK = '5000';
+    try {
+      setupChain({ logs: [], inputs: {} });
+      const okImpl = fetchMock.getMockImplementation()!;
+      // Regla del servidor: 500 con rangos >2000 (error intermitente por
+      // rango/ancho), éxito con rangos chicos.
+      fetchMock.mockImplementation(async (url: string) => {
+        const u = new URL(String(url));
+        const width = Number(u.searchParams.get('toBlock')) - Number(u.searchParams.get('fromBlock')) + 1;
+        if (width > 2000) {
+          return { ok: false, status: 500, text: async () => '{"message":"Something went wrong."}' };
+        }
+        return okImpl(url);
+      });
+
+      const result = await loadMonitor().runCheck();
+
+      // el escaneo completo se cumple vía subdivisión 5000→2500→1250
+      expect(result.toBlock).toBe(NOW_BLOCK);
+      expect(setMonitorState).toHaveBeenCalledWith('attribution_last_scanned_block', String(NOW_BLOCK));
+      // y el error intermedio 500 no contaminó los datos
+      expect(result.stakeEvents).toBe(0);
+    } finally {
+      if (prevChunk === undefined) delete process.env.FES_LOG_SCAN_CHUNK;
+      else process.env.FES_LOG_SCAN_CHUNK = prevChunk;
     }
   });
 

@@ -73,6 +73,12 @@ const BLOCKSCOUT_API = (process.env.BLOCKSCOUT_API_URL || 'https://rootstock.blo
 const LOG_SCAN_CHUNK = Number(process.env.FES_LOG_SCAN_CHUNK ?? 5_000);
 /** Límite de logs por respuesta; si se llena, el rango se subdivide. */
 const LOG_HARD_LIMIT = 1_000;
+/**
+ * Ancho mínimo antes de dejar de subdividir un rango que falla con HTTP 5xx.
+ * Por debajo de esto el error ya no es de ancho: se propaga anotado con el
+ * rango exacto (diagnóstico).
+ */
+const LOG_MIN_SUBDIVIDE_RANGE = 500;
 /** Reintentos por petición de logs. */
 const LOG_FETCH_RETRIES = 3;
 /** Backoff base entre reintentos (ms). Ajustable para tests. */
@@ -295,14 +301,39 @@ async function scanTransfers(fromBlock: number, toBlock: number): Promise<RawLog
  * Un rango acotado: pide los logs con reintentos y, si el rango llegó lleno
  * de resultados, subdivide (protección por densidad, complementaria al
  * chunking por ancho de rango).
+ *
+ * Si Blockscout responde 5xx DESPUÉS de los reintentos (error intermitente
+ * del servidor, verificado oct-2026: un chunk de 5.000 pasó y otro idéntico
+ * devolvió "Something went wrong."), se biparte el rango y se reintenta más
+ * abajo — un rango chico cabe en su presupuesto de escaneo. Solo se subdivide
+ * ante 5xx: ante 429 (rate limit) subdivide MULTIPLICARÍA las requests y
+ * empeoraría el bloqueo; ese caso espera el cooldown y se propaga. Bajo
+ * LOG_MIN_SUBDIVIDE_RANGE el fallo ya no es de ancho → se anota con el rango
+ * exacto y se propaga (nunca se convierte en []).
  */
 async function scanRange(fromBlock: number, toBlock: number): Promise<RawLog[]> {
-  const logs = await blockscoutLogsWithRetry({
-    fromBlock: String(fromBlock),
-    toBlock: String(toBlock),
-    address: RIF_TOKEN,
-    topic0: TRANSFER_TOPIC,
-  });
+  let logs: RawLog[];
+  try {
+    logs = await blockscoutLogsWithRetry({
+      fromBlock: String(fromBlock),
+      toBlock: String(toBlock),
+      address: RIF_TOKEN,
+      topic0: TRANSFER_TOPIC,
+    });
+  } catch (err) {
+    const isHttp = err instanceof BlockscoutHttpError;
+    if (isHttp && err.status >= 500 && toBlock - fromBlock + 1 > LOG_MIN_SUBDIVIDE_RANGE) {
+      const mid = Math.floor((fromBlock + toBlock) / 2);
+      logger.warn(
+        `[FES Attribution] rango ${fromBlock}-${toBlock} falló (HTTP ${err.status}); subdividiendo`
+      );
+      return [...(await scanRange(fromBlock, mid)), ...(await scanRange(mid + 1, toBlock))];
+    }
+    if (isHttp) {
+      throw new Error(`Blockscout rango ${fromBlock}-${toBlock}: ${err.message}`);
+    }
+    throw err;
+  }
 
   if (logs.length >= LOG_HARD_LIMIT && toBlock > fromBlock) {
     const mid = Math.floor((fromBlock + toBlock) / 2);
