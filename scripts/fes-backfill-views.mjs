@@ -70,6 +70,14 @@ function fesWalletHash(wallet) {
   return `did:andromeda:hash:v3:${raw.substring(0, 32)}`;
 }
 
+/**
+ * Etiqueta histórica previa a la corrección C2 (oct-2026): la cohorte VIP se
+ * registraba como 'WHALE' en el payload de fes_events. Sin este mapeo se
+ * perderían las vistas del VIP del embudo.
+ */
+const LEGACY_COHORT = { WHALE: 'VIP' };
+const COHORTS = new Set(['A', 'B', 'VIP']);
+
 async function rest(pathAndQuery, options = {}) {
   const res = await fetch(`${REST}${pathAndQuery}`, {
     ...options,
@@ -80,12 +88,26 @@ async function rest(pathAndQuery, options = {}) {
     const body = (await res.text()).slice(0, 300);
     throw new Error(`Supabase REST ${options.method || 'GET'} ${pathAndQuery} → HTTP ${res.status}: ${body}`);
   }
-  return res.status === 204 ? null : res.json();
+  // OJO: con `Prefer: return=minimal` PostgREST responde 201 con cuerpo VACÍO.
+  // res.json() sobre eso revienta con "Unexpected end of JSON input" aunque
+  // el INSERT se haya hecho perfectamente.
+  const text = await res.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Respuesta no-JSON de ${pathAndQuery}: ${text.slice(0, 120)}`);
+  }
 }
 
-const COHORTS = new Set(['A', 'B', 'VIP']);
-
 async function main() {
+  // 0. Cohorte congelada: solo se migran vistas de las wallets del piloto.
+  //    Una wallet no-listada (heredera del bug C1, que asignaba cohortes en
+  //    vivo) no entra al embudo; su evento queda como evidencia en fes_events.
+  const participants = await rest('/fes_participants?select=wallet');
+  const frozen = new Set(participants.map(p => String(p.wallet).toLowerCase()));
+  console.log(`Cohorte congelada: ${frozen.size} wallet(s)`);
+
   // 1. Vista histórica (wallet cruda) desde fes_events.
   const events = await rest(
     '/fes_events?event_type=eq.preview_view&select=wallet,payload,created_at&order=created_at.asc'
@@ -99,12 +121,17 @@ async function main() {
 
   // 3. Calcular las filas faltantes.
   const rows = [];
-  let skippedNoCohort = 0;
+  let skippedInvalidCohort = 0;
+  let skippedNotFrozen = 0;
   for (const e of events) {
     const wallet = (e.wallet || '').toLowerCase();
-    const cohort = e.payload?.cohort;
+    const cohort = LEGACY_COHORT[e.payload?.cohort] ?? e.payload?.cohort;
     if (!wallet || !COHORTS.has(cohort)) {
-      skippedNoCohort++;
+      skippedInvalidCohort++;
+      continue;
+    }
+    if (!frozen.has(wallet)) {
+      skippedNotFrozen++;
       continue;
     }
     const createdAt = e.created_at;
@@ -123,8 +150,14 @@ async function main() {
     });
   }
 
-  if (skippedNoCohort > 0) {
-    console.warn(`AVISO: ${skippedNoCohort} evento(s) sin cohorte válida en el payload — omitidos.`);
+  if (skippedInvalidCohort > 0) {
+    console.warn(`AVISO: ${skippedInvalidCohort} evento(s) con cohorte inválida en el payload — omitidos.`);
+  }
+  if (skippedNotFrozen > 0) {
+    console.warn(
+      `AVISO: ${skippedNotFrozen} evento(s) de wallet(es) fuera de la cohorte congelada — ` +
+      'se conservan solo en fes_events (evidencia del bug C1, no entran al embudo).'
+    );
   }
 
   if (rows.length === 0) {
@@ -132,15 +165,16 @@ async function main() {
     return;
   }
 
-  // 4. Insertar (service role bypasea RLS;.created_at explícito preserva la
-  //    marca de tiempo original de la vista).
-  await rest('/fes_views', {
+  // 4. Insertar (service role bypasea RLS; created_at explícito preserva la
+  //    marca de tiempo original de la vista). return=representation para
+  //    poder contar lo insertado sin tragar cuerpos vacíos.
+  const inserted = await rest('/fes_views', {
     method: 'POST',
     body: JSON.stringify(rows),
-    headers: { Prefer: 'return=minimal' },
+    headers: { Prefer: 'return=representation' },
   });
 
-  console.log(`OK: ${rows.length} vista(s) migrada(s) a fes_views (hash v3 determinista).`);
+  console.log(`OK: ${(inserted ?? rows).length} vista(s) migrada(s) a fes_views (hash v3 determinista).`);
   console.log('Verificación sugerida: el bloque PILOT PROGRESS del dashboard debe');
   console.log('mostrar el mismo "Viewed" que antes del corte de medición.');
 }

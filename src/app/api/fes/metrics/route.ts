@@ -145,6 +145,14 @@ export async function GET() {
     // ── Vistas: fuente fes_views (walletHash determinista v3) ──────────────
     // El join con la cohorte es por hash: la wallet cruda de fes_participants
     // se hashea con la misma sal con la que check-wallet registró la vista.
+    // Hash de cada wallet del cohorte (se calcula antes de agregar: el
+    // desglose por canal solo cuenta vistas de las wallets listadas).
+    const hashByWallet = new Map<string, string>(); // wallet cruda → wallet_hash
+    for (const p of frozen) {
+      hashByWallet.set(p.wallet.toLowerCase(), walletHashService.hashWalletDeterministic(p.wallet).walletHash);
+    }
+    const frozenHashes = new Set(hashByWallet.values());
+
     const viewRows = await fesStorage.getViews(5000);
     // 'unknown' = eventos anteriores a que existiera el tracking de canal.
     // Sin este bucket, esas vistas caerían en 'direct' y el desglose mentiría.
@@ -153,19 +161,18 @@ export async function GET() {
     };
     const viewByHash = new Map<string, string>(); // wallet_hash → PRIMERA vista
     for (const v of viewRows) {
+      // La medición es SOLO sobre las 18: una fila de wallet no-listada (por
+      // ejemplo, heredera del bug C1 que asignaba cohortes en vivo) no entra
+      // al funnel ni al desglose por canal.
+      if (!v.wallet_hash || !frozenHashes.has(v.wallet_hash)) continue;
       const ch = v.channel || 'unknown';
       viewsByChannel[ch] = (viewsByChannel[ch] ?? 0) + 1;
-      if (!v.wallet_hash || !v.created_at) continue;
+      if (!v.created_at) continue;
       const cur = viewByHash.get(v.wallet_hash);
       // Date.parse en vez de confiar en el orden de la tabla.
       if (!cur || Date.parse(v.created_at) < Date.parse(cur)) {
         viewByHash.set(v.wallet_hash, v.created_at);
       }
-    }
-
-    const hashByWallet = new Map<string, string>(); // wallet cruda → wallet_hash
-    for (const p of frozen) {
-      hashByWallet.set(p.wallet.toLowerCase(), walletHashService.hashWalletDeterministic(p.wallet).walletHash);
     }
 
     const viewInfoByWallet = new Map<string, string>(); // wallet → viewedAt
