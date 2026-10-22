@@ -205,11 +205,18 @@ class BlockscoutHttpError extends Error {
 
 async function blockscoutLogs(params: Record<string, string>, signal?: AbortSignal): Promise<RawLog[]> {
   const qs = new URLSearchParams({ module: 'logs', action: 'getLogs', ...params });
-  // Clave opcional (dev.blockscout.com): levanta el rate limit por IP. Sin
-  // ella el acceso anónimo se limita y el cron diario queda a merced de la
-  // ventana del lado de Blockscout.
+  // Clave opcional (dev.blockscout.com): habilita la API centralizada
+  // api.blockscout.com (100k créditos/día, 5 RPS en free), que sí honra la
+  // clave. En la instancia self-hosted (rootstock.blockscout.com) el
+  // parámetro se ignora y rige el rate limit anónimo por IP, que en IPs
+  // compartidas (Vercel) suele venir agotado. Sin clave: acceso anónimo.
   const apiKey = process.env.BLOCKSCOUT_API_KEY;
   if (apiKey) qs.set('apikey', apiKey);
+  // La API centralizada es multichain y exige chain_id (Rootstock = 30).
+  // Solo setear junto a BLOCKSCOUT_API_URL=https://api.blockscout.com/v2;
+  // la instancia single-chain ignora el parámetro extra.
+  const chainId = process.env.BLOCKSCOUT_CHAIN_ID;
+  if (chainId) qs.set('chain_id', chainId);
   const res = await fetch(`${BLOCKSCOUT_API}/api?${qs.toString()}`, {
     headers: { accept: 'application/json' },
     signal: signal ?? AbortSignal.timeout(30_000),

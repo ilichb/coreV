@@ -448,6 +448,20 @@ describe('fes-attribution-monitor — robustez', () => {
     }
   });
 
+  it('usa BLOCKSCOUT_CHAIN_ID si está configurada (chain_id en la URL)', async () => {
+    process.env.BLOCKSCOUT_CHAIN_ID = '30';
+    try {
+      setupChain({ logs: [], inputs: {} });
+
+      await loadMonitor().runCheck();
+
+      const [url] = fetchMock.mock.calls[0];
+      expect(String(url)).toContain('chain_id=30');
+    } finally {
+      delete process.env.BLOCKSCOUT_CHAIN_ID;
+    }
+  });
+
   it('recupera si un chunk devuelve 500 intermitente: biparte el rango en vez de rendirse', async () => {
     const prevChunk = process.env.FES_LOG_SCAN_CHUNK;
     process.env.FES_LOG_SCAN_CHUNK = '5000';
