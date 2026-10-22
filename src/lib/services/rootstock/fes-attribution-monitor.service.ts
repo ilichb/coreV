@@ -64,14 +64,32 @@ const WITHDRAW_TO_SELECTOR = '0x205c2878';
 
 const BLOCKSCOUT_API = (process.env.BLOCKSCOUT_API_URL || 'https://rootstock.blockscout.com').replace(/\/$/, '');
 
-/** Rango por petición a Blockscout (los endpoints públicos limitan el rango). */
-const LOG_SCAN_CHUNK = 2_000;
+/**
+ * Rango por petición a Blockscout. Con rangos anchos el endpoint responde
+ * HTTP 500 ({"message":"Something went wrong"}): verificado oct-2026,
+ * 5.000 bloques OK, 23.000+ falla. 5.000 es el máximo probado con margen —
+ * y menos requests ayudan con el rate limit del punto siguiente.
+ */
+const LOG_SCAN_CHUNK = Number(process.env.FES_LOG_SCAN_CHUNK ?? 5_000);
 /** Límite de logs por respuesta; si se llena, el rango se subdivide. */
 const LOG_HARD_LIMIT = 1_000;
 /** Reintentos por petición de logs. */
 const LOG_FETCH_RETRIES = 3;
 /** Backoff base entre reintentos (ms). Ajustable para tests. */
 const LOG_RETRY_BASE_DELAY_MS = Number(process.env.FES_LOG_RETRY_BASE_DELAY_MS ?? 1_000);
+/**
+ * Pausa entre chunks: Blockscout limita por IP (HTTP 429 "Too many
+ * requests") y una ráfaga de ~10-24 requests seguidas lo dispara. Ajustable
+ * para tests (0) y por entorno si el límite aprieta.
+ */
+const LOG_CHUNK_DELAY_MS = Number(process.env.FES_LOG_CHUNK_DELAY_MS ?? 1_000);
+/**
+ * Espera base ante HTTP 429. El backoff corto (1-2s) NO limpia la ventana
+ * de rate limit (verificado oct-2026: ni siquiera 15s seguros alcanzaban);
+ * se reintenta con esta espera creciente y con el Retry-After del servidor
+ * si viene.
+ */
+const LOG_429_COOLDOWN_MS = Number(process.env.FES_LOG_429_COOLDOWN_MS ?? 15_000);
 
 const CHECKPOINT_KEY = 'attribution_last_scanned_block';
 
@@ -170,14 +188,45 @@ interface RawLog {
   logIndex: string;
 }
 
+/** Error HTTP de Blockscout que conserva el status (para distinguir 429 de 5xx). */
+class BlockscoutHttpError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly retryAfterSec: number | null
+  ) {
+    super(message);
+    this.name = 'BlockscoutHttpError';
+  }
+}
+
 async function blockscoutLogs(params: Record<string, string>, signal?: AbortSignal): Promise<RawLog[]> {
   const qs = new URLSearchParams({ module: 'logs', action: 'getLogs', ...params });
+  // Clave opcional (dev.blockscout.com): levanta el rate limit por IP. Sin
+  // ella el acceso anónimo se limita y el cron diario queda a merced de la
+  // ventana del lado de Blockscout.
+  const apiKey = process.env.BLOCKSCOUT_API_KEY;
+  if (apiKey) qs.set('apikey', apiKey);
   const res = await fetch(`${BLOCKSCOUT_API}/api?${qs.toString()}`, {
     headers: { accept: 'application/json' },
     signal: signal ?? AbortSignal.timeout(30_000),
   });
   if (!res.ok) {
-    throw new Error(`Blockscout getLogs → HTTP ${res.status}`);
+    // El cuerpo explica el porqué (p. ej. {"message":"Something went wrong"}
+    // con rangos anchos): descartarlo deja "HTTP 500" a secas, imposible de
+    // diagnosticar sin reproducir a mano. Guardado por si el mock/cuerpo
+    // no tiene .text().
+    let body = '';
+    try {
+      if (typeof res.text === 'function') body = (await res.text()).slice(0, 200);
+    } catch { /* cuerpo ilegible: el status sigue siendo el dato útil */ }
+    const retryAfterRaw = typeof res.headers?.get === 'function' ? res.headers.get('retry-after') : null;
+    const retryAfter = Number(retryAfterRaw);
+    throw new BlockscoutHttpError(
+      `Blockscout getLogs → HTTP ${res.status}${body ? `: ${body}` : ''}`,
+      res.status,
+      Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : null
+    );
   }
   const json = await res.json();
   // Blockscout responde { status, message, result } en el endpoint legacy.
@@ -197,19 +246,57 @@ async function blockscoutLogsWithRetry(params: Record<string, string>): Promise<
       return await blockscoutLogs(params);
     } catch (err) {
       lastError = err;
-      await new Promise(r => setTimeout(r, attempt * LOG_RETRY_BASE_DELAY_MS));
+      if (attempt < LOG_FETCH_RETRIES) {
+        // 429 = ventana de rate limit por IP: el backoff corto de 1-2s no
+        // alcanza (verificado oct-2026), se espera el cooldown creciente o
+        // el Retry-After del servidor si trae uno.
+        const is429 = err instanceof BlockscoutHttpError && err.status === 429;
+        const delay = is429
+          ? Math.max((err instanceof BlockscoutHttpError ? err.retryAfterSec ?? 0 : 0) * 1_000, LOG_429_COOLDOWN_MS * attempt)
+          : attempt * LOG_RETRY_BASE_DELAY_MS;
+        await new Promise(r => setTimeout(r, delay));
+      }
     }
   }
   throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
 /**
- * Escanea Transfers de RIF en un rango, sub-dividiendo si el límite del
- * endpoint se alcanza. Un fallo acá se PROPAGA (nunca se convierte en []).
+ * Escanea Transfers de RIF en un rango, en pedazos de a lo sumo
+ * LOG_SCAN_CHUNK bloques. Blockscout responde HTTP 500
+ * ({"message":"Something went wrong"}) con rangos anchos — verificado en
+ * oct-2026: 5.000 bloques OK, 23.000+ falla — y esa respuesta NUNCA llega
+ * a la subdivisión por cantidad de logs (que recién actúa sobre un 200 con
+ * ≥LOG_HARD_LIMIT resultados). Por eso el chunking es proactivo: sin él, el
+ * primer escaneo del cron (cursor → bloque actual, decenas de miles de
+ * bloques) fallaba siempre, el cursor no avanzaba y el monitor quedaba
+ * clavado en "stalled" para siempre.
+ * Un fallo se PROPAGA (nunca se convierte en []).
  */
 async function scanTransfers(fromBlock: number, toBlock: number): Promise<RawLog[]> {
   if (toBlock < fromBlock) return [];
 
+  const all: RawLog[] = [];
+  let first = true;
+  for (let start = fromBlock; start <= toBlock; start += LOG_SCAN_CHUNK) {
+    // Pausa entre requests: sin ella los chunks salen en ráfaga y Blockscout
+    // responde 429 por IP.
+    if (!first && LOG_CHUNK_DELAY_MS > 0) {
+      await new Promise(r => setTimeout(r, LOG_CHUNK_DELAY_MS));
+    }
+    first = false;
+    const end = Math.min(start + LOG_SCAN_CHUNK - 1, toBlock);
+    all.push(...(await scanRange(start, end)));
+  }
+  return all;
+}
+
+/**
+ * Un rango acotado: pide los logs con reintentos y, si el rango llegó lleno
+ * de resultados, subdivide (protección por densidad, complementaria al
+ * chunking por ancho de rango).
+ */
+async function scanRange(fromBlock: number, toBlock: number): Promise<RawLog[]> {
   const logs = await blockscoutLogsWithRetry({
     fromBlock: String(fromBlock),
     toBlock: String(toBlock),
@@ -220,8 +307,8 @@ async function scanTransfers(fromBlock: number, toBlock: number): Promise<RawLog
   if (logs.length >= LOG_HARD_LIMIT && toBlock > fromBlock) {
     const mid = Math.floor((fromBlock + toBlock) / 2);
     logger.warn(`[FES Attribution] rango ${fromBlock}-${toBlock} lleno (${logs.length} logs); subdividiendo`);
-    const left = await scanTransfers(fromBlock, mid);
-    const right = await scanTransfers(mid + 1, toBlock);
+    const left = await scanRange(fromBlock, mid);
+    const right = await scanRange(mid + 1, toBlock);
     return [...left, ...right];
   }
 

@@ -57,6 +57,10 @@ const NOW_BLOCK = 9_400_000;
 
 // Sal determinista para los tests (el servicio la lee en cada hash).
 process.env.FES_WALLET_HASH_SALT = 'test-salt-0123456789abcdef';
+// Chunking y pacing conocidos: mismo camino que producción pero sin sleeps
+// (el servicio lee estas constantes al importar, y loadMonitor re-importa).
+process.env.FES_LOG_SCAN_CHUNK = '2000';
+process.env.FES_LOG_CHUNK_DELAY_MS = '0';
 
 import { walletHashService } from '@/lib/services/security/wallet-hash.service';
 
@@ -111,9 +115,22 @@ function setupChain(opts: {
   blockTimestamps?: Record<number, string>;
 }) {
   global.fetch = fetchMock as unknown as typeof fetch;
-  fetchMock.mockResolvedValue({
-    ok: true,
-    json: async () => ({ status: '1', message: 'OK', result: opts.logs }),
+  // Simula el contrato real de Blockscout: solo devuelve logs DENTRO de
+  // [fromBlock, toBlock]. Con el chunking proactivo del escaneo cada chunk
+  // pide su propio rango; un mock ciego repetiría los fixtures en cada
+  // petición e inflaría los conteos del test.
+  fetchMock.mockImplementation(async (url: string) => {
+    const u = new URL(String(url));
+    const from = Number(u.searchParams.get('fromBlock'));
+    const to = Number(u.searchParams.get('toBlock'));
+    const logs = opts.logs.filter((l: any) => {
+      const bn = parseInt(l.blockNumber, 16);
+      return (Number.isNaN(from) || bn >= from) && (Number.isNaN(to) || bn <= to);
+    });
+    return {
+      ok: true,
+      json: async () => ({ status: '1', message: 'OK', result: logs }),
+    };
   });
 
   rpcCall.mockImplementation(async ({ method, params }: any) => {
@@ -347,6 +364,85 @@ describe('fes-attribution-monitor — robustez', () => {
     expect(insertStakeEvents).not.toHaveBeenCalled();
     // reintenta antes de rendirse (no es un fallo de un solo intento)
     expect(fetchMock.mock.calls.length).toBeGreaterThan(1);
+  });
+
+  it('parte el rango en chunks de a LOG_SCAN_CHUNK bloques (Blockscout 500 con rangos anchos)', async () => {
+    setupChain({ logs: [], inputs: {} });
+
+    await loadMonitor().runCheck();
+
+    // primer escaneo: ancla de la ventana (~9.325k) → NOW_BLOCK (~74k bloques)
+    expect(fetchMock.mock.calls.length).toBeGreaterThan(10);
+    for (const [url] of fetchMock.mock.calls) {
+      const u = new URL(String(url));
+      const from = Number(u.searchParams.get('fromBlock'));
+      const to = Number(u.searchParams.get('toBlock'));
+      // cada petición respeta el ancho máximo: jamás un rango que Blockscout
+      // rechace con HTTP 500
+      expect(to - from + 1).toBeLessThanOrEqual(2_000);
+      expect(to).toBeGreaterThanOrEqual(from);
+    }
+    // y el rango se cubre completo, sin huecos entre chunks (el cursor avanza
+    // al bloque final aunque se escanee por pedazos)
+    const ranges = fetchMock.mock.calls.map(([url]) => {
+      const u = new URL(String(url));
+      return [Number(u.searchParams.get('fromBlock')), Number(u.searchParams.get('toBlock'))] as const;
+    });
+    ranges.sort((a, b) => a[0] - b[0]);
+    expect(ranges[0][0]).toBeGreaterThanOrEqual(9_299_400); // ≥ ancla de la ventana
+    expect(ranges[ranges.length - 1][1]).toBe(NOW_BLOCK);
+    for (let i = 1; i < ranges.length; i++) {
+      expect(ranges[i][0]).toBe(ranges[i - 1][1] + 1); // sin huecos ni solapes
+    }
+  });
+
+  it('incluye el cuerpo de la respuesta en el error HTTP (antes: "HTTP 500" a secas)', async () => {
+    process.env.FES_LOG_RETRY_BASE_DELAY_MS = '0';
+    setupChain({ logs: [], inputs: {} });
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: async () => '{"status":"0","message":"Something went wrong","result":null}',
+    });
+
+    await expect(loadMonitor().runCheck()).rejects.toThrow(/HTTP 500.*Something went wrong/);
+  });
+
+  it('reintenta ante HTTP 429 (rate limit por IP) y completa el escaneo', async () => {
+    process.env.FES_LOG_RETRY_BASE_DELAY_MS = '0';
+    process.env.FES_LOG_429_COOLDOWN_MS = '0';
+    setupChain({ logs: [], inputs: {} });
+    const okImpl = fetchMock.getMockImplementation()!;
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 429,
+        text: async () => '{"message":"Too many requests. Increase limits now at https://dev.blockscout.com"}',
+      })
+      .mockResolvedValueOnce({ ok: false, status: 429, text: async () => '{"message":"Too many requests"}' })
+      .mockImplementation(okImpl);
+
+    const result = await loadMonitor().runCheck();
+
+    // los dos primeros intentos del primer chunk pegan 429 y el tercero pasa:
+    // el escaneo entero se cumple y el cursor avanza
+    expect(result.toBlock).toBe(NOW_BLOCK);
+    expect(setMonitorState).toHaveBeenCalledWith('attribution_last_scanned_block', String(NOW_BLOCK));
+    expect(fetchMock.mock.calls.length).toBeGreaterThan(2);
+  });
+
+  it('usa BLOCKSCOUT_API_KEY si está configurada (apikey en la URL)', async () => {
+    process.env.BLOCKSCOUT_API_KEY = 'test-key-123';
+    try {
+      setupChain({ logs: [], inputs: {} });
+
+      await loadMonitor().runCheck();
+
+      const [url] = fetchMock.mock.calls[0];
+      expect(String(url)).toContain('apikey=test-key-123');
+    } finally {
+      delete process.env.BLOCKSCOUT_API_KEY;
+    }
   });
 
   it('NO avanza el cursor si falla la lectura de timestamp de bloque', async () => {
