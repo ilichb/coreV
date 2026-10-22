@@ -93,7 +93,7 @@ Ejecutadas contra el código con dobles (mocks de Supabase/RPC/Blockscout):
 |---|---|---|
 | Ensayo vivo del monitor contra la cadena | Requiere `STAKING_CONTRACT_ADDRESS` + `RIF_TOKEN_ADDRESS` + despliegue | Llamar `GET /api/cron/fes-attribution` con `CRON_SECRET` y verificar que la fixture `0x88e85d2d…510ba` aparece en `fes_stake_events` exactamente una vez |
 | Migración 002 aplicada | Sin connection string | Aplicar `supabase/migrations/002_fes_stake_events.sql` y re-ejecutar el gate |
-| Variables de entorno de Vercel | Sin CLI/auth | Verificar `FES_WALLET_HASH_SALT`, `CRON_SECRET`, `STAKING_CONTRACT_ADDRESS`, `RIF_TOKEN_ADDRESS` |
+| Variables de entorno de Vercel | Sin CLI/auth | Verificar `FES_WALLET_HASH_SALT`, `CRON_SECRET`, `STAKING_CONTRACT_ADDRESS`, `RIF_TOKEN_ADDRESS`, `BLOCKSCOUT_API_KEY` (el anónimo de Blockscout responde 429 con ventanas largas) |
 | Ventana completa de 28 días | Requiere distribución real (D2) | Publicar el enlace y monitorear `/internal/fes` |
 | Continuidad de hashes v2 → v3 en MongoDB | Datos previos | Regenerar vistas si se quiere el histórico |
 

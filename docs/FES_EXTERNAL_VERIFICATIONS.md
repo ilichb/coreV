@@ -138,9 +138,13 @@ en `.env` local. Hasta entonces, el piloto depende de una credencial filtrada.
 1. Que el bundle de producción tenga `NEXT_PUBLIC_SUPABASE_URL` correcta (E1).
 2. Que `FES_WALLET_HASH_SALT`, `CRON_SECRET`, `STAKING_CONTRACT_ADDRESS` y
    `RIF_TOKEN_ADDRESS` existan en Vercel.
-3. Que el cron diario se ejecute con `CRON_SECRET` y reporte `success: true`.
-4. Que la fixture `0x88e85d2d…` aparezca **una sola vez** en
+3. Que `BLOCKSCOUT_API_KEY` exista en Vercel (verificado oct-2026: el acceso
+   anónimo a `rootstock.blockscout.com` responde 429 "Too many requests" con
+   ventanas largas — sin clave, el primer escaneo del cron puede quedar sin
+   leer y la alerta `monitor_stalled` queda abierta).
+4. Que el cron diario se ejecute con `CRON_SECRET` y reporte `success: true`.
+5. Que la fixture `0x88e85d2d…` aparezca **una sola vez** en
    `fes_stake_events` tras el primer escaneo vivo.
-5. Que el total incremental recalculado desde los logs en cadena coincida con
+6. Que el total incremental recalculado desde los logs en cadena coincida con
    lo que reporta el dashboard (el manual exige recalcularlo desde la cadena,
    no desde `fes_participants`).

@@ -103,6 +103,6 @@ Elegir UNA con evidencia de las secciones anteriores:
 - [ ] Backfill de vistas corrido y verificado (Viewed sin pérdida).
 - [ ] Cron de atribución corriendo sin errores ≥ 48h antes del cierre.
 - [ ] Sin alertas `monitor_stalled` ni `hash_not_deterministic` abiertas.
-- [ ] Variables de entorno en Vercel: FES_WALLET_HASH_SALT, CRON_SECRET, STAKING_CONTRACT_ADDRESS, RIF_TOKEN_ADDRESS.
+- [ ] Variables de entorno en Vercel: FES_WALLET_HASH_SALT, CRON_SECRET, STAKING_CONTRACT_ADDRESS, RIF_TOKEN_ADDRESS, BLOCKSCOUT_API_KEY (sin ella el acceso anónimo a Blockscout responde 429 y el cron no escanea — clave gratis en https://dev.blockscout.com).
 - [ ] Cifra de participantes confirmada por Rootstock y foro corregido.
 - [ ] Condiciones económicas definidas ($11.200 / $3.600) — no incluir en el informe sin decisión.
