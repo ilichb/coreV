@@ -85,12 +85,6 @@ function envNum(name: string, fallback: number): number {
 const LOG_SCAN_CHUNK_DEFAULT = 10_000;
 /** Límite de logs por respuesta; si se llena, el rango se subdivide. */
 const LOG_HARD_LIMIT = 1_000;
-/**
- * Ancho mínimo antes de dejar de subdividir un rango que falla con HTTP 5xx.
- * Por debajo de esto el error ya no es de ancho: se propaga anotado con el
- * rango exacto (diagnóstico).
- */
-const LOG_MIN_SUBDIVIDE_RANGE = 500;
 /** Reintentos por petición de logs. */
 const LOG_FETCH_RETRIES = 3;
 
@@ -239,6 +233,12 @@ async function blockscoutLogs(params: Record<string, string>, signal?: AbortSign
     );
   }
   const json = await res.json();
+  // La API centralizada responde { status:'0', message:'No logs found' } con
+  // rangos SIN logs (la instancia legacy devolvía {status:'1', result:[]}):
+  // rango vacío es dato válido, no error. El result puede venir como [] o ''.
+  if (json?.message === 'No logs found') {
+    return [];
+  }
   // Blockscout responde { status, message, result } en el endpoint legacy.
   if (json?.result === 'Too many results' || json?.status === '0') {
     throw new Error(`Blockscout getLogs → ${json?.message || 'error'}: ${String(json?.result).slice(0, 120)}`);
@@ -247,6 +247,54 @@ async function blockscoutLogs(params: Record<string, string>, signal?: AbortSign
     throw new Error('Blockscout getLogs → respuesta inesperada (sin array result)');
   }
   return json.result as RawLog[];
+}
+
+/**
+ * Fallback de emergencia para un rango que tronca el endpoint de logs AUN
+ * como bloque individual (verificado oct-2026: el bloque 9318507 de
+ * Rootstock devuelve HTTP 500 determinista en Blockscout, incluso
+ * fromBlock=toBlock). Los RPCs públicos de Rootstock soportan
+ * eth_getTransactionReceipt (solo bloquean eth_getLogs) y cada receipt
+ * trae TODOS los logs de su transacción: con los receipts del bloque se
+ * reconstruyen exactamente los mismos logs que getLogs habría devuelto,
+ * sin saltear datos de la cadena.
+ */
+async function fetchLogsViaReceipts(fromBlock: number, toBlock: number): Promise<RawLog[]> {
+  const logs: RawLog[] = [];
+  for (let block = fromBlock; block <= toBlock; block++) {
+    const data = await rpcBalancer.call<{ transactions?: Array<{ hash: string }> }>({
+      method: 'eth_getBlockByNumber',
+      params: [`0x${block.toString(16)}`, true],
+      timeout: 20_000,
+    });
+    const txs = data?.transactions;
+    if (!Array.isArray(txs)) {
+      // Sin lista de transacciones no hay receipts que leer: mejor fallar
+      // visible que devolver [] y fingir "el bloque no tuvo logs".
+      throw new Error(`receipts fallback: bloque ${block} sin transactions (eth_getBlockByNumber)`);
+    }
+    for (const tx of txs) {
+      const rec = await rpcBalancer.call<{ logs?: Array<Record<string, unknown>> }>({
+        method: 'eth_getTransactionReceipt',
+        params: [tx.hash],
+        timeout: 20_000,
+      });
+      for (const l of rec?.logs ?? []) {
+        const address = String(l.address ?? '').toLowerCase();
+        const topics = (l.topics ?? []) as string[];
+        if (address !== RIF_TOKEN || topics[0] !== TRANSFER_TOPIC) continue;
+        logs.push({
+          address,
+          topics,
+          data: String(l.data ?? '0x'),
+          blockNumber: String(l.blockNumber ?? ''),
+          transactionHash: String(l.transactionHash ?? ''),
+          logIndex: String(l.logIndex ?? '0x0'),
+        });
+      }
+    }
+  }
+  return logs;
 }
 
 async function blockscoutLogsWithRetry(params: Record<string, string>): Promise<RawLog[]> {
@@ -314,15 +362,16 @@ async function scanTransfers(fromBlock: number, toBlock: number): Promise<RawLog
  * de resultados, subdivide (protección por densidad, complementaria al
  * chunking por ancho de rango).
  *
- * Si Blockscout responde 5xx (error intermitente del servidor, verificado
- * oct-2026: un chunk de 5.000 pasó y otro idéntico devolvió "Something went
- * wrong.") se biparte el rango y se reintenta más abajo — un rango chico
- * cabe en su presupuesto de escaneo, y bipartir ES el reintento (el retry
- * por request no reintent ante 5xx para no quemar cuota). Solo se subdivide
- * ante 5xx: ante 429 (rate limit) subdivide MULTIPLICARÍA las requests y
- * empeoraría el bloqueo; ese caso espera el cooldown y se propaga. Bajo
- * LOG_MIN_SUBDIVIDE_RANGE el fallo ya no es de ancho → se anota con el rango
- * exacto y se propaga (nunca se convierte en []).
+ * Si Blockscout responde 5xx se biparte el rango y se reintenta más abajo —
+ * bipartir ES el reintento (el retry por request no reintent ante 5xx para
+ * no quemar cuota). La subdivisión continúa hasta bloques individuales, sin
+ * piso: un fallo que persiste al ancho de 1 bloque no es de ancho sino un
+ * bloque que tronca al endpoint (verificado oct-2026: el bloque 9318507 de
+ * Rootstock 500ea incluso como bloque único), y ese bloque se reconstruye
+ * vía receipts RPC (fetchLogsViaReceipts). Solo se subdivide ante 5xx:
+ * ante 429 (rate limit) subdivide MULTIPLICARÍA las requests y empeoraría
+ * el bloqueo; ese caso espera el cooldown y se propaga. Un fallo se
+ * PROPAGA anotado con el rango exacto (nunca se convierte en []).
  */
 async function scanRange(fromBlock: number, toBlock: number): Promise<RawLog[]> {
   let logs: RawLog[];
@@ -335,7 +384,20 @@ async function scanRange(fromBlock: number, toBlock: number): Promise<RawLog[]> 
     });
   } catch (err) {
     const isHttp = err instanceof BlockscoutHttpError;
-    if (isHttp && err.status >= 500 && toBlock - fromBlock + 1 > LOG_MIN_SUBDIVIDE_RANGE) {
+    if (isHttp && err.status >= 500) {
+      if (toBlock === fromBlock) {
+        // Bloque individual que tronca el endpoint: sin piso de subdivisión
+        // que lo salve, se reconstruye vía receipts RPC.
+        logger.warn(
+          `[FES Attribution] bloque ${fromBlock} tronca el endpoint de logs (HTTP ${err.status}); reconstruyendo vía receipts RPC`
+        );
+        try {
+          return await fetchLogsViaReceipts(fromBlock, toBlock);
+        } catch (receiptErr) {
+          logger.error(`[FES Attribution] receipts fallback falló para el bloque ${fromBlock}`, receiptErr);
+          throw new Error(`Blockscout rango ${fromBlock}-${toBlock}: ${err.message}`);
+        }
+      }
       const mid = Math.floor((fromBlock + toBlock) / 2);
       logger.warn(
         `[FES Attribution] rango ${fromBlock}-${toBlock} falló (HTTP ${err.status}); subdividiendo`

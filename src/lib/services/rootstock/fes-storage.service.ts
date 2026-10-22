@@ -382,6 +382,10 @@ class FESStorageService {
     const { data, error } = await getSupabaseAdmin()
       .from('fes_views')
       .select('*')
+      // Vistas de prueba internas (checks de QA del equipo): excluidas del
+      // funnel y de la atribución — contarlas como exposición real mentiría
+      // la tasa de vista del piloto (hallazgo del piloto oct-2026).
+      .neq('is_internal_test', true)
       .order('created_at', { ascending: true })
       .limit(limit);
     if (error) {

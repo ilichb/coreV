@@ -462,6 +462,88 @@ describe('fes-attribution-monitor — robustez', () => {
     }
   });
 
+  it('trata "No logs found" (API centralizada, rango vacío) como [] y no como error', async () => {
+    setupChain({ logs: [], inputs: {} });
+    // Forma REAL de la API centralizada para rangos sin resultados.
+    fetchMock.mockImplementation(async () => ({
+      ok: true,
+      json: async () => ({ status: '0', message: 'No logs found', result: [] }),
+    }));
+
+    const result = await loadMonitor().runCheck();
+
+    expect(result.stakeEvents).toBe(0);
+    expect(setMonitorState).toHaveBeenCalledWith('attribution_last_scanned_block', String(NOW_BLOCK));
+  });
+
+  it('reconstruye vía receipts RPC un bloque que tronca el endpoint (500 aun a ancho 1)', async () => {
+    const POISON = NOW_BLOCK - 2;
+    const prevChunk = process.env.FES_LOG_SCAN_CHUNK;
+    process.env.FES_LOG_SCAN_CHUNK = '1'; // pide bloque a bloque: el venenoso llega como ancho 1
+    try {
+      setupChain({ logs: [], inputs: {} });
+
+      // Blockscout: 500 determinista SOLO para el bloque venenoso; el resto OK.
+      fetchMock.mockImplementation(async (url: string) => {
+        const u = new URL(String(url));
+        const from = Number(u.searchParams.get('fromBlock'));
+        const to = Number(u.searchParams.get('toBlock'));
+        if (from === POISON && to === POISON) {
+          return {
+            ok: false,
+            status: 500,
+            text: async () => '{"error":"Internal server error","source":"upstream"}',
+            headers: { get: () => null },
+          };
+        }
+        return { ok: true, json: async () => ({ status: '1', message: 'OK', result: [] }) };
+      });
+
+      // RPC: eth_getBlockByNumber con fullTx (fallback) + receipts.
+      rpcCall.mockImplementation(async ({ method, params }: any) => {
+        if (method === 'eth_blockNumber') return '0x' + NOW_BLOCK.toString(16);
+        if (method === 'eth_getBlockByNumber') {
+          if (params[1] === true) return { transactions: [{ hash: '0xfeed' }] };
+          return { timestamp: '0x' + Math.floor(Date.parse('2026-10-20T12:00:00Z') / 1000).toString(16) };
+        }
+        if (method === 'eth_getTransactionReceipt') {
+          return {
+            logs: [
+              transferLog({
+                from: PILOT_WALLET,
+                to: '0x2222222222222222222222222222222222222222',
+                txHash: '0xfeed',
+                logIndex: 0,
+                amount: (100n * 10n ** 18n).toString(),
+                blockNumber: POISON,
+              }),
+            ],
+          };
+        }
+        if (method === 'eth_getTransactionByHash') return { input: '0x' };
+        throw new Error(`método inesperado: ${method}`);
+      });
+
+      // Checkpoint previo justo antes del bloque venenoso (getMonitorState
+      // devuelve el valor crudo, no una fila).
+      getMonitorState.mockResolvedValue(String(POISON - 1));
+
+      const result = await loadMonitor().runCheck();
+
+      // El escaneo COMPLETA más allá del bloque troncado (cursor avanza) y el
+      // log del bloque venenoso se recupera vía receipts, no se saltea.
+      expect(result.toBlock).toBe(NOW_BLOCK);
+      expect(result.transfersScanned).toBe(1);
+      const singleBlockCall = fetchMock.mock.calls.find(([url]) =>
+        String(url).includes(`fromBlock=${POISON}&toBlock=${POISON}`)
+      );
+      expect(singleBlockCall).toBeDefined();
+      expect(setMonitorState).toHaveBeenCalledWith('attribution_last_scanned_block', String(NOW_BLOCK));
+    } finally {
+      process.env.FES_LOG_SCAN_CHUNK = prevChunk;
+    }
+  });
+
   it('recupera si un chunk devuelve 500 intermitente: biparte el rango en vez de rendirse', async () => {
     const prevChunk = process.env.FES_LOG_SCAN_CHUNK;
     process.env.FES_LOG_SCAN_CHUNK = '5000';
