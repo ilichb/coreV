@@ -3,7 +3,7 @@
  *
  * Cubren las tres alertas del spec (oct-2026):
  *   1. Piso de exposición no alcanzado con <10 días → resultado inconcluso.
- *   2. Monitor estancado (>2h sin avanzar) o nunca corrió / ilegible.
+ *   2. Monitor estancado (>26h sin avanzar — cron diario) o nunca corrió / ilegible.
  *   3. walletHash no determinista → la atribución se pierde al reiniciar.
  */
 import { computeFesAlerts, type FesAlertsInput } from '../fes-alerts';
@@ -69,16 +69,27 @@ describe('computeFesAlerts', () => {
       expect(alerts[0].message).toMatch(/never run/i);
     });
 
-    it('warn si lastRun lleva más de 2h quieto', () => {
+    it('warn si lastRun lleva más de 26h quieto (el cron corre 1x por día)', () => {
       const alerts = computeFesAlerts(
-        input({ monitor: { lastCheckedBlock: 9_500_000, lastRun: new Date(NOW - 3 * 60 * 60 * 1000).toISOString() } })
+        input({ monitor: { lastCheckedBlock: 9_500_000, lastRun: new Date(NOW - 27 * 60 * 60 * 1000).toISOString() } })
       );
       expect(alerts).toEqual([
         expect.objectContaining({ code: 'monitor_stalled', severity: 'warn' }),
       ]);
+      expect(alerts[0].message).toMatch(/>26h/);
     });
 
-    it('NO alerta si el cursor se actualizó hace menos de 2h', () => {
+    it('NO alerta a las 12h de la última corrida: es la cadencia normal del cron diario', () => {
+      // Regresión del falso positivo de producción (oct-2026): con umbral de
+      // 2h la alerta estaba en rojo la mayor parte del día con el sistema sano.
+      expect(
+        computeFesAlerts(
+          input({ monitor: { lastCheckedBlock: 9_500_000, lastRun: new Date(NOW - 12 * 60 * 60 * 1000).toISOString() } })
+        )
+      ).toEqual([]);
+    });
+
+    it('NO alerta si el cursor se actualizó hace menos del umbral', () => {
       expect(
         computeFesAlerts(
           input({ monitor: { lastCheckedBlock: 9_500_000, lastRun: new Date(NOW - 60 * 60 * 1000).toISOString() } })

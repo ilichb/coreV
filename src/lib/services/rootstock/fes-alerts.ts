@@ -8,7 +8,9 @@
  *
  * Tres alertas definidas por el spec:
  *   1. viewed < exposureFloor (8) y <10 días de ventana → resultado inconcluso.
- *   2. lastCheckedBlock sin avanzar >2h → el cron del monitor está roto.
+ *   2. lastCheckedBlock sin avanzar >26h → el cron del monitor está roto
+ *      (el cron corre 1 vez por día a las 06:00 UTC; el umbral da margen
+ *      para una corrida tardía o un fallo transitorio de una ejecución).
  *   3. walletHash no determinista → la atribución se pierde al reiniciar.
  */
 
@@ -42,12 +44,18 @@ export interface FesAlertsInput {
   stallThresholdMs?: number;
 }
 
-const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+/**
+ * Umbral de estancamiento: el cron fes-track corre 1 vez por día (06:00 UTC),
+ * así que "sin avanzar" solo es alarmante cuando ya pasó el día completo más
+ * margen. Con un umbral de 2h la alerta estaba en rojo ~22h/día incluso con
+ * el sistema sano (verificado en producción oct-2026).
+ */
+const MONITOR_STALL_THRESHOLD_MS = 26 * 60 * 60 * 1000;
 
 export function computeFesAlerts(input: FesAlertsInput): FesAlert[] {
   const alerts: FesAlert[] = [];
   const nowMs = input.nowMs ?? Date.now();
-  const stallThresholdMs = input.stallThresholdMs ?? TWO_HOURS_MS;
+  const stallThresholdMs = input.stallThresholdMs ?? MONITOR_STALL_THRESHOLD_MS;
 
   // 1. Piso de exposición — sin vistas suficientes la conversión no mide nada.
   if (
@@ -85,8 +93,8 @@ export function computeFesAlerts(input: FesAlertsInput): FesAlert[] {
       code: 'monitor_stalled',
       severity: 'warn',
       message:
-        'Monitor stalled: last checked block has not advanced in >2h. ' +
-        'The attribution cron is broken or not running.',
+        'Monitor stalled: last checked block has not advanced in >26h ' +
+        '(the cron runs daily at 06:00 UTC). The attribution cron is broken or not running.',
     });
   }
 
